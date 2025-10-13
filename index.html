@@ -2,257 +2,228 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MeAI — タイトル＋キャラ選択＋会話復元</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MeAI Prototype</title>
   <style>
-    :root{
-      --bg:/public/space_background.png;
-      --glass: rgba(255,255,255,0.12);
-      --text: #f7f7fb;
+    body {
+      margin: 0;
+      font-family: "Noto Sans JP", sans-serif;
+      background: url("public/space_background.png") no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      text-align: center;
+      overflow: hidden;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%; margin:0; font-family:system-ui,"Noto Sans JP",sans-serif; color:var(--text);}
-    body{background:#060514 url(var(--bg)) center/cover fixed no-repeat;}
-    .clarity{position:fixed; inset:0; pointer-events:none;}
-    .clarity:before{content:""; position:absolute; inset:0; backdrop-filter:contrast(1.2) brightness(1.05);}
-    .clarity:after{content:""; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 40%,rgba(0,0,0,0)40%,rgba(0,0,0,0.35)100%);}
-    .wrap{min-height:100%; display:grid; grid-template-rows:auto 1fr auto;}
-    header{padding:28px 24px; font-weight:700; font-size:28px;}
-    main{display:flex; justify-content:center; align-items:center; padding:24px;}
-    .panel{width:min(960px,92vw); display:grid; gap:18px;}
-    .glass{background:var(--glass); border:1px solid rgba(255,255,255,.2); border-radius:22px; box-shadow:0 10px 40px rgba(0,0,0,.25);}
-    .hero{display:grid; grid-template-columns:140px 1fr; align-items:center; padding:28px 32px; gap:20px;}
-    .bubble{padding:18px 22px; font-size:20px;}
-    .meta{opacity:.9; font-size:12px}
-    .chat{display:grid; gap:10px; padding:18px}
-    .msg{max-width:80%; padding:12px 16px; border-radius:16px;}
-    .ai{justify-self:start; background:rgba(255,255,255,.12);}
-    .me{justify-self:end; background:rgba(10,10,20,.6);}
-    input{height:58px; padding:0 16px; border-radius:14px; border:1px solid rgba(255,255,255,.24); background:rgba(0,0,0,.25); color:var(--text); font-size:18px; width:100%}
-    .row{display:flex; gap:10px; align-items:stretch; padding:0 18px 18px}
-    .btn{padding:16px 18px; border-radius:16px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.12); color:var(--text); font-weight:700; cursor:pointer;}
-    footer{padding:18px 24px; font-size:12px; opacity:.85}
-    .petimg{width:120px; height:120px; object-fit:contain; filter:drop-shadow(0 0 10px rgba(255,255,255,.4));}
 
-    /* タイトル画面 */
-    #titleScreen{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.65); z-index:200;}
-    .titleBox{width:min(520px,92vw); padding:28px; border-radius:20px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.25); text-align:center; display:grid; gap:14px;}
-    .tbtn{padding:14px 18px; border-radius:14px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.35); color:#fff; font-weight:800; cursor:pointer}
-    .tbtn:disabled{opacity:.5; cursor:not-allowed}
+    #titleScreen, #charSelect, #mainScreen {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      backdrop-filter: blur(4px);
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
 
-    /* キャラ選択モーダル */
-    #charSelectModal{position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:150;}
-    #charBox{background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); border-radius:20px; padding:30px 40px; text-align:center;}
-    .charGrid{display:flex; gap:20px; justify-content:center; flex-wrap:wrap;}
-    .charBtn{width:100px; height:100px; object-fit:contain; cursor:pointer; border:2px solid transparent; border-radius:16px; padding:8px; background:rgba(255,255,255,.08);}
-    .charBtn:hover{border-color:#fff; background:rgba(255,255,255,.2);}
+    .show { display: flex; }
+
+    .box {
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 2em;
+      max-width: 400px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.2);
+    }
+
+    button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 20px;
+      font-size: 1.1em;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: rgba(255,255,255,0.4);
+    }
+
+    .char-option {
+      display: inline-block;
+      margin: 10px;
+      cursor: pointer;
+      border-radius: 50%;
+      transition: 0.3s;
+    }
+    .char-option:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px #fff;
+    }
+
+    #chatBox {
+      background: rgba(0,0,0,0.5);
+      padding: 20px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: left;
+    }
+
+    .bubble {
+      margin: 10px 0;
+      padding: 10px 15px;
+      border-radius: 15px;
+      display: inline-block;
+      max-width: 80%;
+    }
+
+    .ai {
+      background: rgba(100, 200, 255, 0.3);
+      align-self: flex-start;
+    }
+
+    .user {
+      background: rgba(255, 255, 255, 0.3);
+      align-self: flex-end;
+    }
+
+    #heart {
+      font-size: 1.5em;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <div class="clarity"></div>
-
   <!-- タイトル画面 -->
-  <div id="titleScreen" hidden>
-    <div class="titleBox">
-      <h1 style="margin:0 0 6px">MeAI</h1>
-      <p style="margin:0 0 10px; opacity:.9">“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で記録するシンプルなプロトタイプです。</p>
-      <button class="tbtn" id="btnStart">はじめから</button>
-      <button class="tbtn" id="btnContinue">つづきから</button>
-      <button class="tbtn" id="btnAbout">このプロトタイプについて</button>
-      <p id="noSaveMsg" style="margin:6px 0 0; font-size:12px; opacity:.8" hidden>セーブデータがありません。</p>
+  <div id="titleScreen" class="show">
+    <div class="box">
+      <h1>MeAI</h1>
+      <p>“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で記録するシンプルなプロトタイプです。</p>
+      <button id="btnStart">はじめから</button>
+      <button id="btnContinue">つづきから</button>
+      <button id="btnAbout">このプロトタイプについて</button>
+      <p id="saveInfo" style="opacity:0.8;"></p>
     </div>
   </div>
 
-  <!-- キャラ選択 -->
-  <div id="charSelectModal">
-    <div id="charBox">
+  <!-- キャラ選択画面 -->
+  <div id="charSelect">
+    <div class="box">
       <h2>キャラクターを選んでね</h2>
-      <div class="charGrid">
-        <img src="public/char/blue/calm.png" class="charBtn" data-char="blue"   alt="Blue">
-        <img src="public/char/green/calm.png" class="charBtn" data-char="green" alt="Green">
-        <img src="public/char/pink/calm.png" class="charBtn" data-char="pink"   alt="Pink">
-        <img src="public/char/purple/calm.png" class="charBtn" data-char="purple" alt="Purple">
+      <div>
+        <img src="public/char/green/calm.png" class="char-option" width="80" data-char="green">
+        <img src="public/char/blue/calm.png" class="char-option" width="80" data-char="blue">
+        <img src="public/char/pink/calm.png" class="char-option" width="80" data-char="pink">
+        <img src="public/char/purple/calm.png" class="char-option" width="80" data-char="purple">
       </div>
     </div>
   </div>
 
-  <div class="wrap">
-    <header>MeAI</header>
-    <main>
-      <div class="panel">
-        <section class="hero glass">
-          <img id="petImg" class="petimg" src="public/char/blue/calm.png" alt="pet">
-          <div>
-            <div class="bubble" id="aiLine">……</div>
-            <div class="meta"><span id="todLabel">—</span></div>
-          </div>
-        </section>
-
-        <section class="glass">
-          <div class="chat" id="chat"></div>
-          <div class="row">
-            <input id="userInput" type="text" placeholder="返答を入力…">
-            <button class="btn" id="btnDone">はい、やったよ</button>
-          </div>
-        </section>
-
-        <section class="glass" style="padding:14px 18px">
-          <span id="saveState">きろく：0件</span>
-        </section>
-      </div>
-    </main>
-    <footer>バージョン：タイトル＋キャラ選択＋復元</footer>
+  <!-- メイン画面 -->
+  <div id="mainScreen">
+    <div id="chatBox"></div>
+    <div style="margin-top:20px;">
+      <input id="userInput" type="text" placeholder="返答を入力…" style="width:60%; padding:10px; border-radius:10px; border:none;">
+      <button id="btnSend">送信</button>
+    </div>
+    <div id="heart">❤️ × <span id="heartCount">0</span></div>
   </div>
 
   <script>
-    // ===== i18n =====
-    const T = {
-      requests:[
-        "今日はだれかに『おはよう』を伝えてみよう",
-        "水をコップ一杯のもう",
-        "5分だけストレッチしてみよう",
-        "外の空気を吸いに行こう",
-      ],
-      done:"はい、やったよ",
-      saved:n=>`きろく：${n}件`,
-      period:{now:"いま"}
+    const titleScreen = document.getElementById("titleScreen");
+    const charSelect = document.getElementById("charSelect");
+    const mainScreen = document.getElementById("mainScreen");
+    const chatBox = document.getElementById("chatBox");
+    const userInput = document.getElementById("userInput");
+    const btnSend = document.getElementById("btnSend");
+    const heartCountEl = document.getElementById("heartCount");
+
+    let character = localStorage.getItem("meai_character") || null;
+    let heartCount = parseInt(localStorage.getItem("meai_heart") || "0");
+    let log = JSON.parse(localStorage.getItem("meai_log") || "[]");
+
+    // ===== タイトル画面 =====
+    document.getElementById("btnStart").onclick = () => {
+      titleScreen.classList.remove("show");
+      charSelect.classList.add("show");
     };
-
-    // ===== DOM =====
-    const title = document.getElementById('titleScreen');
-    const btnStart = document.getElementById('btnStart');
-    const btnContinue = document.getElementById('btnContinue');
-    const btnAbout = document.getElementById('btnAbout');
-    const noSaveMsg = document.getElementById('noSaveMsg');
-
-    const chat = document.getElementById("chat");
-    const petImg = document.getElementById("petImg");
-    const modal = document.getElementById("charSelectModal");
-    const aiLine = document.getElementById("aiLine");
-    const todLabel = document.getElementById("todLabel");
-    const input = document.getElementById("userInput");
-
-    // ===== storage helpers =====
-    const load = (k, d)=>{ try{return JSON.parse(localStorage.getItem(k) ?? JSON.stringify(d));}catch{return d;} };
-    const save = (k,v)=> localStorage.setItem(k, JSON.stringify(v));
-
-    function loadHist(){ return load('meai_history', []); }
-    function saveHist(a){ save('meai_history', a); }
-    function addHist(e){ const h=loadHist(); h.push(e); saveHist(h); updateSaveBadge(); }
-    function updateSaveBadge(){ document.getElementById('saveState').textContent = T.saved(loadHist().length); }
-
-    function loadChat(){ return load('meai_chat', []); }
-    function saveChat(a){ save('meai_chat', a); }
-    function addChat(who,text){ const c=loadChat(); c.push({ts:Date.now(), who, text}); saveChat(c); }
-
-    function savePrompt(p){ localStorage.setItem('meai_last_prompt', p); }
-    function loadPrompt(){ return localStorage.getItem('meai_last_prompt'); }
-
-    // ===== UI helpers =====
-    function pushMsg(text, who='ai'){
-      const el = document.createElement('div');
-      el.className = `msg ${who}`;
-      el.textContent = text;
-      chat.appendChild(el);
-      chat.scrollTop = chat.scrollHeight;
-      addChat(who, text);
-    }
-
-    function pickRequest(){
-      return T.requests[Math.floor(Math.random()*T.requests.length)];
-    }
-    function renderNewPrompt(){
-      const r = pickRequest();
-      aiLine.textContent = r;
-      todLabel.textContent = T.period.now;
-      savePrompt(r);
-    }
-
-    function restoreChatAndPrompt(){
-      // チャット復元
-      const hist = loadChat();
-      if(hist.length){
-        for(const m of hist){ 
-          const el = document.createElement('div');
-          el.className = `msg ${m.who}`;
-          el.textContent = m.text;
-          chat.appendChild(el);
-        }
-        chat.scrollTop = chat.scrollHeight;
+    document.getElementById("btnContinue").onclick = () => {
+      if (character) {
+        startMain();
+      } else {
+        alert("セーブデータがありません。");
       }
-      // プロンプト復元
-      const p = loadPrompt();
-      if(p){ aiLine.textContent = p; todLabel.textContent = T.period.now; }
-      else { renderNewPrompt(); }
-    }
-
-    // ===== タイトル画面制御 =====
-    function showTitle(){
-      title.hidden = false;
-      const hasSave = !!localStorage.getItem('meai_history');
-      btnContinue.disabled = !hasSave;
-      noSaveMsg.hidden = hasSave;
-    }
-    function hideTitle(){ title.hidden = true; }
-
-    btnStart.onclick = ()=>{
-      // 新規開始：既存チャットは消さない派ならこの行をコメントアウト
-      // localStorage.removeItem('meai_chat'); localStorage.removeItem('meai_last_prompt');
-      ensureCharacter().then(()=>{ hideTitle(); renderNewPrompt(); });
     };
-    btnContinue.onclick = ()=>{
-      ensureCharacter().then(()=>{ hideTitle(); restoreChatAndPrompt(); });
-    };
-    btnAbout.onclick = ()=>{
-      alert("このプロトタイプは固定メッセージ型です。\n「はい、やったよ」を押すとローカルに記録し、CSV出力できます。\n監視はありません。");
+    document.getElementById("btnAbout").onclick = () => {
+      alert("これは生活密着型AIの試作版です。やったことを記録するだけの簡単なデモです。");
     };
 
     // ===== キャラ選択 =====
-    function ensureCharacter(){
-      return new Promise(resolve=>{
-        const savedChar = localStorage.getItem('meai_character');
-        if(savedChar){
-          petImg.src = `public/char/${savedChar}/calm.png`;
-          resolve(); 
-        }else{
-          modal.style.display = "flex";
-          function pick(c){
-            localStorage.setItem('meai_character', c);
-            petImg.src = `public/char/${c}/calm.png`;
-            modal.style.display = "none";
-            resolve();
-          }
-          modal.querySelectorAll('.charBtn').forEach(btn=>{
-            btn.onclick = ()=> pick(btn.dataset.char);
-          });
-        }
+    document.querySelectorAll(".char-option").forEach(opt => {
+      opt.addEventListener("click", () => {
+        character = opt.dataset.char;
+        localStorage.setItem("meai_character", character);
+        startMain();
       });
+    });
+
+    // ===== メイン開始 =====
+    function startMain() {
+      titleScreen.classList.remove("show");
+      charSelect.classList.remove("show");
+      mainScreen.classList.add("show");
+      heartCountEl.textContent = heartCount;
+      if (log.length === 0) {
+        addAI("今日はだれかに『おはよう』を伝えてみよう。");
+      } else {
+        log.forEach(entry => addMessage(entry.text, entry.sender));
+      }
     }
 
-    // ===== 入力・ボタン =====
-    document.getElementById("btnDone").addEventListener("click", ()=>{
-      addHist({ts:Date.now(), type:"done", prompt:aiLine.textContent});
-      pushMsg(T.done, 'me');
-      pushMsg("記録したよ。おつかれさま。", 'ai');
-      const c = localStorage.getItem('meai_character') || 'blue';
-      petImg.src = `public/char/${c}/joy.png`;
-      setTimeout(()=>{ petImg.src = `public/char/${c}/calm.png`; }, 2000);
-      renderNewPrompt();
-    });
+    // ===== チャット処理 =====
+    btnSend.onclick = sendMessage;
+    userInput.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
 
-    input.addEventListener('keydown', e=>{
-      if(e.key==='Enter'){
-        const text = input.value.trim(); if(!text) return;
-        pushMsg(text, 'me');
-        pushMsg("うん、聞いてるよ。", 'ai');
-        addHist({ts:Date.now(), type:"free", text});
-        input.value='';
+    function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+      addUser(text);
+      userInput.value = "";
+      if (text.includes("やった")) {
+        heartCount++;
+        heartCountEl.textContent = heartCount;
+        addAI("すばらしい！ハートが増えたよ💖");
+      } else {
+        addAI("うん、なるほどね。");
       }
-    });
+      saveLog();
+    }
 
-    // ===== 初期化 =====
-    updateSaveBadge();
-    showTitle();
+    function addAI(text) { addMessage(text, "ai"); }
+    function addUser(text) { addMessage(text, "user"); }
+
+    function addMessage(text, sender) {
+      const div = document.createElement("div");
+      div.classList.add("bubble", sender);
+      div.textContent = text;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      log.push({ sender, text });
+    }
+
+    function saveLog() {
+      localStorage.setItem("meai_heart", heartCount);
+      localStorage.setItem("meai_log", JSON.stringify(log));
+    }
+
+    // セーブ情報表示
+    const hasSave = localStorage.getItem("meai_character");
+    document.getElementById("saveInfo").textContent = hasSave ? "セーブデータがあります。" : "セーブデータがありません。";
   </script>
 </body>
 </html>
