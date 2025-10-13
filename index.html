@@ -1,99 +1,147 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>めあい — 小さなAIのいる生活</title>
+  <title>めあい｜MeAI</title>
   <link rel="stylesheet" href="./styles.css" />
+  <style>
+    /* 🌌 タイトル用宇宙背景 */
+    .title-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 40%, #1a2740, #0b1022 80%);
+      background-image: url('public/ui/stars.svg'), radial-gradient(circle at 50% 40%, #1a2740, #0b1022 80%);
+      background-size: cover;
+      color: #fff;
+      text-align: center;
+    }
+    .title-card {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      padding: 40px 28px;
+      border-radius: 24px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
+    }
+    .title-card .title {
+      font-size: 40px;
+      margin: 0 0 12px;
+      font-weight: bold;
+      letter-spacing: 0.05em;
+      color: #fff;
+    }
+    .subtitle { color: #c7d2fe; margin: 0 0 1.2rem; }
+    .menu { display: flex; gap: 12px; justify-content: center; margin-bottom: 1rem; }
+    .btn {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 14px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 6px 18px rgba(0,0,0,.2);
+    }
+    .btn:hover { transform: translateY(-1px); opacity: .9; }
+    .btn:active { transform: translateY(1px); }
+    .btn--start { background: #60a5fa; color: #fff; }
+    .btn--continue { background: #818cf8; color: #fff; }
+    .btn--about { background: transparent; border:1px solid #cbd5e1; color: #e2e8f0; }
+    .lang { margin-top: 1rem; color: #cbd5e1; }
+    .lang select { padding: 6px 10px; border-radius: 8px; }
+
+    /* 星の背景の疑似アニメーション（動かしたい場合） */
+    @keyframes floatStars {
+      from { background-position: 0 0; }
+      to { background-position: 1000px 0; }
+    }
+  </style>
 </head>
 <body>
-  <!-- ============ タイトル画面 ============ -->
-  <div id="titleScreen" class="title-screen">
+
+  <!-- 🌌 タイトル画面 -->
+  <section class="title-screen" id="titleScreen">
     <div class="title-card">
       <h1 class="title">めあい</h1>
-      <p class="subtitle">— 小さなAIのいる生活 —</p>
+      <p class="subtitle">AIといっしょに暮らす日々</p>
 
       <div class="menu">
-        <button id="btnNew" class="btn">はじめから</button>
-        <button id="btnContinue" class="btn btn--ghost" disabled>つづきから</button>
+        <button class="btn btn--start" id="btnStart">はじめから</button>
+        <button class="btn btn--continue" id="btnContinue">つづきから</button>
       </div>
 
-      <div class="menu sub">
-        <button id="openResearch" class="btn btn--soft">研究について</button>
-        <label class="lang">
-          <span id="langLabel">言語</span>
-          <select id="langSelect"></select>
-        </label>
+      <div class="menu">
+        <button class="btn btn--about" id="btnAbout">研究について</button>
       </div>
 
-      <small class="hint">※ セーブがあると表示されます</small>
+      <div class="lang">
+        🌐 言語：
+        <select id="langSelect">
+          <option value="ja">日本語</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <p class="hint">※ セーブがあると「つづきから」が使えます</p>
     </div>
-  </div>
+  </section>
 
-  <!-- 研究についてモーダル -->
+  <!-- 🔍 研究モーダル -->
   <dialog id="researchModal" class="modal">
     <div class="modal__card">
-      <h2 id="researchTitle" class="modal__title">研究について</h2>
-      <div id="researchBody" class="modal__body">...</div>
+      <h2 class="modal__title" data-i18n="about_title">研究について</h2>
+      <p class="modal__body" data-i18n="about_body">
+        「めあい」は、日常生活の中でAIとの関係を育てる研究プロジェクトです。  
+        小さな“おねがい”や“返答”を通して、人とAIのあいだに生まれる行動や感情の変化を観察します。
+      </p>
       <div class="modal__actions">
-        <button id="closeResearch" class="btn btn--soft">とじる</button>
+        <button class="btn btn--continue" id="btnCloseModal">閉じる</button>
       </div>
     </div>
   </dialog>
 
-  <!-- ============ 本編 ============ -->
-  <div id="app" class="app gradient-day" hidden>
+  <!-- 💬 本編 -->
+  <main id="app" class="app" hidden>
     <header class="app__header">
-      <h1 class="title">めあい</h1>
-      <div class="header__actions">
-        <button id="toTitleBtn" class="btn btn--soft" title="タイトルへ戻る">タイトルへ</button>
-        <button id="exportCsvBtn" class="btn btn--ghost" title="CSVで履歴を保存">CSV出力</button>
+      <h1>めあい</h1>
+      <div class="affection">
+        <img src="public/ui/heart.svg" class="affection__icon" alt="heart" />
+        <span id="affectionCount">0</span>
       </div>
     </header>
 
-    <main class="app__main">
-      <section class="avatar">
+    <section class="app__main">
+      <div class="avatar">
         <div class="glow" id="glow"></div>
-        <img id="charImg" class="avatar__img" alt="めあい" src="public/char/blue/calm.png" />
-        <div class="affection">
-          <img src="public/ui/heart.svg" alt="" class="affection__icon" />
-          <span id="affectionVal">0</span>
-        </div>
-      </section>
+        <img id="charImg" class="avatar__img" alt="めあい" />
+      </div>
 
-      <section class="request">
+      <div class="request">
         <div class="bubble">
-          <img src="public/ui/bubble.png" alt="" class="bubble__bg" />
-          <p id="requestText" class="bubble__text">読み込み中…</p>
-          <p id="periodText" class="bubble__period">—</p>
+          <p id="reqText" class="bubble__text">読み込み中...</p>
+          <p id="reqPeriod" class="bubble__period">＿</p>
         </div>
-      </section>
+      </div>
 
-      <section class="reply">
-        <input id="replyInput" class="input" type="text" placeholder="ひとこと返してね（任意）" />
-        <button id="doneBtn" class="btn">はい、やったよ</button>
-        <button id="goodnightBtn" class="btn btn--soft" title="夜だけ">おやすみ</button>
-      </section>
+      <div class="reply">
+        <input id="replyInput" class="input" placeholder="返答を入力…" />
+        <button id="btnSend" class="btn">はい、やったよ</button>
+        <button id="btnExport" class="btn btn--ghost">CSV出力</button>
+      </div>
 
-      <section class="history">
-        <h2 class="history__title">お世話のきろく</h2>
-        <div id="historyList" class="history__list"></div>
-      </section>
-    </main>
+      <div class="history">
+        <h3 class="history__title">きろく</h3>
+        <div class="history__list" id="historyList"></div>
+      </div>
+    </section>
+  </main>
 
-    <footer class="app__footer">
-      <small>© 2025 Me•AI</small>
-    </footer>
-  </div>
-
-  <!-- スクリプト（i18n → state → requests → ui → main の順） -->
- <!-- 末尾だけ差し替え -->
-<script src="./js/i18n.js"></script>
-<script src="./js/state.js"></script>
-<script src="./js/requests.js"></script>
-<script src="./js/ui.js"></script>
-<script src="./js/main.js"></script>
-
-
+  <!-- JS -->
+  <script src="./js/i18n.js"></script>
+  <script src="./js/state.js"></script>
+  <script src="./js/requests.js"></script>
+  <script src="./js/ui.js"></script>
+  <script src="./js/main.js"></script>
 </body>
 </html>
