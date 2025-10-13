@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>めあい — 小さなAIのいる生活</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <!-- ============ タイトル画面 ============ -->
+  <div id="titleScreen" class="title-screen">
+    <div class="title-card">
+      <h1 class="title">めあい</h1>
+      <p class="subtitle">— 小さなAIのいる生活 —</p>
+
+      <div class="menu">
+        <button id="btnNew" class="btn">はじめから</button>
+        <button id="btnContinue" class="btn btn--ghost" disabled>つづきから</button>
+      </div>
+
+      <div class="menu sub">
+        <button id="openResearch" class="btn btn--soft">研究について</button>
+        <label class="lang">
+          <span id="langLabel">言語</span>
+          <select id="langSelect"></select>
+        </label>
+      </div>
+
+      <small class="hint">※ セーブがあると表示されます</small>
+    </div>
+  </div>
+
+  <!-- 研究についてモーダル -->
+  <dialog id="researchModal" class="modal">
+    <div class="modal__card">
+      <h2 id="researchTitle" class="modal__title">研究について</h2>
+      <div id="researchBody" class="modal__body">...</div>
+      <div class="modal__actions">
+        <button id="closeResearch" class="btn btn--soft">とじる</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ============ 本編 ============ -->
+  <div id="app" class="app gradient-day" hidden>
+    <header class="app__header">
+      <h1 class="title">めあい</h1>
+      <div class="header__actions">
+        <button id="toTitleBtn" class="btn btn--soft" title="タイトルへ戻る">タイトルへ</button>
+        <button id="exportCsvBtn" class="btn btn--ghost" title="CSVで履歴を保存">CSV出力</button>
+      </div>
+    </header>
+
+    <main class="app__main">
+      <section class="avatar">
+        <div class="glow" id="glow"></div>
+        <img id="charImg" class="avatar__img" alt="めあい" src="public/char/blue/calm.png" />
+        <div class="affection">
+          <img src="public/ui/heart.svg" alt="" class="affection__icon" />
+          <span id="affectionVal">0</span>
+        </div>
+      </section>
+
+      <section class="request">
+        <div class="bubble">
+          <img src="public/ui/bubble.png" alt="" class="bubble__bg" />
+          <p id="requestText" class="bubble__text">読み込み中…</p>
+          <p id="periodText" class="bubble__period">—</p>
+        </div>
+      </section>
+
+      <section class="reply">
+        <input id="replyInput" class="input" type="text" placeholder="ひとこと返してね（任意）" />
+        <button id="doneBtn" class="btn">はい、やったよ</button>
+        <button id="goodnightBtn" class="btn btn--soft" title="夜だけ">おやすみ</button>
+      </section>
+
+      <section class="history">
+        <h2 class="history__title">お世話のきろく</h2>
+        <div id="historyList" class="history__list"></div>
+      </section>
+    </main>
+
+    <footer class="app__footer">
+      <small>© 2025 Me•AI</small>
+    </footer>
+  </div>
+
+  <!-- スクリプト（i18n → state → requests → ui → main の順） -->
+  <script src="./js/i18n.js"></script>
+  <script src="./js/state.js"></script>
+  <script src="./js/requests.js"></script>
+  <script src="./js/ui.js"></script>
+  <script src="./js/main.js"></script>
+</body>
+</html>
