@@ -10,55 +10,48 @@
   body{
     margin:0;
     font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    background: #000 url("public/space_background.png") center/cover fixed no-repeat;
+    background:#000 url("public/space_background.png") center/cover fixed no-repeat;
     color:#fff;
   }
-
-  /* きらめく星層（軽量CSSアニメ） */
   .stars, .stars::after{
     position:fixed; inset:0; content:"";
     background: radial-gradient(white 1px, transparent 1px) 0 0/3px 3px;
-    opacity:.25; animation: twinkle 8s linear infinite;
+    opacity:.22; animation: twinkle 10s linear infinite;
     pointer-events:none; z-index:0;
   }
-  .stars::after{ animation-duration: 12s; opacity:.18; filter:blur(0.4px) brightness(1.2); }
-
+  .stars::after{ animation-duration:14s; opacity:.16; filter:blur(.4px) brightness(1.2); }
   @keyframes twinkle{ 0%{transform:translateY(0)} 100%{transform:translateY(-40px)} }
 
-  /* ===== 共通レイヤ ===== */
+  /* ===== 画面・カード ===== */
   .screen{ position:fixed; inset:0; display:none; z-index:1; }
-  .show { display:block; }
-
-  /* ===== カード ===== */
+  .show{ display:block; }
   .center{
-    width:min(92vw, 920px); margin:10vh auto 0; display:grid;
-    grid-template-columns: 140px 1fr; gap:20px;
-    background: rgba(0,0,0,.45);
-    border:1px solid rgba(255,255,255,.2);
-    border-radius:24px; padding:24px; backdrop-filter: blur(8px);
-    box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    width:min(92vw,920px); margin:10vh auto 0; display:grid;
+    grid-template-columns:140px 1fr; gap:20px;
+    background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.2);
+    border-radius:24px; padding:24px; backdrop-filter:blur(8px);
+    box-shadow:0 20px 60px rgba(0,0,0,.5);
   }
-  .brand {display:grid; place-items:center;}
+  .brand{display:grid; place-items:center;}
   .brand img{ width:110px; height:110px; object-fit:contain; filter:drop-shadow(0 6px 10px rgba(0,0,0,.5));}
   h1{margin:.1em 0 .2em; font-size:40px; letter-spacing:.02em}
   .lead{opacity:.95; margin:0 0 14px; line-height:1.6}
-
   .btn{
     display:block; width:100%; margin:8px 0; padding:12px 16px;
-    border:none; border-radius:12px; cursor:pointer;
-    color:#fff; background:rgba(255,255,255,.18);
-    transition: .2s; font-size:16px;
+    border:none; border-radius:12px; cursor:pointer; color:#fff;
+    background:rgba(255,255,255,.18); transition:.2s; font-size:16px;
   }
   .btn:hover{ background:rgba(255,255,255,.28); }
   .btn.secondary{ background:rgba(255,255,255,.1); }
 
   /* ===== キャラ選択 ===== */
-  .panel{ width:min(92vw, 680px); margin:10vh auto; background:rgba(0,0,0,.45);
+  .panel{ width:min(92vw,680px); margin:10vh auto; background:rgba(0,0,0,.45);
     border:1px solid rgba(255,255,255,.2); border-radius:20px; padding:22px; backdrop-filter:blur(6px); }
   .grid{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin-top:6px; }
   .char{
     width:92px; height:92px; border-radius:50%; border:1px solid rgba(255,255,255,.22);
-    display:grid; place-items:center; background:rgba(255,255,255,.12); cursor:pointer; transition:.2s;
+    display:grid; place-items:center; background:rgba(255,255,255,.12);
+    cursor:pointer; transition:.2s;
   }
   .char img{ width:70px; height:70px; object-fit:contain; }
   .char:hover{ transform:scale(1.06); box-shadow:0 0 0 3px rgba(255,255,255,.22) inset; }
@@ -71,18 +64,17 @@
   }
   #header img{ width:30px; height:30px; }
   #heart{ font-size:18px; }
-
   #chat{
-    width:min(92vw, 900px); height:min(64vh, 460px);
+    width:min(92vw,900px); height:min(64vh,460px);
     margin:100px auto 10px; padding:18px; overflow-y:auto; z-index:2; position:relative;
-    background:rgba(0,0,0,.42); border:1px solid rgba(255,255,255,.18); border-radius:16px;
+    background:rgba(0,0,0,.42); border:1px solid rgba(255,255,白,.18); border-radius:16px;
+    border-color:rgba(255,255,255,.18);
   }
   .bubble{max-width:78%; margin:10px 0; padding:12px 14px; border-radius:14px; line-height:1.6; font-size:18px}
   .ai {background:rgba(120,200,255,.24); border:1px solid rgba(120,200,255,.34); float:left; clear:both;}
   .user{background:rgba(255,255,255,.24); border:1px solid rgba(255,255,255,.34); float:right; clear:both;}
-
   #composer{
-    width:min(92vw, 900px); margin:8px auto 0; display:flex; gap:8px; z-index:3; position:relative;
+    width:min(92vw,900px); margin:8px auto 0; display:flex; gap:8px; z-index:3; position:relative;
   }
   #input{
     flex:1; padding:12px 14px; border:none; border-radius:12px; color:#fff; font-size:16px;
@@ -91,35 +83,55 @@
   #send{ padding:12px 16px; }
   #done{ padding:12px 16px; background:rgba(0,200,120,.35); }
   #done:hover{ background:rgba(0,200,120,.5); }
-
-  /* 下メニュー */
   #footerMenu{ position:fixed; bottom:12px; left:50%; transform:translateX(-50%); z-index:3; }
   #footerMenu .btn{ display:inline-block; width:auto; padding:8px 14px; }
 
-  /* 安全に最前面へ（返信できない対策） */
-  #composer, #input, #send, #done { pointer-events:auto; }
-  .screen, #chat { pointer-events:auto; }
+  /* ===== 飾りキャラ（右寄せ・ふわスピン） ===== */
+  #pet{
+    position:fixed;
+    /* 画面の右寄り中央付近（赤丸のあたり） */
+    right:12%; top:24%;
+    width:160px; height:160px;
+    z-index:2; pointer-events:none; /* UIを邪魔しない */
+    display:none; place-items:center;
+  }
+  #pet img{ width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 8px 14px rgba(0,0,0,.5)); }
+
+  /* ゆらゆら＋ゆっくりスピン（3D風） */
+  @keyframes floatY{ 0%,100%{ transform:translateY(-6px) } 50%{ transform:translateY(6px) } }
+  @keyframes slowSpin{ 0%{ transform:rotate(0deg) } 100%{ transform:rotate(360deg) } }
+
+  /* 2つを合成するためのラッパー */
+  #pet .float{ animation: floatY 3.6s ease-in-out infinite; }
+  #pet .float .spin{ animation: slowSpin 18s linear infinite; }
+
+  /* ハート増時のポヨン */
+  @keyframes pop{ 0%{transform:scale(1)} 30%{transform:scale(1.12)} 60%{transform:scale(0.96)} 100%{transform:scale(1)} }
+  #pet.pop{ animation: pop .6s ease; }
+
+  /* 低速端末/設定配慮 */
+  @media (prefers-reduced-motion:reduce){
+    #pet .float, #pet .float .spin{ animation:none; }
+  }
 
   @media (max-width:560px){
     h1{font-size:30px}
-    .center{ grid-template-columns: 1fr; text-align:center; }
+    .center{ grid-template-columns:1fr; text-align:center; }
     .brand{ order:-1; }
+    #pet{ right:4%; top:26%; width:120px; height:120px; }
   }
 </style>
 </head>
 <body>
   <div class="stars"></div>
 
-  <!-- ===== スタート画面 ===== -->
+  <!-- ===== スタート ===== -->
   <section id="title" class="screen show">
     <div class="center">
-      <div class="brand">
-        <img src="public/char/green/calm.png" alt="mascot">
-      </div>
+      <div class="brand"><img src="public/char/green/calm.png" alt="mascot"></div>
       <div>
         <h1>MeAI</h1>
-        <p class="lead">“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で自己申告して記録するミニアプリです。<br>
-        ※ 監視はしません。ボタン or 文字入力で記録するだけ。</p>
+        <p class="lead">“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で自己申告して記録するミニアプリです。<br>※監視はしません。ボタン/入力で記録するだけ。</p>
         <button id="start" class="btn">はじめから</button>
         <button id="cont" class="btn">つづきから</button>
         <button id="about" class="btn secondary">このプロトタイプについて</button>
@@ -163,10 +175,12 @@
       <button id="showLog" class="btn secondary">ログを確認</button>
       <button id="reset" class="btn secondary">データ初期化</button>
     </div>
+
+    <!-- ★ 飾りキャラ（ふわスピン）。UIの下に敷くのでここに置く -->
+    <div id="pet"><div class="float"><img class="spin" id="petImg" src="" alt="pet"></div></div>
   </section>
 
 <script>
-  /* ====== 参照 ====== */
   const $ = s => document.querySelector(s);
   const scrTitle = $('#title'), scrChoose = $('#choose'), scrMain = $('#main');
 
@@ -176,15 +190,13 @@
   const chat = $('#chat'), input = $('#input'), btnSend = $('#send'), btnDone = $('#done');
   const heartCountEl = $('#heartCount'), charIcon = $('#charIcon'), sessionInfo = $('#sessionInfo');
 
-  /* ====== ストレージキー ====== */
-  const K = { char:'meai_character', hearts:'meai_heart', log:'meai_log' };
+  const pet = $('#pet'), petImg = $('#petImg');
 
-  /* ====== 状態 ====== */
+  const K = { char:'meai_character', hearts:'meai_heart', log:'meai_log' };
   let character = localStorage.getItem(K.char) || null;
   let hearts = parseInt(localStorage.getItem(K.hearts) || '0', 10);
   let log = JSON.parse(localStorage.getItem(K.log) || '[]');
 
-  /* ====== 画面制御 ====== */
   function show(el){ [scrTitle,scrChoose,scrMain].forEach(s=>s.classList.remove('show')); el.classList.add('show'); }
   function refreshTitle(){
     const has = !!localStorage.getItem(K.char);
@@ -194,15 +206,14 @@
   }
   refreshTitle();
 
-  /* ====== タイトルのボタン ====== */
   btnStart.addEventListener('click', ()=> show(scrChoose));
   btnCont.addEventListener('click', ()=>{
     if(!localStorage.getItem(K.char)){ alert('セーブデータがありません。'); return; }
     startMain(false);
   });
   btnAbout.addEventListener('click', ()=> alert('この試作はAIが監視するのではなく、ユーザーの自己申告（「やったよ」）で記録するだけの設計です。'));
+  btnBackTitle.addEventListener('click', refreshTitle);
 
-  /* ====== キャラ選択 ====== */
   document.querySelectorAll('.char').forEach(el=>{
     el.addEventListener('click', ()=>{
       character = el.dataset.char;
@@ -212,14 +223,20 @@
       startMain(true);
     });
   });
-  btnBackTitle.addEventListener('click', refreshTitle);
 
-  /* ====== メイン開始 ====== */
   function startMain(newSession){
+    // ヘッダ
     charIcon.src = `public/char/${character}/calm.png`;
     heartCountEl.textContent = hearts;
     sessionInfo.textContent = newSession ? '新しいセッション' : 'つづきから';
 
+    // 飾りキャラ（joy表情）を出す
+    petImg.src = `public/char/${character}/joy.png`;
+    pet.style.display = 'grid';      // 表示
+    pet.classList.remove('pop');     // アニメ初期
+    void pet.offsetWidth;            // reflow
+
+    // チャット描画
     chat.innerHTML='';
     if(newSession || log.length===0){
       push('ai', firstRequest(character));
@@ -229,10 +246,9 @@
       chat.scrollTop = chat.scrollHeight;
     }
     show(scrMain);
-    setTimeout(()=>input.focus(), 10); // 返信できない対策：フォーカス確保
+    setTimeout(()=>input.focus(), 10);
   }
 
-  /* ====== 送信処理 ====== */
   function append(sender, text){
     const div = document.createElement('div');
     div.className = `bubble ${sender}`;
@@ -244,12 +260,18 @@
     log.push({sender,text,ts:Date.now()});
     append(sender, text);
   }
+
   function aiReplyAfter(text){
     if(/やった/.test(text)){
       hearts++;
       heartCountEl.textContent = hearts;
       push('ai','すばらしい！ハートが増えたよ💖');
       push('ai', randomRequest());
+
+      // ★ハート増時に飾りキャラをポヨン
+      pet.classList.remove('pop');
+      void pet.offsetWidth; // restart animation
+      pet.classList.add('pop');
     }else{
       push('ai','うん、なるほどね。');
     }
@@ -270,7 +292,6 @@
     aiReplyAfter('やったよ');
   });
 
-  /* ====== 補助メニュー ====== */
   btnToTitle.addEventListener('click', refreshTitle);
   btnReset.addEventListener('click', ()=>{
     if(confirm('セーブデータ（キャラ・ハート・ログ）を削除します。よろしいですか？')){
@@ -278,6 +299,8 @@
       localStorage.removeItem(K.hearts);
       localStorage.removeItem(K.log);
       character=null; hearts=0; log=[];
+      // 飾りキャラを隠す
+      pet.style.display = 'none';
       refreshTitle();
     }
   });
@@ -286,7 +309,6 @@
     alert(text);
   });
 
-  /* ====== セリフ ====== */
   const REQUESTS=[
     "今日はだれかに『おはよう』を伝えてみよう。",
     "水をコップ一杯のもう。",
@@ -299,8 +321,6 @@
     const tag = {green:"（やさしく）", blue:"（ていねいに）", pink:"（わくわく）", purple:"（おちついて）"}[char] || "";
     return `${tag} ${randomRequest()}`;
   }
-
-  /* ====== 保存 ====== */
   function saveAll(){
     localStorage.setItem(K.hearts, String(hearts));
     localStorage.setItem(K.log, JSON.stringify(log));
