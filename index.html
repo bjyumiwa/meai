@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>めあい｜MeAI</title>
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./styles.css?v=20251013" />
+  <link rel="preload" as="image" href="./public/space_background.png">
 </head>
 <body>
 
@@ -37,9 +38,9 @@
   <!-- 🔍 研究モーダル -->
   <dialog id="researchModal" class="modal">
     <div class="modal__card">
-      <h2 class="modal__title" data-i18n="about_title">研究について</h2>
-      <p class="modal__body" data-i18n="about_body">
-        「めあい」は、日常生活の中でAIとの関係を育てる研究プロジェクトです。  
+      <h2 class="modal__title">研究について</h2>
+      <p class="modal__body">
+        「めあい」は、日常生活の中でAIとの関係を育てる研究プロジェクトです。<br>
         小さな“おねがい”や“返答”を通して、人とAIのあいだに生まれる行動や感情の変化を観察します。
       </p>
       <div class="modal__actions">
@@ -103,11 +104,9 @@
     const modal = document.getElementById("researchModal");
     const langSelect = document.getElementById("langSelect");
 
-    // セーブデータ確認
     const hasSave = localStorage.getItem("meai_history");
     if (!hasSave) btnContinue.disabled = true;
 
-    // 言語設定
     langSelect.value = localStorage.getItem("meai_lang") || "ja";
     setLanguage(langSelect.value);
     langSelect.onchange = () => {
@@ -115,21 +114,17 @@
       localStorage.setItem("meai_lang", langSelect.value);
     };
 
-    // はじめから
     btnStart.onclick = () => {
       titleScreen.hidden = true;
       app.hidden = false;
       startGame(true);
     };
-
-    // つづきから
     btnContinue.onclick = () => {
       titleScreen.hidden = true;
       app.hidden = false;
       startGame(false);
     };
 
-    // 研究について
     btnAbout.onclick = () => modal.showModal();
     btnCloseModal.onclick = () => modal.close();
   });
