@@ -5,59 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>めあい｜MeAI</title>
   <link rel="stylesheet" href="./styles.css" />
-  <style>
-    /* 🌌 タイトル用宇宙背景 */
-    .title-screen {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at 50% 40%, #1a2740, #0b1022 80%);
-      background-image: url('public/ui/stars.svg'), radial-gradient(circle at 50% 40%, #1a2740, #0b1022 80%);
-      background-size: cover;
-      color: #fff;
-      text-align: center;
-    }
-    .title-card {
-      background: rgba(255,255,255,0.15);
-      backdrop-filter: blur(8px);
-      padding: 40px 28px;
-      border-radius: 24px;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.4);
-    }
-    .title-card .title {
-      font-size: 40px;
-      margin: 0 0 12px;
-      font-weight: bold;
-      letter-spacing: 0.05em;
-      color: #fff;
-    }
-    .subtitle { color: #c7d2fe; margin: 0 0 1.2rem; }
-    .menu { display: flex; gap: 12px; justify-content: center; margin-bottom: 1rem; }
-    .btn {
-      padding: 12px 18px;
-      border: none;
-      border-radius: 14px;
-      font-size: 16px;
-      cursor: pointer;
-      transition: 0.2s;
-      box-shadow: 0 6px 18px rgba(0,0,0,.2);
-    }
-    .btn:hover { transform: translateY(-1px); opacity: .9; }
-    .btn:active { transform: translateY(1px); }
-    .btn--start { background: #60a5fa; color: #fff; }
-    .btn--continue { background: #818cf8; color: #fff; }
-    .btn--about { background: transparent; border:1px solid #cbd5e1; color: #e2e8f0; }
-    .lang { margin-top: 1rem; color: #cbd5e1; }
-    .lang select { padding: 6px 10px; border-radius: 8px; }
-
-    /* 星の背景の疑似アニメーション（動かしたい場合） */
-    @keyframes floatStars {
-      from { background-position: 0 0; }
-      to { background-position: 1000px 0; }
-    }
-  </style>
 </head>
 <body>
 
@@ -143,5 +90,49 @@
   <script src="./js/requests.js"></script>
   <script src="./js/ui.js"></script>
   <script src="./js/main.js"></script>
+
+  <script>
+  // ===== タイトル画面制御 =====
+  window.addEventListener("DOMContentLoaded", () => {
+    const app = document.getElementById("app");
+    const titleScreen = document.getElementById("titleScreen");
+    const btnStart = document.getElementById("btnStart");
+    const btnContinue = document.getElementById("btnContinue");
+    const btnAbout = document.getElementById("btnAbout");
+    const btnCloseModal = document.getElementById("btnCloseModal");
+    const modal = document.getElementById("researchModal");
+    const langSelect = document.getElementById("langSelect");
+
+    // セーブデータ確認
+    const hasSave = localStorage.getItem("meai_history");
+    if (!hasSave) btnContinue.disabled = true;
+
+    // 言語設定
+    langSelect.value = localStorage.getItem("meai_lang") || "ja";
+    setLanguage(langSelect.value);
+    langSelect.onchange = () => {
+      setLanguage(langSelect.value);
+      localStorage.setItem("meai_lang", langSelect.value);
+    };
+
+    // はじめから
+    btnStart.onclick = () => {
+      titleScreen.hidden = true;
+      app.hidden = false;
+      startGame(true);
+    };
+
+    // つづきから
+    btnContinue.onclick = () => {
+      titleScreen.hidden = true;
+      app.hidden = false;
+      startGame(false);
+    };
+
+    // 研究について
+    btnAbout.onclick = () => modal.showModal();
+    btnCloseModal.onclick = () => modal.close();
+  });
+  </script>
 </body>
 </html>
