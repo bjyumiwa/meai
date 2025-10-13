@@ -1,5 +1,4 @@
 // ===== state.js =====
-// localStorage 管理＋日付・スロット制御＋CSV出力
 (() => {
   const NS = "meai";
   const LS = {
@@ -18,7 +17,6 @@
     return `${y}-${m}-${dd}`;
   };
 
-  // 5〜16時: 朝, それ以外: 夜
   const currentSlot = () => {
     const h = new Date().getHours();
     const slot = (h >= 5 && h < 16) ? "morning" : "night";
@@ -35,9 +33,6 @@
   const getAffection = () => Number(localStorage.getItem(LS.AFF) || "0");
   const setAffection = (n) => localStorage.setItem(LS.AFF, String(n));
 
-  const getLastSlot = () => localStorage.getItem(LS.LAST_SLOT) || "";
-  const setLastSlot = (slot) => localStorage.setItem(LS.LAST_SLOT, slot);
-
   const getCharColor = () => localStorage.getItem(LS.CHAR) || pickChar();
   const pickChar = () => {
     const c = ["blue", "pink", "green"][Math.floor(Math.random() * 3)];
@@ -46,25 +41,21 @@
   };
 
   const hasSave = () => {
-    const started = localStorage.getItem(LS.STARTED) === "1";
     const aff = getAffection();
     const histLen = loadHistory().length;
-    return started || aff > 0 || histLen > 0;
+    return aff > 0 || histLen > 0;
   };
 
   const markStarted = () => localStorage.setItem(LS.STARTED, "1");
   const resetAll = () => {
     [LS.HIST, LS.USED, LS.LAST_SLOT, LS.AFF, LS.CHAR, LS.STARTED].forEach(k => localStorage.removeItem(k));
-    getCharColor(); // 新しい色を割り当て
+    getCharColor();
   };
 
-  // ===== CSV =====
   const q = (s) => `"${String(s).replace(/"/g, '""')}"`;
   const toCSV = (hist) => {
     const header = ["date", "slot", "request", "response", "affection"].join(",");
-    const lines = hist.map(h =>
-      [h.date, h.slot, q(h.request), q(h.response || ""), String(h.affection ?? "")].join(",")
-    );
+    const lines = hist.map(h => [h.date, h.slot, q(h.request), q(h.response || ""), h.affection].join(","));
     return [header, ...lines].join("\n");
   };
 
@@ -78,13 +69,11 @@
     URL.revokeObjectURL(url);
   };
 
-  // グローバル登録
   window.State = {
     LS, todayISO, currentSlot,
     loadHistory, saveHistory, pushLog,
     getAffection, setAffection,
-    getCharColor, getLastSlot, setLastSlot,
-    hasSave, markStarted, resetAll,
-    toCSV, downloadText
+    getCharColor, hasSave, markStarted, resetAll,
+    toCSV, downloadText, loadJSON, saveJSON
   };
 })();
