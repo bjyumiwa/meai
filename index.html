@@ -2,98 +2,250 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MeAI</title>
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="./styles.css?v=20251013" />
-
-  <!-- 先読み：宇宙背景 -->
-  <link rel="preload" as="image" href="./public/space_background.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MeAI — pseudo-AI (fixed messages + 復元機能付き)</title>
+  <style>
+    :root{
+      --bg:/public/space_background.png;
+      --glass: rgba(255,255,255,0.12);
+      --text: #f7f7fb;
+      --muted: #cfd3ff;
+      --accent:#ffffff;
+    }
+    html,body{height:100%; margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans JP, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; color:var(--text);}
+    body{background:#060514 url(var(--bg)) center/cover fixed no-repeat;}
+    .clarity{position:fixed; inset:0; pointer-events:none;}
+    .clarity:before{content:""; position:absolute; inset:0; backdrop-filter: contrast(1.2) saturate(1.05) brightness(1.05);}
+    .clarity:after{content:""; position:absolute; inset:0; background: radial-gradient(ellipse at 50% 40%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.35) 100%);}
+    .wrap{position:relative; min-height:100%; display:grid; grid-template-rows:auto 1fr auto;}
+    header{padding:28px 24px; font-weight:700; font-size:28px; letter-spacing:0.5px; text-shadow:0 2px 10px rgba(0,0,0,.35)}
+    .heart{position:fixed; right:18px; top:18px; opacity:.8}
+    main{display:flex; align-items:center; justify-content:center; padding:24px}
+    .panel{width:min(980px, 92vw); display:grid; gap:18px}
+    .glass{background:var(--glass); border:1px solid rgba(255,255,255,.2); box-shadow:0 10px 40px rgba(0,0,0,.25); border-radius:22px;}
+    .hero{display:grid; grid-template-columns:140px 1fr; align-items:center; padding:28px 32px; gap:20px; background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.06));}
+    .pet{font-size:86px; filter: drop-shadow(0 3px 20px rgba(0,255,255,0.35)); text-align:center}
+    .bubble{padding:18px 22px; line-height:1.8; font-size:20px}
+    .meta{opacity:.8; font-size:12px}
+    .row{display:flex; gap:12px; align-items:stretch}
+    .row > *{flex:1}
+    input[type="text"]{height:58px; padding:0 16px; border-radius:14px; border:1px solid rgba(255,255,255,.24); background:rgba(0,0,0,.25); color:var(--text); font-size:18px; outline:none}
+    .btn{min-width:140px; padding:16px 18px; border-radius:16px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.12); color:var(--text); font-weight:700; cursor:pointer; transition:.2s}
+    .btn:hover{transform:translateY(-1px); background:rgba(255,255,255,.18)}
+    footer{padding:18px 24px; opacity:.85}
+    .pill{display:inline-block; padding:8px 12px; font-size:12px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22); border-radius:999px}
+    .chat{display:grid; gap:10px}
+    .msg{max-width:80%; padding:12px 16px; border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.2);}
+    .ai{justify-self:start; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22)}
+    .me{justify-self:end; background:rgba(10,10,20,.6); border:1px solid rgba(255,255,255,.16)}
+    @media (max-width:640px){
+      .hero{grid-template-columns:96px 1fr}
+      .pet{font-size:64px}
+      .bubble{font-size:18px}
+    }
+  </style>
 </head>
 <body>
+  <div class="clarity"></div>
+  <div class="wrap">
+    <header>MeAI</header>
+    <svg class="heart" width="26" height="26" viewBox="0 0 24 24" fill="#ff6aa7" aria-hidden="true"><path d="M12 21s-6.716-4.418-9.193-7.21C.719 11.374 1.29 7.6 4.3 6.244 6.264 5.35 8.6 6.03 10 7.6c1.4-1.57 3.736-2.25 5.7-1.356 3.011 1.356 3.581 5.13 1.493 7.546C18.716 16.582 12 21 12 21z"/></svg>
 
-  <!-- 🌌 タイトル画面 -->
-  <section class="title-screen" id="titleScreen">
-    <div class="title-card">
-      <h1 class="title">MeAI</h1>
-      <p class="subtitle">AIといっしょに暮らす日々</p>
+    <main>
+      <div class="panel">
+        <section class="hero glass">
+          <div class="pet" id="pet" aria-label="pet">🔷🐇</div>
+          <div>
+            <div class="bubble" id="aiLine">……</div>
+            <div class="meta"><span id="todLabel">—</span></div>
+          </div>
+        </section>
 
-      <div class="menu">
-        <button class="btn btn--start" id="btnStart">はじめから</button>
-        <button class="btn btn--continue" id="btnContinue">つづきから</button>
+        <section class="glass" style="padding:20px">
+          <div class="chat" id="chat"></div>
+        </section>
+
+        <section class="row">
+          <input id="userInput" type="text" placeholder="返答を入力…" />
+          <button class="btn" id="btnDone">はい、やったよ</button>
+          <button class="btn" id="btnCSV">CSV出力</button>
+        </section>
+
+        <section class="glass" style="padding:18px 20px">
+          <span class="pill" id="saveState">きろく：0件</span>
+        </section>
       </div>
+    </main>
 
-      <div class="menu">
-        <button class="btn btn--about" id="btnAbout">研究について</button>
-      </div>
+    <footer>
+      <span class="pill">バージョン: pseudo-AI（固定メッセージ＋続きから復元）</span>
+    </footer>
+  </div>
 
-      <div class="lang">
-        🌐 言語：
-        <select id="langSelect">
-          <option value="ja">日本語</option>
-          <option value="en">English</option>
-        </select>
-      </div>
-      <p class="hint">※ セーブがあると「つづきから」が使えます</p>
-    </div>
-  </section>
+  <script>
+    // ===== i18n（固定メッセージ） =====
+    const I18N = {
+      ja: {
+        requests: [
+          "今日はだれかに『おはよう』を伝えてみよう",
+          "水をコップ一杯のもう",
+          "5分だけストレッチしてみよう",
+          "外の空気を吸いに行こう",
+        ],
+        empathies: {
+          lonely: [
+            "そうなんだね、さみしい気持ちってあるよね。",
+            "話してくれてうれしいよ。ここにいるよ。",
+            "いっしょに深呼吸してみようか。すうー… はぁ…",
+          ],
+          anxious: [
+            "そわそわするね。その気持ち、ちゃんと大事にしたいね。",
+            "できてること、ひとつ教えて。小さくても十分だよ。",
+            "1分タイマーをセットして、肩と首をふわっと回してみよう。",
+          ],
+        },
+        done: "はい、やったよ",
+        period: { dawn:"明け方", morning:"朝", noon:"昼", evening:"夕方", night:"夜", now:"いま" },
+        saved: n => `きろく：${n}件`,
+      }
+    };
 
-  <!-- 🔍 研究モーダル -->
-  <dialog id="researchModal" class="modal">
-    <div class="modal__card">
-      <h2 class="modal__title">研究について</h2>
-      <p class="modal__body">
-        「MeAI（めあい）」は、日常生活の中でAIとの関係を育てる研究プロジェクトです。<br>
-        小さな“おねがい”や“返答”を通して、人とAIのあいだに生まれる行動や感情の変化を観察します。
-      </p>
-      <div class="modal__actions">
-        <button class="btn btn--continue" id="btnCloseModal">閉じる</button>
-      </div>
-    </div>
-  </dialog>
+    const LANG = "ja";
+    const T = I18N[LANG];
 
-  <!-- 💬 本編 -->
-  <main id="app" class="app" hidden>
-    <header class="app__header">
-      <h1>MeAI</h1>
-      <div class="affection" title="愛着">
-        <img src="./public/ui/heart.svg" class="affection__icon" alt="heart" />
-        <span id="affectionCount">0</span>
-      </div>
-    </header>
+    // ===== 基本関数 =====
+    function pickRequest(){
+      const hour = new Date().getHours();
+      const pool = [...T.requests];
+      if(hour<9) pool.unshift(T.requests[0]);
+      if(hour>=12 && hour<15) pool.unshift(T.requests[1]);
+      return pool[Math.floor(Math.random()*pool.length)];
+    }
 
-    <section class="app__main">
-      <div class="avatar">
-        <div class="glow" id="glow"></div>
-        <img id="charImg" class="avatar__img" alt="MeAI" />
-      </div>
+    function periodLabel(){
+      const h = new Date().getHours();
+      if(h<5) return T.period.dawn; if(h<11) return T.period.morning;
+      if(h<14) return T.period.noon; if(h<18) return T.period.evening;
+      return T.period.night;
+    }
 
-      <div class="request">
-        <div class="bubble">
-          <p id="reqText" class="bubble__text">Loading...</p>
-          <p id="reqPeriod" class="bubble__period">＿</p>
-        </div>
-      </div>
+    // ===== きろく保存（ローカル） =====
+    function loadHist(){ try{ return JSON.parse(localStorage.getItem('meai_history')||'[]'); }catch(_){ return []; } }
+    function saveHist(arr){ localStorage.setItem('meai_history', JSON.stringify(arr)); }
+    function addHist(entry){ const h=loadHist(); h.push(entry); saveHist(h); updateSaveBadge(); }
+    function updateSaveBadge(){ document.getElementById('saveState').textContent=T.saved(loadHist().length); }
 
-      <div class="reply">
-        <input id="replyInput" class="input" placeholder="返答を入力…" />
-        <button id="btnSend" class="btn">はい、やったよ</button>
-        <button id="btnExport" class="btn btn--ghost">CSV出力</button>
-      </div>
+    // ===== チャット保存・復元 =====
+    function loadChat(){ try{ return JSON.parse(localStorage.getItem('meai_chat')||'[]'); }catch(_){ return []; } }
+    function saveChat(arr){ localStorage.setItem('meai_chat', JSON.stringify(arr)); }
+    function addChat(who, text){ const c = loadChat(); c.push({ts:Date.now(), who, text}); saveChat(c); }
 
-      <div class="history">
-        <h3 class="history__title">きろく</h3>
-        <div class="history__list" id="historyList"></div>
-      </div>
-    </section>
-  </main>
+    // ===== プロンプト保存・復元 =====
+    function savePrompt(prompt, period){
+      localStorage.setItem('meai_last_prompt', prompt);
+      localStorage.setItem('meai_last_period', period);
+    }
+    function loadPrompt(){
+      const prompt = localStorage.getItem('meai_last_prompt');
+      const period = localStorage.getItem('meai_last_period');
+      return {prompt, period};
+    }
 
-  <!-- JS（deferで順に） -->
-  <script src="./js/i18n.js" defer></script>
-  <script src="./js/state.js" defer></script>
-  <script src="./js/requests.js" defer></script>
-  <script src="./js/ui.js" defer></script>
-  <script src="./js/main.js" defer></script>
+    // ===== Chat表示 =====
+    const chat = document.getElementById('chat');
+    function pushMsg(text, who='ai'){
+      const el = document.createElement('div');
+      el.className = `msg ${who==='ai'?'ai':'me'}`;
+      el.textContent = text;
+      chat.appendChild(el);
+      chat.scrollTop = chat.scrollHeight;
+      addChat(who, text);
+    }
+
+    // ===== 感情パターン =====
+    const patterns = [
+      { key:'lonely', re: /(さみしい|寂しい|孤独|lonely|alone)/i },
+      { key:'anxious', re: /(不安|そわそわ|心配|anxious|nervous)/i },
+    ];
+    function matchEmpathy(text){
+      for(const p of patterns){ if(p.re.test(text)) return p.key; }
+      return null;
+    }
+
+    // ===== プロンプト表示 =====
+    const aiLine = document.getElementById('aiLine');
+    const todLabel = document.getElementById('todLabel');
+    function renderNewPrompt(){
+      const r = pickRequest();
+      aiLine.textContent = r;
+      const p = periodLabel();
+      todLabel.textContent = p;
+      savePrompt(r, p);
+    }
+
+    // ===== イベント処理 =====
+    const input = document.getElementById('userInput');
+    document.getElementById('btnDone').addEventListener('click', ()=>{
+      addHist({ts:Date.now(), type:'done', period:periodLabel(), prompt:aiLine.textContent});
+      pushMsg(T.done, 'me');
+      pushMsg('記録したよ。おつかれさま。', 'ai');
+      renderNewPrompt();
+    });
+
+    input.addEventListener('keydown', e=>{
+      if(e.key==='Enter') handleReply();
+    });
+
+    function handleReply(){
+      const text = input.value.trim();
+      if(!text) return;
+      pushMsg(text, 'me');
+      const k = matchEmpathy(text);
+      if(k){
+        const seq = T.empathies[k];
+        let i=0;
+        const tick=()=>{ if(i<seq.length){ pushMsg(seq[i++],'ai'); setTimeout(tick,600);} };
+        tick();
+        addHist({ts:Date.now(), type:'empathy:'+k, text, period:periodLabel()});
+      }else{
+        const nods = ['うん、聞いてるよ。','なるほど。少しずついこう。','シンプルにいこう。今できることを一つ。'];
+        pushMsg(nods[Math.floor(Math.random()*nods.length)], 'ai');
+        addHist({ts:Date.now(), type:'free', text, period:periodLabel()});
+      }
+      input.value='';
+    }
+
+    // ===== CSV出力 =====
+    document.getElementById('btnCSV').addEventListener('click', ()=>{
+      const rows = [['timestamp','iso','period','type','prompt_or_text']];
+      for(const h of loadHist()){
+        const d = new Date(h.ts||Date.now());
+        rows.push([h.ts||'', d.toISOString(), h.period||'', h.type||'', h.prompt||h.text||'']);
+      }
+      const csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'meai_history.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    // ===== 起動処理（復元機能付き） =====
+    function restoreChatAndPrompt(){
+      const hist = loadChat();
+      if(hist.length){ for(const m of hist){ pushMsg(m.text, m.who); } }
+      const {prompt, period} = loadPrompt();
+      if(prompt){
+        aiLine.textContent = prompt;
+        todLabel.textContent = period || T.period.now;
+      } else {
+        renderNewPrompt();
+      }
+    }
+
+    updateSaveBadge();
+    restoreChatAndPrompt();
+  </script>
 </body>
 </html>
