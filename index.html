@@ -43,6 +43,7 @@
   }
   .btn:hover{ background:rgba(255,255,255,.28); }
   .btn.secondary{ background:rgba(255,255,255,.1); }
+  .btn[disabled]{ opacity:.45; cursor:not-allowed; filter:saturate(.3); }
 
   .panel{ width:min(92vw, 680px); margin:10vh auto; background:rgba(0,0,0,.45);
     border:1px solid rgba(255,255,255,.2); border-radius:20px; padding:22px; backdrop-filter:blur(6px); }
@@ -133,12 +134,12 @@
   <section id="choose" class="screen">
     <div class="panel">
       <h2 style="margin:0 0 8px;">キャラクターを選んでね</h2>
-      <div class="grid">
-        <div class="char" data-char="green"><img src="public/char/green/calm.png" alt="green"></div>
-        <div class="char" data-char="blue"><img src="public/char/blue/calm.png" alt="blue"></div>
-        <div class="char" data-char="pink"><img src="public/char/pink/calm.png" alt="pink"></div>
-        <div class="char" data-char="purple"><img src="public/char/purple/calm.png" alt="purple"></div>
-      </div>
+    <div class="grid">
+      <div class="char" data-char="green"><img src="public/char/green/calm.png" alt="green"></div>
+      <div class="char" data-char="blue"><img src="public/char/blue/calm.png" alt="blue"></div>
+      <div class="char" data-char="pink"><img src="public/char/pink/calm.png" alt="pink"></div>
+      <div class="char" data-char="purple"><img src="public/char/purple/calm.png" alt="purple"></div>
+    </div>
       <button id="backTitle" class="btn" type="button" style="margin-top:14px; width:auto;">← タイトルへ</button>
     </div>
   </section>
@@ -180,11 +181,17 @@ window.addEventListener('DOMContentLoaded', () => {
   const heartCountEl = $('#heartCount'), charIcon = $('#charIcon'), sessionInfo = $('#sessionInfo');
   const pet = $('#pet'), petImg = $('#petImg');
 
-  const K = { char:'meai_character', hearts:'meai_heart', log:'meai_log', pool:'meai_request_pool', next:'meai_next_due' };
+  const K = {
+    char:'meai_character',
+    hearts:'meai_heart',
+    log:'meai_log',
+    pool:'meai_request_pool',
+    next:'meai_next_due' // 次の提案予定（この間は「やったよ」無効）
+  };
 
-  /* === リマインド間隔（時間） 好みに合わせて変更OK === */
-  const REMIND_MIN_H = 1;   // 最短1時間
-  const REMIND_MAX_H = 3;   // 最長3時間
+  /* ===== リマインド間隔（時間） ===== */
+  const REMIND_MIN_H = 1;
+  const REMIND_MAX_H = 3;
 
   let character = localStorage.getItem(K.char) || null;
   let hearts = parseInt(localStorage.getItem(K.hearts) || '0', 10);
@@ -220,38 +227,18 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   btnBackTitle.addEventListener('click', refreshTitle);
 
-  /* ========== 文言30件 + 未出優先プール ========== */
+  /* ===== 文言（30件） + 未出優先 ===== */
   const REQUESTS = [
-    "おはようって言って。",
-    "コップ一杯のお水を飲んでみて。",
-    "5秒だけ、静かに目を閉じてみよう。",
-    "今日の空の色をひとことで教えて。",
-    "窓を少し開けて、空気を入れ替えよう。",
-    "深呼吸を3回してみよう。",
-    "好きな音を5秒だけ聞かせて。（心の中でもOK）",
-    "花や植物をひとつ思い浮かべて、名前を教えて。",
-    "今いる部屋で、やさしい色を探して教えて。",
-    "姿勢をすこし伸ばして、肩を回してみよう。",
-    "カーテンを少し開けて、明るさを感じてみて。",
-    "おやつか飲み物をひと口、味わってみよう。",
-    "机の上を10秒だけ整えてみよう。",
-    "目の前の“丸い形”をひとつ見つけて教えて。",
-    "耳をすませて、いちばん小さな音を探してみよう。",
-    "手を温めたり、冷たいものに触れたりして、感触を教えて。",
-    "「ありがとう」を心の中で1回言ってみよう。",
-    "外の風や空気の温度を感じて、ひと言で教えて。",
-    "時計の音、ある？ない？",
-    "今の気分を天気で言うと？（晴れ/曇り/雨/雪/風）",
-    "好きな言葉をひとつ思い出して、教えて。",
-    "部屋の中で“やわらかいもの”を触ってみよう。",
-    "窓の外を10秒見て、気づいたことをひと言。",
-    "スマホを裏向きにして10秒置いてみよう。",
-    "ゆっくり首を左右に回して、こり具合を教えて。",
-    "今日の色をひとつ選んで、教えて。",
-    "今の音量（静か/ふつう/にぎやか）を教えて。",
-    "好きな匂いをひとつ思い出して、教えて。",
-    "“おかえり”って言ってみて。",
-    "“おやすみ”って言ってくれる？"
+    "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。","今日の空の色をひとことで教えて。",
+    "窓を少し開けて、空気を入れ替えよう。","深呼吸を3回してみよう。","好きな音を5秒だけ聞かせて。（心の中でもOK）",
+    "花や植物をひとつ思い浮かべて、名前を教えて。","今いる部屋で、やさしい色を探して教えて。","姿勢をすこし伸ばして、肩を回してみよう。",
+    "カーテンを少し開けて、明るさを感じてみて。","おやつか飲み物をひと口、味わってみよう。","机の上を10秒だけ整えてみよう。",
+    "目の前の“丸い形”をひとつ見つけて教えて。","耳をすませて、いちばん小さな音を探してみよう。","手を温めたり、冷たいものに触れたりして、感触を教えて。",
+    "「ありがとう」を心の中で1回言ってみよう。","外の風や空気の温度を感じて、ひと言で教えて。","時計の音、ある？ない？",
+    "今の気分を天気で言うと？（晴れ/曇り/雨/雪/風）","好きな言葉をひとつ思い出して、教えて。","部屋の中で“やわらかいもの”を触ってみよう。",
+    "窓の外を10秒見て、気づいたことをひと言。","スマホを裏向きにして10秒置いてみよう。","ゆっくり首を左右に回して、こり具合を教えて。",
+    "今日の色をひとつ選んで、教えて。","今の音量（静か/ふつう/にぎやか）を教えて。","好きな匂いをひとつ思い出して、教えて。",
+    "“おかえり”って言ってみて。","“おやすみ”って言ってくれる？"
   ];
   function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
   function loadPool(){
@@ -271,44 +258,49 @@ window.addEventListener('DOMContentLoaded', () => {
     return `${tag} ${nextRequest()}`;
   }
 
-  /* ========== リマインド（ランダム時間） ========== */
+  /* ===== リマインド＆「やったよ」ボタンのクールダウン ===== */
   function stopNextTimer(){ if(nextTimer){ clearTimeout(nextTimer); nextTimer=null; } }
   function hoursToMs(h){ return Math.round(h * 3600 * 1000); }
-  function pickHours(){
-    return REMIND_MIN_H + Math.random()*(REMIND_MAX_H - REMIND_MIN_H); // 小数時間
-  }
+  function pickHours(){ return REMIND_MIN_H + Math.random()*(REMIND_MAX_H - REMIND_MIN_H); }
+
   function setNextDueAfterHours(h){
     const due = Date.now() + hoursToMs(h);
     localStorage.setItem(K.next, String(due));
-    startNextTimer(); // すぐ予約
+    updateDoneButtonState();
+    startNextTimer();
   }
+
+  function updateDoneButtonState(){
+    const due = parseInt(localStorage.getItem(K.next) || '0', 10);
+    const disabled = due && due > Date.now();
+    btnDone.disabled = disabled; // ← ここで無効化/有効化
+  }
+
   function startNextTimer(){
     stopNextTimer();
     const due = parseInt(localStorage.getItem(K.next) || '0', 10);
-    if(!due) return;
+    if(!due){ btnDone.disabled = false; return; }
     const wait = due - Date.now();
-    if(wait <= 0){
-      triggerNext(); // 期限超過なら即時
-      return;
-    }
+    if(wait <= 0){ triggerNext(); return; }
+    btnDone.disabled = true;
     nextTimer = setTimeout(triggerNext, wait);
   }
+
+  // 時刻が来た → 提案を出す＆ボタンを再有効化（※ここでは次回予約しない）
   function triggerNext(){
     localStorage.removeItem(K.next);
+    btnDone.disabled = false; // クールダウン解除
     push('ai', 'そろそろどうかな？');
     push('ai', nextRequest());
-    // 次回もまたランダムに予約（常にゆるく提案が続く）
-    const h = pickHours();
-    push('ai', `また後でね。次は約${Math.round(h*10)/10}時間後に声をかけるね。`);
-    setNextDueAfterHours(h);
   }
+
   function scheduleLater(){
     const h = pickHours();
     push('ai', `また後でね。約${Math.round(h*10)/10}時間後に次の提案を送るね。`);
-    setNextDueAfterHours(h);
+    setNextDueAfterHours(h);  // 予約＆「やったよ」無効化
   }
 
-  /* ========== メイン開始 ========== */
+  /* ===== メイン開始 ===== */
   function startMain(newSession){
     charIcon.src = `public/char/${character}/calm.png`;
     heartCountEl.textContent = hearts;
@@ -330,11 +322,12 @@ window.addEventListener('DOMContentLoaded', () => {
     show(scrMain);
     setTimeout(()=>input.focus(), 10);
 
-    // 起動時に次回予約が過ぎていれば即提案、残っていれば予約し直す
+    // 起動時に状態を反映
+    updateDoneButtonState();
     startNextTimer();
   }
 
-  /* 送信処理 */
+  /* ===== 送信処理 ===== */
   function append(sender, text){
     const div = document.createElement('div');
     div.className = `bubble ${sender}`;
@@ -351,13 +344,11 @@ window.addEventListener('DOMContentLoaded', () => {
       hearts++;
       heartCountEl.textContent = hearts;
       push('ai','すばらしい！ハートが増えたよ💖');
-      // 直後の“次の提案”はやめて、ランダム時間後に
-      scheduleLater();
+      scheduleLater();              // ← 次の予約＆「やったよ」無効化
       pet.classList.add('pop'); setTimeout(()=>pet.classList.remove('pop'), 600);
     }else{
       push('ai','うん、なるほどね。');
-      // “また後でね”でランダム予約
-      scheduleLater();
+      scheduleLater();              // ← テキスト返信でも次の予約
     }
     saveAll();
   }
@@ -366,10 +357,17 @@ window.addEventListener('DOMContentLoaded', () => {
     push('user', t); input.value = ''; aiReplyAfter(t);
   }
   btnSend.addEventListener('click', send);
-  input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
-  btnDone.addEventListener('click', ()=>{ push('user','やったよ'); aiReplyAfter('やったよ'); });
 
-  /* 補助メニュー */
+  // 「やったよ」ボタン：無効化中は完全に無反応
+  btnDone.addEventListener('click', ()=>{
+    if(btnDone.disabled) return;
+    push('user','やったよ');
+    aiReplyAfter('やったよ');
+  });
+
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
+
+  /* ===== 補助メニュー ===== */
   btnToTitle.addEventListener('click', refreshTitle);
   btnReset.addEventListener('click', ()=>{
     if(confirm('セーブデータ（キャラ・ハート・ログ）を削除します。よろしいですか？')){
@@ -388,7 +386,7 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(K.log, JSON.stringify(log));
   }
 
-  /* 漂いロジック（画面から出ない） */
+  /* ===== 漂い（画面から出ない） ===== */
   function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
   function petRandomPos(){
     const pad = 24, size = 120;
