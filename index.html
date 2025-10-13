@@ -4,8 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MeAI</title>
+
+  <!-- CSS -->
   <link rel="stylesheet" href="./styles.css?v=20251013" />
-  <link rel="preload" as="image" href="./public/space_background.png">
+
+  <!-- 先読み：宇宙背景 -->
+  <link rel="preload" as="image" href="./public/space_background.png" />
 </head>
 <body>
 
@@ -53,8 +57,8 @@
   <main id="app" class="app" hidden>
     <header class="app__header">
       <h1>MeAI</h1>
-      <div class="affection">
-        <img src="public/ui/heart.svg" class="affection__icon" alt="heart" />
+      <div class="affection" title="愛着">
+        <img src="./public/ui/heart.svg" class="affection__icon" alt="heart" />
         <span id="affectionCount">0</span>
       </div>
     </header>
@@ -67,7 +71,7 @@
 
       <div class="request">
         <div class="bubble">
-          <p id="reqText" class="bubble__text">読み込み中...</p>
+          <p id="reqText" class="bubble__text">Loading...</p>
           <p id="reqPeriod" class="bubble__period">＿</p>
         </div>
       </div>
@@ -85,49 +89,11 @@
     </section>
   </main>
 
-  <!-- JS -->
-  <script src="./js/i18n.js"></script>
-  <script src="./js/state.js"></script>
-  <script src="./js/requests.js"></script>
-  <script src="./js/ui.js"></script>
-  <script src="./js/main.js"></script>
-
-  <script>
-  // ===== タイトル画面制御 =====
-  window.addEventListener("DOMContentLoaded", () => {
-    const app = document.getElementById("app");
-    const titleScreen = document.getElementById("titleScreen");
-    const btnStart = document.getElementById("btnStart");
-    const btnContinue = document.getElementById("btnContinue");
-    const btnAbout = document.getElementById("btnAbout");
-    const btnCloseModal = document.getElementById("btnCloseModal");
-    const modal = document.getElementById("researchModal");
-    const langSelect = document.getElementById("langSelect");
-
-    const hasSave = localStorage.getItem("meai_history");
-    if (!hasSave) btnContinue.disabled = true;
-
-    langSelect.value = localStorage.getItem("meai_lang") || "ja";
-    setLanguage(langSelect.value);
-    langSelect.onchange = () => {
-      setLanguage(langSelect.value);
-      localStorage.setItem("meai_lang", langSelect.value);
-    };
-
-    btnStart.onclick = () => {
-      titleScreen.hidden = true;
-      app.hidden = false;
-      startGame(true);
-    };
-    btnContinue.onclick = () => {
-      titleScreen.hidden = true;
-      app.hidden = false;
-      startGame(false);
-    };
-
-    btnAbout.onclick = () => modal.showModal();
-    btnCloseModal.onclick = () => modal.close();
-  });
-  </script>
+  <!-- JS（deferで順に） -->
+  <script src="./js/i18n.js" defer></script>
+  <script src="./js/state.js" defer></script>
+  <script src="./js/requests.js" defer></script>
+  <script src="./js/ui.js" defer></script>
+  <script src="./js/main.js" defer></script>
 </body>
 </html>
