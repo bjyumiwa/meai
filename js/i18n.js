@@ -1,5 +1,6 @@
-// 超軽量 i18n
-const I18N = {
+// ===== i18n.js =====
+// 言語ごとの文言定義
+window.I18N = {
   ja: {
     requests: [
       "今日はだれかに『おはよう』を伝えてみよう",
@@ -23,9 +24,19 @@ const I18N = {
     no_save: "No save data."
   }
 };
-function setLanguage(lang){ localStorage.setItem("meai_lang", lang); document.documentElement.lang = lang; }
-function t(path){
-  const lang = localStorage.getItem("meai_lang") || "ja";
-  const obj = I18N[lang] || I18N.ja;
-  return path.split(".").reduce((o,k)=>o?.[k], obj);
-}
+
+// 現在の言語設定を取得
+window.getLang = () => localStorage.getItem("meai.lang") || "ja";
+
+// 言語を切り替え
+window.setLanguage = (lang) => {
+  localStorage.setItem("meai.lang", lang);
+  document.documentElement.lang = lang;
+};
+
+// 翻訳用ショート関数
+window.t = (key) => {
+  const lang = getLang();
+  const data = I18N[lang] || I18N.ja;
+  return key.split(".").reduce((o, k) => o?.[k], data);
+};
