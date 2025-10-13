@@ -18,16 +18,16 @@
   .stars, .stars::after{
     position:fixed; inset:0; content:"";
     background: radial-gradient(white 1px, transparent 1px) 0 0/3px 3px;
-    opacity:.23; animation: twinkle 8s linear infinite; pointer-events:none; z-index:0;
+    opacity:.23; animation: twinkle 8s linear infinite; pointer-events:none; z-index:1;
   }
   .stars::after{ animation-duration:12s; opacity:.16; filter:blur(.4px) brightness(1.2); }
   @keyframes twinkle{ 0%{transform:translateY(0)} 100%{transform:translateY(-40px)} }
 
-  /* 画面レイヤ */
-  .screen{ position:fixed; inset:0; display:none; z-index:1; }
+  /* 画面レイヤ（※必ず最前面にしてクリック可能に） */
+  .screen{ position:fixed; inset:0; display:none; z-index:5; }
   .show{ display:block; }
 
-  /* カードUI */
+  /* カードUI（タイトル） */
   .center{
     width:min(92vw, 920px); margin:10vh auto 0; display:grid;
     grid-template-columns: 140px 1fr; gap:20px;
@@ -42,9 +42,8 @@
 
   .btn{
     display:block; width:100%; margin:8px 0; padding:12px 16px;
-    border:none; border-radius:12px; cursor:pointer;
-    color:#fff; background:rgba(255,255,255,.18);
-    transition:.2s; font-size:16px;
+    border:none; border-radius:12px; cursor:pointer; color:#fff;
+    background:rgba(255,255,255,.18); transition:.2s; font-size:16px;
   }
   .btn:hover{ background:rgba(255,255,255,.28); }
   .btn.secondary{ background:rgba(255,255,255,.1); }
@@ -62,7 +61,7 @@
 
   /* メイン */
   #header{
-    position:fixed; left:50%; transform:translateX(-50%); top:10px; z-index:3;
+    position:fixed; left:50%; transform:translateX(-50%); top:10px; z-index:7;
     background:rgba(0,0,0,.5); border:1px solid rgba(255,255,255,.2);
     border-radius:999px; padding:8px 12px; display:flex; gap:12px; align-items:center;
   }
@@ -71,7 +70,7 @@
 
   #chat{
     width:min(92vw, 900px); height:min(64vh, 460px);
-    margin:100px auto 10px; padding:18px; overflow-y:auto; z-index:2; position:relative;
+    margin:100px auto 10px; padding:18px; overflow-y:auto; z-index:6; position:relative;
     background:rgba(0,0,0,.42); border:1px solid rgba(255,255,255,.18); border-radius:16px;
   }
   .bubble{max-width:78%; margin:10px 0; padding:12px 14px; border-radius:14px; line-height:1.6; font-size:18px}
@@ -79,7 +78,7 @@
   .user{background:rgba(255,255,255,.24); border:1px solid rgba(255,255,255,.34); float:right; clear:both;}
 
   #composer{
-    width:min(92vw, 900px); margin:8px auto 0; display:flex; gap:8px; z-index:3; position:relative;
+    width:min(92vw, 900px); margin:8px auto 0; display:flex; gap:8px; z-index:7; position:relative;
   }
   #input{
     flex:1; padding:12px 14px; border:none; border-radius:12px; color:#fff; font-size:16px;
@@ -89,14 +88,15 @@
   #done{ padding:12px 16px; background:rgba(0,200,120,.35); }
   #done:hover{ background:rgba(0,200,120,.5); }
 
-  #footerMenu{ position:fixed; bottom:12px; left:50%; transform:translateX(-50%); z-index:3; }
+  #footerMenu{ position:fixed; bottom:12px; left:50%; transform:translateX(-50%); z-index:7; }
   #footerMenu .btn{ display:inline-block; width:auto; padding:8px 14px; }
 
-  /* 漂うマスコット */
+  /* 漂うマスコット（初期は非表示 → 本編で表示） */
   #pet{
     position: fixed; left: 50vw; top: 60vh;
-    width: 120px; height: 120px; pointer-events:none; z-index:2;
+    width: 120px; height: 120px; pointer-events:none; z-index:4;
     transform: translate(-50%, -50%); transition: transform 12s ease-in-out;
+    display:none;
   }
   #pet img{ width:100%; height:100%; object-fit:contain;
     filter: drop-shadow(0 8px 18px rgba(0,0,0,.45));
@@ -123,9 +123,9 @@
       <div>
         <h1>MeAI</h1>
         <p class="lead">“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で自己申告して記録するミニアプリです。<br>※ 監視はしません。ボタン/文字入力で記録するだけ。</p>
-        <button id="start" class="btn">はじめから</button>
-        <button id="cont" class="btn">つづきから</button>
-        <button id="about" class="btn secondary">このプロトタイプについて</button>
+        <button id="start" class="btn" type="button">はじめから</button>
+        <button id="cont" class="btn" type="button">つづきから</button>
+        <button id="about" class="btn secondary" type="button">このプロトタイプについて</button>
         <p id="savestate" style="opacity:.9;margin-top:8px;"></p>
       </div>
     </div>
@@ -141,7 +141,7 @@
         <div class="char" data-char="pink"><img src="public/char/pink/calm.png" alt="pink"></div>
         <div class="char" data-char="purple"><img src="public/char/purple/calm.png" alt="purple"></div>
       </div>
-      <button id="backTitle" class="btn" style="margin-top:14px; width:auto;">← タイトルへ</button>
+      <button id="backTitle" class="btn" type="button" style="margin-top:14px; width:auto;">← タイトルへ</button>
     </div>
   </section>
 
@@ -157,49 +157,182 @@
 
     <div id="composer">
       <input id="input" type="text" placeholder="返答を入力…（Enterで送信）" />
-      <button id="send" class="btn">送信</button>
-      <button id="done" class="btn">やったよ</button>
+      <button id="send" class="btn" type="button">送信</button>
+      <button id="done" class="btn" type="button">やったよ</button>
     </div>
 
     <div id="footerMenu">
-      <button id="toTitle" class="btn secondary">メニューへ</button>
-      <button id="showLog" class="btn secondary">ログを確認</button>
-      <button id="reset" class="btn secondary">データ初期化</button>
+      <button id="toTitle" class="btn secondary" type="button">メニューへ</button>
+      <button id="showLog" class="btn secondary" type="button">ログを確認</button>
+      <button id="reset" class="btn secondary" type="button">データ初期化</button>
     </div>
   </section>
 
-  <!-- 画面を漂うマスコット -->
+  <!-- 画面を漂うマスコット（初期は非表示） -->
   <div id="pet"><img id="petImg" src="" alt="pet"></div>
 
 <script>
-  /* 参照 */
-  const $ = s => document.querySelector(s);
-  const scrTitle = $('#title'), scrChoose = $('#choose'), scrMain = $('#main');
-  const btnStart = $('#start'), btnCont = $('#cont'), btnAbout = $('#about'), saveState = $('#savestate');
-  const btnBackTitle = $('#backTitle'), btnToTitle = $('#toTitle'), btnReset = $('#reset'), btnShowLog = $('#showLog');
-  const chat = $('#chat'), input = $('#input'), btnSend = $('#send'), btnDone = $('#done');
-  const heartCountEl = $('#heartCount'), charIcon = $('#charIcon'), sessionInfo = $('#sessionInfo');
-  const pet = document.getElementById('pet'); const petImg = document.getElementById('petImg');
+  // すべてDOM構築後に初期化（イベント未付与を防ぐ）
+  window.addEventListener('DOMContentLoaded', () => {
+    const $ = s => document.querySelector(s);
 
-  /* ストレージキー */
-  const K = { char:'meai_character', hearts:'meai_heart', log:'meai_log' };
+    const scrTitle = $('#title'), scrChoose = $('#choose'), scrMain = $('#main');
+    const btnStart = $('#start'), btnCont = $('#cont'), btnAbout = $('#about'), saveState = $('#savestate');
+    const btnBackTitle = $('#backTitle'), btnToTitle = $('#toTitle'), btnReset = $('#reset'), btnShowLog = $('#showLog');
+    const chat = $('#chat'), input = $('#input'), btnSend = $('#send'), btnDone = $('#done');
+    const heartCountEl = $('#heartCount'), charIcon = $('#charIcon'), sessionInfo = $('#sessionInfo');
+    const pet = $('#pet'), petImg = $('#petImg');
 
-  /* 状態 */
-  let character = localStorage.getItem(K.char) || null;
-  let hearts = parseInt(localStorage.getItem(K.hearts) || '0', 10);
-  let log = JSON.parse(localStorage.getItem(K.log) || '[]');
+    const K = { char:'meai_character', hearts:'meai_heart', log:'meai_log' };
+    let character = localStorage.getItem(K.char) || null;
+    let hearts = parseInt(localStorage.getItem(K.hearts) || '0', 10);
+    let log = JSON.parse(localStorage.getItem(K.log) || '[]');
 
-  /* 画面制御 */
-  function show(el){ [scrTitle,scrChoose,scrMain].forEach(s=>s.classList.remove('show')); el.classList.add('show'); }
-  function refreshTitle(){
-    const has = !!localStorage.getItem(K.char);
-    btnCont.disabled = !has;
-    saveState.textContent = has ? 'セーブデータがあります。「つづきから」で再開できます。' : 'セーブデータがありません。';
-    show(scrTitle);
-  }
-  refreshTitle();
+    function show(el){ [scrTitle,scrChoose,scrMain].forEach(s=>s.classList.remove('show')); el.classList.add('show'); }
+    function refreshTitle(){
+      const has = !!localStorage.getItem(K.char);
+      btnCont.disabled = !has;
+      saveState.textContent = has ? 'セーブデータがあります。「つづきから」で再開できます。' : 'セーブデータがありません。';
+      show(scrTitle);
+      // タイトルではペット非表示
+      pet.style.display = 'none';
+    }
+    refreshTitle();
 
-  /* タイトル */
-  btnStart.addEventListener('click', ()=> show(scrChoose));
-  btnCont.addEventListener('click', ()=>{
-    if(!localStorage.getItem(K.ch
+    // タイトル
+    btnStart.addEventListener('click', ()=> show(scrChoose));
+    btnCont.addEventListener('click', ()=>{
+      if(!localStorage.getItem(K.char)){ alert('セーブデータがありません。'); return; }
+      startMain(false);
+    });
+    btnAbout.addEventListener('click', ()=> alert('この試作はAIが監視するのではなく、ユーザーの自己申告（「やったよ」）で記録するだけの設計です。'));
+
+    // キャラ選択
+    document.querySelectorAll('.char').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        character = el.dataset.char;
+        localStorage.setItem(K.char, character);
+        hearts = parseInt(localStorage.getItem(K.hearts) || '0',10);
+        if(!Array.isArray(log)) log=[];
+        startMain(true);
+      });
+    });
+    btnBackTitle.addEventListener('click', refreshTitle);
+
+    // メイン開始
+    function startMain(newSession){
+      charIcon.src = `public/char/${character}/calm.png`;
+      heartCountEl.textContent = hearts;
+      sessionInfo.textContent = newSession ? '新しいセッション' : 'つづきから';
+
+      // ペット表示・移動開始
+      petImg.src = `public/char/${character}/calm.png`;
+      pet.style.display = 'block';
+      setTimeout(()=>{ petMoveLoop(); }, 200);
+
+      chat.innerHTML='';
+      if(newSession || log.length===0){
+        push('ai', firstRequest(character));
+        saveAll();
+      }else{
+        log.forEach(m=>append(m.sender,m.text));
+        chat.scrollTop = chat.scrollHeight;
+      }
+      show(scrMain);
+      setTimeout(()=>input.focus(), 10);
+    }
+
+    // 送信処理
+    function append(sender, text){
+      const div = document.createElement('div');
+      div.className = `bubble ${sender}`;
+      div.textContent = text;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+    function push(sender, text){
+      log.push({sender, text, ts:Date.now()});
+      append(sender, text);
+    }
+    function aiReplyAfter(text){
+      if(/やった/.test(text)){
+        hearts++;
+        heartCountEl.textContent = hearts;
+        push('ai','すばらしい！ハートが増えたよ💖');
+        push('ai', randomRequest());
+        pet.classList.add('pop'); setTimeout(()=>pet.classList.remove('pop'), 600);
+      }else{
+        push('ai','うん、なるほどね。');
+      }
+      saveAll();
+    }
+    function send(){
+      const t = input.value.trim(); if(!t) return;
+      push('user', t); input.value = ''; aiReplyAfter(t);
+    }
+    btnSend.addEventListener('click', send);
+    input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
+    btnDone.addEventListener('click', ()=>{ push('user','やったよ'); aiReplyAfter('やったよ'); });
+
+    // 補助メニュー
+    btnToTitle.addEventListener('click', refreshTitle);
+    btnReset.addEventListener('click', ()=>{
+      if(confirm('セーブデータ（キャラ・ハート・ログ）を削除します。よろしいですか？')){
+        localStorage.removeItem(K.char); localStorage.removeItem(K.hearts); localStorage.removeItem(K.log);
+        character=null; hearts=0; log=[]; refreshTitle();
+      }
+    });
+    btnShowLog.addEventListener('click', ()=>{
+      const text = log.map(l=>`${new Date(l.ts).toLocaleString()} [${l.sender}] ${l.text}`).join('\n') || '（ログなし）';
+      alert(text);
+    });
+
+    // 文言
+    const REQUESTS=[
+      "今日はだれかに『おはよう』を伝えてみよう。",
+      "水をコップ一杯のもう。",
+      "5分だけストレッチしてみよう。",
+      "外の空気を吸いに行こう。",
+      "今日の良かったことを1つメモしよう。"
+    ];
+    function randomRequest(){ return REQUESTS[Math.floor(Math.random()*REQUESTS.length)]; }
+    function firstRequest(char){
+      const tag = {green:"（やさしく）", blue:"（ていねいに）", pink:"（わくわく）", purple:"（おちついて）"}[char] || "";
+      return `${tag} ${randomRequest()}`;
+    }
+
+    // 保存
+    function saveAll(){
+      localStorage.setItem(K.hearts, String(hearts));
+      localStorage.setItem(K.log, JSON.stringify(log));
+    }
+
+    // 漂うロジック
+    function petRandomPos(){
+      const pad = 40, size = 120;
+      const w = Math.max(0, window.innerWidth  - size - pad*2);
+      const h = Math.max(0, window.innerHeight - size - pad*2);
+
+      const avoid = document.getElementById('chat')?.getBoundingClientRect();
+      let x = pad + Math.random()*w;
+      let y = pad + Math.random()*h;
+
+      if(avoid){
+        if(x < avoid.right && y < avoid.bottom){
+          x = Math.min(window.innerWidth - pad - size, avoid.right + 60 + Math.random()*(w*0.6));
+        }
+      }
+      return {x,y};
+    }
+    function petMoveLoop(){
+      const p = petRandomPos();
+      pet.style.transform = `translate(${p.x}px, ${p.y}px)`;
+      const next = 8000 + Math.random()*6000; // 8〜14s
+      clearTimeout(pet._timer);
+      pet._timer = setTimeout(petMoveLoop, next);
+    }
+    window.addEventListener('resize', ()=>{ clearTimeout(pet._timer); petMoveLoop(); });
+  });
+</script>
+</body>
+</html>
