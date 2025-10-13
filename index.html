@@ -24,6 +24,32 @@
   .screen{ position:fixed; inset:0; display:none; z-index:10; pointer-events:auto; }
   .show{ display:block; }
 
+  /* ===== カバー（表紙） ===== */
+  #cover{
+    display:grid; place-items:center; text-align:center;
+  }
+  .cover-card{
+    width:min(92vw, 560px);
+    background:rgba(0,0,0,.42);
+    border:1px solid rgba(255,255,255,.2);
+    border-radius:28px; padding:40px 28px;
+    backdrop-filter:blur(10px);
+    box-shadow:0 24px 80px rgba(0,0,0,.55);
+  }
+  .cover-illust{ width:180px; height:180px; object-fit:contain; filter:drop-shadow(0 8px 20px rgba(0,0,0,.6)); }
+  .cover-title{ font-size:40px; font-weight:800; margin:18px 0 6px; letter-spacing:.02em; }
+  .cover-sub{ opacity:.9; margin:0 0 22px; }
+  .cta{
+    display:inline-flex; align-items:center; gap:10px;
+    border:none; border-radius:999px; padding:16px 28px; font-size:18px; cursor:pointer;
+    color:#251332; background:linear-gradient(180deg, #ff8bd2, #ff6db3 60%, #ff55a1);
+    box-shadow:0 12px 30px rgba(255,105,180,.35), inset 0 2px 0 rgba(255,255,255,.5);
+    transition: transform .08s ease, box-shadow .2s ease;
+  }
+  .cta:hover{ transform:translateY(-1px); box-shadow:0 16px 36px rgba(255,105,180,.45), inset 0 2px 0 rgba(255,255,255,.6); }
+  .cta:active{ transform:translateY(1px); }
+
+  /* ===== 既存UI（タイトル・メイン等） ===== */
   .center{
     width:min(92vw, 920px); margin:10vh auto 0; display:grid;
     grid-template-columns: 140px 1fr; gap:20px;
@@ -72,9 +98,7 @@
   .ai {background:rgba(120,200,255,.24); border:1px solid rgba(120,200,255,.34); float:left; clear:both;}
   .user{background:rgba(255,255,255,.24); border:1px solid rgba(255,255,255,.34); float:right; clear:both;}
 
-  #composer{
-    width:min(92vw, 900px); margin:8px auto 0; display:flex; gap:8px; z-index:11; position:relative;
-  }
+  #composer{ width:min(92vw, 900px); margin:8px auto 0; display:flex; gap:8px; z-index:11; position:relative; }
   #input{
     flex:1; padding:12px 14px; border:none; border-radius:12px; color:#fff; font-size:16px;
     background:rgba(255,255,255,.16); outline:none;
@@ -88,24 +112,19 @@
 
   /* 漂うマスコット（画面内に居続ける） */
   #pet{
-    position: fixed;
-    left: 50vw; top: 60vh;
-    width: 120px; height: 120px;
-    pointer-events: none;
-    z-index: 5;
-    transition: left 12s ease-in-out, top 12s ease-in-out;
-    display: none;
+    position: fixed; left: 50vw; top: 60vh;
+    width: 120px; height: 120px; pointer-events: none; z-index: 5;
+    transition: left 12s ease-in-out, top 12s ease-in-out; display: none;
   }
-  #pet img{
-    width:100%; height:100%; object-fit:contain;
-    filter: drop-shadow(0 8px 18px rgba(0,0,0,.45));
-    animation: pet-breathe 3.6s ease-in-out infinite;
-  }
+  #pet img{ width:100%; height:100%; object-fit:contain;
+    filter: drop-shadow(0 8px 18px rgba(0,0,0,.45)); animation: pet-breathe 3.6s ease-in-out infinite; }
   @keyframes pet-breathe{ 0%,100%{ transform: translateY(0) scale(1);} 50%{ transform: translateY(-6px) scale(1.02);} }
   #pet.pop img{ animation: pet-pop .6s ease; }
   @keyframes pet-pop{ 0%{transform:scale(1)} 40%{transform:scale(1.12)} 100%{transform:scale(1)} }
 
   @media (max-width:560px){
+    .cover-title{ font-size:32px; }
+    .cover-card{ padding:28px 22px; }
     h1{font-size:30px}
     .center{ grid-template-columns: 1fr; text-align:center; }
     .brand{ order:-1; }
@@ -115,8 +134,19 @@
 <body>
   <div class="stars"></div>
 
-  <!-- スタート画面 -->
-  <section id="title" class="screen show">
+  <!-- ===== 表紙（カバー） ===== -->
+  <section id="cover" class="screen show" aria-label="表紙">
+    <div class="cover-card">
+      <!-- カバー画像：ここをお好きな画像に変更OK -->
+      <img class="cover-illust" src="public/cover.png" alt="cover">
+      <div class="cover-title">WhoAI Evo</div>
+      <p class="cover-sub">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
+      <button id="coverStart" class="cta" type="button">▶︎ スタート</button>
+    </div>
+  </section>
+
+  <!-- ===== 既存タイトル ===== -->
+  <section id="title" class="screen">
     <div class="center">
       <div class="brand"><img src="public/char/green/calm.png" alt="mascot"></div>
       <div>
@@ -130,21 +160,21 @@
     </div>
   </section>
 
-  <!-- キャラ選択 -->
+  <!-- ===== キャラ選択 ===== -->
   <section id="choose" class="screen">
     <div class="panel">
       <h2 style="margin:0 0 8px;">キャラクターを選んでね</h2>
-    <div class="grid">
-      <div class="char" data-char="green"><img src="public/char/green/calm.png" alt="green"></div>
-      <div class="char" data-char="blue"><img src="public/char/blue/calm.png" alt="blue"></div>
-      <div class="char" data-char="pink"><img src="public/char/pink/calm.png" alt="pink"></div>
-      <div class="char" data-char="purple"><img src="public/char/purple/calm.png" alt="purple"></div>
-    </div>
+      <div class="grid">
+        <div class="char" data-char="green"><img src="public/char/green/calm.png" alt="green"></div>
+        <div class="char" data-char="blue"><img src="public/char/blue/calm.png" alt="blue"></div>
+        <div class="char" data-char="pink"><img src="public/char/pink/calm.png" alt="pink"></div>
+        <div class="char" data-char="purple"><img src="public/char/purple/calm.png" alt="purple"></div>
+      </div>
       <button id="backTitle" class="btn" type="button" style="margin-top:14px; width:auto;">← タイトルへ</button>
     </div>
   </section>
 
-  <!-- メイン -->
+  <!-- ===== メイン ===== -->
   <section id="main" class="screen">
     <div id="header">
       <img id="charIcon" src="" alt="char">
@@ -167,14 +197,16 @@
     </div>
   </section>
 
-  <!-- 画面を漂うマスコット -->
+  <!-- 漂うマスコット -->
   <div id="pet"><img id="petImg" src="" alt="pet"></div>
 
 <script>
 window.addEventListener('DOMContentLoaded', () => {
   const $ = s => document.querySelector(s);
 
-  const scrTitle = $('#title'), scrChoose = $('#choose'), scrMain = $('#main');
+  const scrCover = $('#cover'), scrTitle = $('#title'), scrChoose = $('#choose'), scrMain = $('#main');
+  const btnCoverStart = $('#coverStart');
+
   const btnStart = $('#start'), btnCont = $('#cont'), btnAbout = $('#about'), saveState = $('#savestate');
   const btnBackTitle = $('#backTitle'), btnToTitle = $('#toTitle'), btnReset = $('#reset'), btnShowLog = $('#showLog');
   const chat = $('#chat'), input = $('#input'), btnSend = $('#send'), btnDone = $('#done');
@@ -186,19 +218,24 @@ window.addEventListener('DOMContentLoaded', () => {
     hearts:'meai_heart',
     log:'meai_log',
     pool:'meai_request_pool',
-    next:'meai_next_due' // 次の提案予定（この間は「やったよ」無効）
+    next:'meai_next_due'
   };
 
-  /* ===== リマインド間隔（時間） ===== */
-  const REMIND_MIN_H = 1;
-  const REMIND_MAX_H = 3;
+  const REMIND_MIN_H = 1, REMIND_MAX_H = 3;
 
   let character = localStorage.getItem(K.char) || null;
   let hearts = parseInt(localStorage.getItem(K.hearts) || '0', 10);
   let log = JSON.parse(localStorage.getItem(K.log) || '[]');
   let nextTimer = null;
 
-  function show(el){ [scrTitle,scrChoose,scrMain].forEach(s=>s.classList.remove('show')); el.classList.add('show'); }
+  function show(el){ [scrCover,scrTitle,scrChoose,scrMain].forEach(s=>s.classList.remove('show')); el.classList.add('show'); }
+
+  // ====== カバーのスタート：続きがあれば直行、なければ既存タイトルへ
+  btnCoverStart.addEventListener('click', ()=>{
+    if(localStorage.getItem(K.char)){ startMain(false); }
+    else { refreshTitle(); }
+  });
+
   function refreshTitle(){
     const has = !!localStorage.getItem(K.char);
     btnCont.disabled = !has;
@@ -207,8 +244,8 @@ window.addEventListener('DOMContentLoaded', () => {
     pet.style.display = 'none';
     stopNextTimer();
   }
-  refreshTitle();
 
+  // ===== タイトル画面の動線
   btnStart.addEventListener('click', ()=> show(scrChoose));
   btnCont.addEventListener('click', ()=>{
     if(!localStorage.getItem(K.char)){ alert('セーブデータがありません。'); return; }
@@ -216,6 +253,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   btnAbout.addEventListener('click', ()=> alert('この試作はAIが監視するのではなく、ユーザーの自己申告（「やったよ」）で記録するだけの設計です。'));
 
+  // ===== キャラ選択
   document.querySelectorAll('.char').forEach(el=>{
     el.addEventListener('click', ()=>{
       character = el.dataset.char;
@@ -227,7 +265,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   btnBackTitle.addEventListener('click', refreshTitle);
 
-  /* ===== 文言（30件） + 未出優先 ===== */
+  // ===== 文言30件 + 未出優先プール
   const REQUESTS = [
     "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。","今日の空の色をひとことで教えて。",
     "窓を少し開けて、空気を入れ替えよう。","深呼吸を3回してみよう。","好きな音を5秒だけ聞かせて。（心の中でもOK）",
@@ -258,50 +296,47 @@ window.addEventListener('DOMContentLoaded', () => {
     return `${tag} ${nextRequest()}`;
   }
 
-  /* ===== リマインド＆「やったよ」ボタンのクールダウン ===== */
+  // ===== リマインド＆クールダウン
   function stopNextTimer(){ if(nextTimer){ clearTimeout(nextTimer); nextTimer=null; } }
   function hoursToMs(h){ return Math.round(h * 3600 * 1000); }
   function pickHours(){ return REMIND_MIN_H + Math.random()*(REMIND_MAX_H - REMIND_MIN_H); }
-
   function setNextDueAfterHours(h){
     const due = Date.now() + hoursToMs(h);
     localStorage.setItem(K.next, String(due));
     updateDoneButtonState();
     startNextTimer();
   }
-
   function updateDoneButtonState(){
     const due = parseInt(localStorage.getItem(K.next) || '0', 10);
     const disabled = due && due > Date.now();
-    btnDone.disabled = disabled; // ← ここで無効化/有効化
+    document.getElementById('done').disabled = disabled;
   }
-
   function startNextTimer(){
     stopNextTimer();
     const due = parseInt(localStorage.getItem(K.next) || '0', 10);
-    if(!due){ btnDone.disabled = false; return; }
+    if(!due){ document.getElementById('done').disabled = false; return; }
     const wait = due - Date.now();
     if(wait <= 0){ triggerNext(); return; }
-    btnDone.disabled = true;
+    document.getElementById('done').disabled = true;
     nextTimer = setTimeout(triggerNext, wait);
   }
-
-  // 時刻が来た → 提案を出す＆ボタンを再有効化（※ここでは次回予約しない）
   function triggerNext(){
     localStorage.removeItem(K.next);
-    btnDone.disabled = false; // クールダウン解除
+    document.getElementById('done').disabled = false;
     push('ai', 'そろそろどうかな？');
     push('ai', nextRequest());
   }
-
   function scheduleLater(){
     const h = pickHours();
     push('ai', `また後でね。約${Math.round(h*10)/10}時間後に次の提案を送るね。`);
-    setNextDueAfterHours(h);  // 予約＆「やったよ」無効化
+    setNextDueAfterHours(h);
   }
 
-  /* ===== メイン開始 ===== */
+  // ===== メイン開始
   function startMain(newSession){
+    character = character || localStorage.getItem(K.char);
+    if(!character){ refreshTitle(); return; }
+
     charIcon.src = `public/char/${character}/calm.png`;
     heartCountEl.textContent = hearts;
     sessionInfo.textContent = newSession ? '新しいセッション' : 'つづきから';
@@ -321,13 +356,11 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     show(scrMain);
     setTimeout(()=>input.focus(), 10);
-
-    // 起動時に状態を反映
     updateDoneButtonState();
     startNextTimer();
   }
 
-  /* ===== 送信処理 ===== */
+  // ===== 送受信
   function append(sender, text){
     const div = document.createElement('div');
     div.className = `bubble ${sender}`;
@@ -335,58 +368,43 @@ window.addEventListener('DOMContentLoaded', () => {
     chat.appendChild(div);
     chat.scrollTop = chat.scrollHeight;
   }
-  function push(sender, text){
-    log.push({sender, text, ts:Date.now()});
-    append(sender, text);
-  }
+  function push(sender, text){ log.push({sender, text, ts:Date.now()}); append(sender, text); }
   function aiReplyAfter(text){
     if(/やった/.test(text)){
-      hearts++;
-      heartCountEl.textContent = hearts;
+      hearts++; heartCountEl.textContent = hearts;
       push('ai','すばらしい！ハートが増えたよ💖');
-      scheduleLater();              // ← 次の予約＆「やったよ」無効化
+      scheduleLater();
       pet.classList.add('pop'); setTimeout(()=>pet.classList.remove('pop'), 600);
     }else{
       push('ai','うん、なるほどね。');
-      scheduleLater();              // ← テキスト返信でも次の予約
+      scheduleLater();
     }
     saveAll();
   }
-  function send(){
-    const t = input.value.trim(); if(!t) return;
-    push('user', t); input.value = ''; aiReplyAfter(t);
-  }
-  btnSend.addEventListener('click', send);
-
-  // 「やったよ」ボタン：無効化中は完全に無反応
-  btnDone.addEventListener('click', ()=>{
-    if(btnDone.disabled) return;
-    push('user','やったよ');
-    aiReplyAfter('やったよ');
+  function send(){ const t = input.value.trim(); if(!t) return; push('user', t); input.value = ''; aiReplyAfter(t); }
+  document.getElementById('send').addEventListener('click', send);
+  document.getElementById('done').addEventListener('click', ()=>{
+    if(document.getElementById('done').disabled) return;
+    push('user','やったよ'); aiReplyAfter('やったよ');
   });
-
   input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
 
-  /* ===== 補助メニュー ===== */
-  btnToTitle.addEventListener('click', refreshTitle);
-  btnReset.addEventListener('click', ()=>{
+  // 補助
+  document.getElementById('toTitle').addEventListener('click', refreshTitle);
+  document.getElementById('reset').addEventListener('click', ()=>{
     if(confirm('セーブデータ（キャラ・ハート・ログ）を削除します。よろしいですか？')){
       localStorage.removeItem(K.char); localStorage.removeItem(K.hearts); localStorage.removeItem(K.log);
       localStorage.removeItem(K.pool); localStorage.removeItem(K.next);
-      character=null; hearts=0; log=[]; refreshTitle();
+      character=null; hearts=0; log=[]; show(scrCover);
     }
   });
-  btnShowLog.addEventListener('click', ()=>{
+  document.getElementById('showLog').addEventListener('click', ()=>{
     const text = log.map(l=>`${new Date(l.ts).toLocaleString()} [${l.sender}] ${l.text}`).join('\n') || '（ログなし）';
     alert(text);
   });
+  function saveAll(){ localStorage.setItem(K.hearts, String(hearts)); localStorage.setItem(K.log, JSON.stringify(log)); }
 
-  function saveAll(){
-    localStorage.setItem(K.hearts, String(hearts));
-    localStorage.setItem(K.log, JSON.stringify(log));
-  }
-
-  /* ===== 漂い（画面から出ない） ===== */
+  // 漂い
   function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
   function petRandomPos(){
     const pad = 24, size = 120;
