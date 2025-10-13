@@ -25,9 +25,14 @@
   .show{ display:block; }
 
   /* ===== カバー（表紙） ===== */
+  /* display は .show でのみ付与する（←ここが修正点） */
   #cover{
-    display:grid; place-items:center; text-align:center;
+    /* display: grid; ←削除 */
+    place-items:center; text-align:center;
   }
+  /* 表示時だけ grid にする */
+  #cover.show{ display:grid; }
+
   .cover-card{
     width:min(92vw, 560px);
     background:rgba(0,0,0,.42);
@@ -134,11 +139,12 @@
 <body>
   <div class="stars"></div>
 
-  <!-- ===== 表紙（カバー） ===== -->
+   <!-- ===== 表紙（カバー） ===== -->
   <section id="cover" class="screen show" aria-label="表紙">
     <div class="cover-card">
-      <!-- カバー画像：ここをお好きな画像に変更OK -->
-      <img class="cover-illust" src="public/miwacchi/open.png" alt="cover">
+      <!-- ここを差し替え：提供いただいた画像を使用 -->
+      <img class="cover-illust" src="public/cover_miwa.png" alt="MeAI cover mascot">
+      <!-- ここを差し替え：題名を MeAI に -->
       <div class="cover-title">MeAI</div>
       <p class="cover-sub">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
       <button id="coverStart" class="cta" type="button">▶︎ スタート</button>
@@ -201,6 +207,7 @@
   <div id="pet"><img id="petImg" src="" alt="pet"></div>
 
 <script>
+/* ここから下はそのまま（JS変更なし） */
 window.addEventListener('DOMContentLoaded', () => {
   const $ = s => document.querySelector(s);
 
