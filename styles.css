@@ -76,3 +76,10 @@ function startGame(reset = false) {
   // CSV出力
   document.getElementById("btnExport").onclick = exportCSV;
 }
+/* ===== 表示切り替え修正 ===== */
+#app[hidden] {
+  display: none !important;
+}
+#titleScreen[hidden] {
+  display: none !important;
+}
