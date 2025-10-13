@@ -2,228 +2,289 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MeAI Prototype</title>
   <style>
+    /* ===== 背景（宇宙） ===== */
+    html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: "Noto Sans JP", sans-serif;
-      background: url("public/space_background.png") no-repeat center center fixed;
+      font-family: "Noto Sans JP", system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background: url("public/bg/space.jpg") no-repeat center center fixed;
       background-size: cover;
       color: #fff;
-      text-align: center;
       overflow: hidden;
     }
 
-    #titleScreen, #charSelect, #mainScreen {
+    /* 全画面レイヤ */
+    .screen {
+      position: absolute; inset: 0;
       display: none;
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      backdrop-filter: blur(4px);
-      background: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
+      justify-content: center; align-items: center; flex-direction: column;
+      padding: 24px;
     }
-
     .show { display: flex; }
 
-    .box {
-      background: rgba(255,255,255,0.1);
+    /* 中央パネル */
+    .panel {
+      width: min(92vw, 520px);
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,255,255,0.2);
       border-radius: 20px;
-      padding: 2em;
-      max-width: 400px;
-      box-shadow: 0 0 20px rgba(255,255,255,0.2);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+      backdrop-filter: blur(6px);
+      padding: 28px 24px;
+      text-align: center;
     }
+    h1 { margin: 0 0 6px; font-size: 38px; letter-spacing: .02em; }
+    p.lead { margin: 0 0 20px; opacity:.95; }
 
-    button {
-      display: block;
-      margin: 10px auto;
-      padding: 10px 20px;
-      font-size: 1.1em;
-      border: none;
-      border-radius: 10px;
-      background: rgba(255,255,255,0.2);
-      color: #fff;
-      cursor: pointer;
+    /* ボタン */
+    .btn {
+      display:block; width:100%;
+      margin:10px 0; padding:12px 16px;
+      border:none; border-radius:12px;
+      background: rgba(255,255,255,0.18);
+      color:#fff; font-size:16px; cursor:pointer;
+      transition:.2s;
     }
+    .btn:hover { background: rgba(255,255,255,0.28); }
+    .btn:disabled { opacity:.45; cursor:not-allowed; }
 
-    button:hover {
-      background: rgba(255,255,255,0.4);
+    /* キャラ選択 */
+    .char-grid { display:flex; justify-content:center; gap:14px; flex-wrap:wrap; margin-top:10px; }
+    .char {
+      width:86px; height:86px; border-radius:50%;
+      background: rgba(255,255,255,0.12);
+      display:grid; place-items:center; cursor:pointer; transition:.2s; border:1px solid rgba(255,255,255,0.18);
     }
+    .char img { width:68px; height:68px; object-fit:contain; }
+    .char:hover { transform: scale(1.06); box-shadow: 0 0 0 3px rgba(255,255,255,0.18) inset; }
 
-    .char-option {
-      display: inline-block;
-      margin: 10px;
-      cursor: pointer;
-      border-radius: 50%;
-      transition: 0.3s;
+    /* メイン */
+    #headerBar {
+      position:absolute; top:14px; left:50%; transform:translateX(-50%);
+      background:rgba(0,0,0,0.45); border:1px solid rgba(255,255,255,0.2);
+      border-radius:999px; padding:8px 14px; display:flex; gap:14px; align-items:center;
     }
-    .char-option:hover {
-      transform: scale(1.1);
-      box-shadow: 0 0 10px #fff;
+    #headerBar img { width:32px; height:32px; }
+    #heart { font-size:18px; }
+    #chat {
+      width:min(92vw, 700px); height:min(60vh, 420px);
+      overflow-y:auto; padding:18px; margin:90px auto 10px;
+      background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.2); border-radius:16px;
     }
+    .bubble{max-width:78%; margin:10px 0; padding:10px 14px; border-radius:14px; display:inline-block; line-height:1.5}
+    .ai{ background:rgba(120,200,255,0.25); border:1px solid rgba(120,200,255,0.35); }
+    .user{ background:rgba(255,255,255,0.25); border:1px solid rgba(255,255,255,0.35); float:right; clear:both;}
+    .ai{ float:left; clear:both;}
 
-    #chatBox {
-      background: rgba(0,0,0,0.5);
-      padding: 20px;
-      border-radius: 15px;
-      width: 90%;
-      max-width: 600px;
-      margin: 0 auto;
-      text-align: left;
+    #composer{ width:min(92vw, 700px); margin:6px auto 0; display:flex; gap:8px; }
+    #input{
+      flex:1; padding:12px 14px; border:none; border-radius:12px;
+      background:rgba(255,255,255,0.15); color:#fff; font-size:16px;
+      outline:none;
     }
+    #send{ padding:12px 16px; }
 
-    .bubble {
-      margin: 10px 0;
-      padding: 10px 15px;
-      border-radius: 15px;
-      display: inline-block;
-      max-width: 80%;
-    }
+    /* 画面遷移アニメ弱め */
+    .fade { animation: fade .25s ease; }
+    @keyframes fade { from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none} }
 
-    .ai {
-      background: rgba(100, 200, 255, 0.3);
-      align-self: flex-start;
-    }
-
-    .user {
-      background: rgba(255, 255, 255, 0.3);
-      align-self: flex-end;
-    }
-
-    #heart {
-      font-size: 1.5em;
-      margin-top: 10px;
+    /* モバイル余白 */
+    @media (max-width:480px){
+      h1{font-size:30px}
+      .char{width:78px;height:78px}
+      .char img{width:60px;height:60px}
     }
   </style>
 </head>
 <body>
-  <!-- タイトル画面 -->
-  <div id="titleScreen" class="show">
-    <div class="box">
+  <!-- ===== スタート画面 ===== -->
+  <section id="titleScreen" class="screen show">
+    <div class="panel fade">
       <h1>MeAI</h1>
-      <p>“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で記録するシンプルなプロトタイプです。</p>
-      <button id="btnStart">はじめから</button>
-      <button id="btnContinue">つづきから</button>
-      <button id="btnAbout">このプロトタイプについて</button>
-      <p id="saveInfo" style="opacity:0.8;"></p>
+      <p class="lead">“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で記録するシンプルなプロトタイプ。</p>
+      <button id="btnStart" class="btn">はじめから</button>
+      <button id="btnContinue" class="btn">つづきから</button>
+      <button id="btnAbout" class="btn" style="margin-top:6px;">このプロトタイプについて</button>
+      <p id="saveState" style="opacity:.85; margin-top:8px;"></p>
     </div>
-  </div>
+  </section>
 
-  <!-- キャラ選択画面 -->
-  <div id="charSelect">
-    <div class="box">
-      <h2>キャラクターを選んでね</h2>
-      <div>
-        <img src="public/char/green/calm.png" class="char-option" width="80" data-char="green">
-        <img src="public/char/blue/calm.png" class="char-option" width="80" data-char="blue">
-        <img src="public/char/pink/calm.png" class="char-option" width="80" data-char="pink">
-        <img src="public/char/purple/calm.png" class="char-option" width="80" data-char="purple">
+  <!-- ===== キャラ選択 ===== -->
+  <section id="charSelect" class="screen">
+    <div class="panel fade">
+      <h2 style="margin:0 0 8px;">キャラクターを選んでね</h2>
+      <div class="char-grid">
+        <div class="char" data-char="green"><img src="public/char/green/calm.png" alt="green"></div>
+        <div class="char" data-char="blue"><img src="public/char/blue/calm.png" alt="blue"></div>
+        <div class="char" data-char="pink"><img src="public/char/pink/calm.png" alt="pink"></div>
+        <div class="char" data-char="purple"><img src="public/char/purple/calm.png" alt="purple"></div>
       </div>
+      <button id="toTitleFromChar" class="btn" style="margin-top:16px;">← タイトルへ戻る</button>
     </div>
-  </div>
+  </section>
 
-  <!-- メイン画面 -->
-  <div id="mainScreen">
-    <div id="chatBox"></div>
-    <div style="margin-top:20px;">
-      <input id="userInput" type="text" placeholder="返答を入力…" style="width:60%; padding:10px; border-radius:10px; border:none;">
-      <button id="btnSend">送信</button>
+  <!-- ===== メイン画面 ===== -->
+  <section id="main" class="screen">
+    <div id="headerBar" class="fade">
+      <img id="charIcon" src="" alt="char">
+      <div id="heart">❤️ × <span id="heartCount">0</span></div>
+      <div id="sessionInfo" style="opacity:.85;"></div>
     </div>
-    <div id="heart">❤️ × <span id="heartCount">0</span></div>
-  </div>
+
+    <div id="chat" class="fade" aria-live="polite"></div>
+
+    <div id="composer" class="fade">
+      <input id="input" type="text" placeholder="返答を入力…（Enterで送信）" />
+      <button id="send" class="btn">送信</button>
+    </div>
+
+    <div style="position:absolute; bottom:12px; left:50%; transform:translateX(-50%); opacity:.85;">
+      <button id="backToTitle" class="btn" style="width:auto; display:inline-block; padding:8px 14px;">メニューへ</button>
+    </div>
+  </section>
 
   <script>
-    const titleScreen = document.getElementById("titleScreen");
-    const charSelect = document.getElementById("charSelect");
-    const mainScreen = document.getElementById("mainScreen");
-    const chatBox = document.getElementById("chatBox");
-    const userInput = document.getElementById("userInput");
-    const btnSend = document.getElementById("btnSend");
-    const heartCountEl = document.getElementById("heartCount");
+    /* ====== 状態 ====== */
+    const qs = (s)=>document.querySelector(s);
+    const titleScreen = qs('#titleScreen');
+    const charSelect  = qs('#charSelect');
+    const main        = qs('#main');
+    const btnStart    = qs('#btnStart');
+    const btnContinue = qs('#btnContinue');
+    const btnAbout    = qs('#btnAbout');
+    const saveState   = qs('#saveState');
+    const sendBtn     = qs('#send');
+    const input       = qs('#input');
+    const chat        = qs('#chat');
+    const heartCountEl= qs('#heartCount');
+    const charIcon    = qs('#charIcon');
 
-    let character = localStorage.getItem("meai_character") || null;
-    let heartCount = parseInt(localStorage.getItem("meai_heart") || "0");
-    let log = JSON.parse(localStorage.getItem("meai_log") || "[]");
-
-    // ===== タイトル画面 =====
-    document.getElementById("btnStart").onclick = () => {
-      titleScreen.classList.remove("show");
-      charSelect.classList.add("show");
-    };
-    document.getElementById("btnContinue").onclick = () => {
-      if (character) {
-        startMain();
-      } else {
-        alert("セーブデータがありません。");
-      }
-    };
-    document.getElementById("btnAbout").onclick = () => {
-      alert("これは生活密着型AIの試作版です。やったことを記録するだけの簡単なデモです。");
+    const KEYS = {
+      char: 'meai_character',
+      heart: 'meai_heart',
+      log: 'meai_log'
     };
 
-    // ===== キャラ選択 =====
-    document.querySelectorAll(".char-option").forEach(opt => {
-      opt.addEventListener("click", () => {
-        character = opt.dataset.char;
-        localStorage.setItem("meai_character", character);
-        startMain();
+    let character = localStorage.getItem(KEYS.char) || null;
+    let hearts    = parseInt(localStorage.getItem(KEYS.heart) || '0', 10);
+    let log       = JSON.parse(localStorage.getItem(KEYS.log) || '[]');
+
+    /* ====== 初期表示：スタート画面を必ず表示 ====== */
+    function show(el){ [titleScreen,charSelect,main].forEach(s=>s.classList.remove('show')); el.classList.add('show'); }
+    function refreshTitle(){
+      const hasSave = !!localStorage.getItem(KEYS.char);
+      btnContinue.disabled = !hasSave;
+      saveState.textContent = hasSave ? 'セーブデータがあります。’つづきから’で再開できます。' : 'セーブデータがありません。';
+      show(titleScreen);
+    }
+    refreshTitle();
+
+    /* ====== 画面遷移 ====== */
+    btnStart.addEventListener('click', ()=> show(charSelect));
+    qs('#toTitleFromChar').addEventListener('click', refreshTitle);
+    btnContinue.addEventListener('click', ()=>{
+      if(!localStorage.getItem(KEYS.char)) return alert('セーブデータがありません。');
+      startMain();
+    });
+    btnAbout.addEventListener('click', ()=>{
+      alert('この試作は、AIが監視するのではなく、ユーザーが「やったよ」ボタン/入力で自己申告するだけの設計です（記録目的）。');
+    });
+    qs('#backToTitle').addEventListener('click', refreshTitle);
+
+    /* ====== キャラ選択 ====== */
+    document.querySelectorAll('.char').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        character = el.dataset.char;
+        localStorage.setItem(KEYS.char, character);
+        hearts = parseInt(localStorage.getItem(KEYS.heart) || '0',10);
+        if(!Array.isArray(log) || log.length===0){
+          log = [];
+        }
+        startMain(true); // 新規開始
       });
     });
 
-    // ===== メイン開始 =====
-    function startMain() {
-      titleScreen.classList.remove("show");
-      charSelect.classList.remove("show");
-      mainScreen.classList.add("show");
-      heartCountEl.textContent = heartCount;
-      if (log.length === 0) {
-        addAI("今日はだれかに『おはよう』を伝えてみよう。");
+    /* ====== メイン開始 ====== */
+    function startMain(newSession=false){
+      // ヘッダ
+      charIcon.src = `public/char/${character}/calm.png`;
+      heartCountEl.textContent = hearts;
+      qs('#sessionInfo').textContent = newSession ? '新しいセッション' : 'つづきから';
+
+      // チャット描画
+      chat.innerHTML = '';
+      if(newSession || log.length===0){
+        const first = pickFirstRequest(character);
+        pushMsg('ai', first);
+        saveAll();
       } else {
-        log.forEach(entry => addMessage(entry.text, entry.sender));
+        log.forEach(m => appendMsg(m.sender, m.text));
+        chat.scrollTop = chat.scrollHeight;
       }
+      show(main);
+      input.focus();
     }
 
-    // ===== チャット処理 =====
-    btnSend.onclick = sendMessage;
-    userInput.addEventListener("keypress", e => { if (e.key === "Enter") sendMessage(); });
-
-    function sendMessage() {
-      const text = userInput.value.trim();
-      if (!text) return;
-      addUser(text);
-      userInput.value = "";
-      if (text.includes("やった")) {
-        heartCount++;
-        heartCountEl.textContent = heartCount;
-        addAI("すばらしい！ハートが増えたよ💖");
-      } else {
-        addAI("うん、なるほどね。");
-      }
-      saveLog();
-    }
-
-    function addAI(text) { addMessage(text, "ai"); }
-    function addUser(text) { addMessage(text, "user"); }
-
-    function addMessage(text, sender) {
-      const div = document.createElement("div");
-      div.classList.add("bubble", sender);
+    /* ====== メッセージ処理 ====== */
+    function appendMsg(sender, text){
+      const div = document.createElement('div');
+      div.className = `bubble ${sender}`;
       div.textContent = text;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-      log.push({ sender, text });
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+    function pushMsg(sender, text){
+      log.push({ sender, text, ts: Date.now() });
+      appendMsg(sender, text);
     }
 
-    function saveLog() {
-      localStorage.setItem("meai_heart", heartCount);
-      localStorage.setItem("meai_log", JSON.stringify(log));
+    function handleUserSend(){
+      const text = input.value.trim();
+      if(!text) return;
+      pushMsg('user', text);
+      input.value = '';
+
+      // “やった”/“やったよ”でハート加算
+      if(/やった/.test(text)){
+        hearts++;
+        heartCountEl.textContent = hearts;
+        pushMsg('ai', 'すばらしい！ハートが増えたよ💖');
+      } else {
+        pushMsg('ai', 'うん、なるほどね。');
+      }
+      // 次のお願い（ゆるくランダム）
+      if(Math.random() < 0.45){
+        pushMsg('ai', randomRequest());
+      }
+      saveAll();
     }
 
-    // セーブ情報表示
-    const hasSave = localStorage.getItem("meai_character");
-    document.getElementById("saveInfo").textContent = hasSave ? "セーブデータがあります。" : "セーブデータがありません。";
+    sendBtn.addEventListener('click', handleUserSend);
+    input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') handleUserSend(); });
+
+    /* ====== ログ保存 ====== */
+    function saveAll(){
+      localStorage.setItem(KEYS.heart, String(hearts));
+      localStorage.setItem(KEYS.log, JSON.stringify(log));
+    }
+
+    /* ====== 文言 ====== */
+    const REQUESTS = [
+      "今日はだれかに『おはよう』を伝えてみよう。",
+      "水をコップ一杯のもう。",
+      "5分だけストレッチしてみよう。",
+      "外の空気を吸いに行こう。",
+      "今日の良かったことを1つメモしよう。"
+    ];
+    function randomRequest(){ return REQUESTS[Math.floor(Math.random()*REQUESTS.length)]; }
+    function pickFirstRequest(char){
+      // ちょっとだけキャラ風味
+      const tag = {green:"（やさしく）", blue:"（ていねいに）", pink:"（わくわく）", purple:"（おちついて）"}[char] || "";
+      return `${tag} ${randomRequest()}`;
+    }
   </script>
 </body>
 </html>
