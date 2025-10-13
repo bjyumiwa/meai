@@ -3,14 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MeAI — キャラ選択＋表情切替＋続きから復元</title>
+  <title>MeAI — タイトル＋キャラ選択＋会話復元</title>
   <style>
     :root{
       --bg:/public/space_background.png;
       --glass: rgba(255,255,255,0.12);
       --text: #f7f7fb;
     }
-    html,body{height:100%; margin:0; font-family:system-ui,"Noto Sans JP"; color:var(--text);}
+    *{box-sizing:border-box}
+    html,body{height:100%; margin:0; font-family:system-ui,"Noto Sans JP",sans-serif; color:var(--text);}
     body{background:#060514 url(var(--bg)) center/cover fixed no-repeat;}
     .clarity{position:fixed; inset:0; pointer-events:none;}
     .clarity:before{content:""; position:absolute; inset:0; backdrop-filter:contrast(1.2) brightness(1.05);}
@@ -22,35 +23,54 @@
     .glass{background:var(--glass); border:1px solid rgba(255,255,255,.2); border-radius:22px; box-shadow:0 10px 40px rgba(0,0,0,.25);}
     .hero{display:grid; grid-template-columns:140px 1fr; align-items:center; padding:28px 32px; gap:20px;}
     .bubble{padding:18px 22px; font-size:20px;}
-    .chat{display:grid; gap:10px;}
+    .meta{opacity:.9; font-size:12px}
+    .chat{display:grid; gap:10px; padding:18px}
     .msg{max-width:80%; padding:12px 16px; border-radius:16px;}
     .ai{justify-self:start; background:rgba(255,255,255,.12);}
     .me{justify-self:end; background:rgba(10,10,20,.6);}
-    input{height:58px; padding:0 16px; border-radius:14px; border:1px solid rgba(255,255,255,.24); background:rgba(0,0,0,.25); color:var(--text); font-size:18px;}
+    input{height:58px; padding:0 16px; border-radius:14px; border:1px solid rgba(255,255,255,.24); background:rgba(0,0,0,.25); color:var(--text); font-size:18px; width:100%}
+    .row{display:flex; gap:10px; align-items:stretch; padding:0 18px 18px}
     .btn{padding:16px 18px; border-radius:16px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.12); color:var(--text); font-weight:700; cursor:pointer;}
-    footer{padding:18px 24px; font-size:12px; opacity:.85;}
+    footer{padding:18px 24px; font-size:12px; opacity:.85}
+    .petimg{width:120px; height:120px; object-fit:contain; filter:drop-shadow(0 0 10px rgba(255,255,255,.4));}
 
-    /* === キャラ選択モーダル === */
-    #charSelectModal{position:fixed; inset:0; background:rgba(0,0,0,.7); display:flex; justify-content:center; align-items:center; z-index:99;}
+    /* タイトル画面 */
+    #titleScreen{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.65); z-index:200;}
+    .titleBox{width:min(520px,92vw); padding:28px; border-radius:20px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.25); text-align:center; display:grid; gap:14px;}
+    .tbtn{padding:14px 18px; border-radius:14px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.35); color:#fff; font-weight:800; cursor:pointer}
+    .tbtn:disabled{opacity:.5; cursor:not-allowed}
+
+    /* キャラ選択モーダル */
+    #charSelectModal{position:fixed; inset:0; background:rgba(0,0,0,.7); display:none; align-items:center; justify-content:center; z-index:150;}
     #charBox{background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); border-radius:20px; padding:30px 40px; text-align:center;}
-    #charBox h2{margin-bottom:16px;}
     .charGrid{display:flex; gap:20px; justify-content:center; flex-wrap:wrap;}
     .charBtn{width:100px; height:100px; object-fit:contain; cursor:pointer; border:2px solid transparent; border-radius:16px; padding:8px; background:rgba(255,255,255,.08);}
     .charBtn:hover{border-color:#fff; background:rgba(255,255,255,.2);}
-    .petimg{width:120px; height:120px; object-fit:contain; filter:drop-shadow(0 0 10px rgba(255,255,255,.4));}
   </style>
 </head>
 <body>
   <div class="clarity"></div>
 
-  <!-- === キャラ選択 === -->
+  <!-- タイトル画面 -->
+  <div id="titleScreen" hidden>
+    <div class="titleBox">
+      <h1 style="margin:0 0 6px">MeAI</h1>
+      <p style="margin:0 0 10px; opacity:.9">“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で記録するシンプルなプロトタイプです。</p>
+      <button class="tbtn" id="btnStart">はじめから</button>
+      <button class="tbtn" id="btnContinue">つづきから</button>
+      <button class="tbtn" id="btnAbout">このプロトタイプについて</button>
+      <p id="noSaveMsg" style="margin:6px 0 0; font-size:12px; opacity:.8" hidden>セーブデータがありません。</p>
+    </div>
+  </div>
+
+  <!-- キャラ選択 -->
   <div id="charSelectModal">
     <div id="charBox">
       <h2>キャラクターを選んでね</h2>
       <div class="charGrid">
-        <img src="public/char/blue/calm.png" class="charBtn" data-char="blue" alt="Blue">
+        <img src="public/char/blue/calm.png" class="charBtn" data-char="blue"   alt="Blue">
         <img src="public/char/green/calm.png" class="charBtn" data-char="green" alt="Green">
-        <img src="public/char/pink/calm.png" class="charBtn" data-char="pink" alt="Pink">
+        <img src="public/char/pink/calm.png" class="charBtn" data-char="pink"   alt="Pink">
         <img src="public/char/purple/calm.png" class="charBtn" data-char="purple" alt="Purple">
       </div>
     </div>
@@ -67,85 +87,172 @@
             <div class="meta"><span id="todLabel">—</span></div>
           </div>
         </section>
-        <section class="glass" style="padding:20px">
+
+        <section class="glass">
           <div class="chat" id="chat"></div>
+          <div class="row">
+            <input id="userInput" type="text" placeholder="返答を入力…">
+            <button class="btn" id="btnDone">はい、やったよ</button>
+          </div>
         </section>
-        <section style="display:flex; gap:10px;">
-          <input id="userInput" type="text" placeholder="返答を入力…" />
-          <button class="btn" id="btnDone">はい、やったよ</button>
-        </section>
-        <section class="glass" style="padding:18px 20px">
+
+        <section class="glass" style="padding:14px 18px">
           <span id="saveState">きろく：0件</span>
         </section>
       </div>
     </main>
-    <footer>バージョン：キャラ選択＋表情切替＋続きから復元</footer>
+    <footer>バージョン：タイトル＋キャラ選択＋復元</footer>
   </div>
 
   <script>
-    // ===== キャラ選択と保存 =====
-    const petImg = document.getElementById("petImg");
-    const modal = document.getElementById("charSelectModal");
-    const savedChar = localStorage.getItem("meai_character");
-
-    function setPetColor(color){
-      localStorage.setItem("meai_character", color);
-      petImg.src = `public/char/${color}/calm.png`;
-      modal.style.display = "none";
-    }
-
-    if(savedChar){
-      petImg.src = `public/char/${savedChar}/calm.png`;
-      modal.style.display = "none";
-    }
-
-    document.querySelectorAll(".charBtn").forEach(btn=>{
-      btn.addEventListener("click",()=>setPetColor(btn.dataset.char));
-    });
-
-    // ===== メッセージと記録 =====
-    const I18N = {ja:{
-      requests:["今日はだれかに『おはよう』を伝えてみよう","水をコップ一杯のもう","5分だけストレッチしてみよう","外の空気を吸いに行こう"],
+    // ===== i18n =====
+    const T = {
+      requests:[
+        "今日はだれかに『おはよう』を伝えてみよう",
+        "水をコップ一杯のもう",
+        "5分だけストレッチしてみよう",
+        "外の空気を吸いに行こう",
+      ],
       done:"はい、やったよ",
       saved:n=>`きろく：${n}件`,
       period:{now:"いま"}
-    }};
-    const T = I18N.ja;
-    const chat=document.getElementById("chat"), aiLine=document.getElementById("aiLine"), todLabel=document.getElementById("todLabel");
+    };
 
-    function pickRequest(){return T.requests[Math.floor(Math.random()*T.requests.length)];}
-    function loadHist(){try{return JSON.parse(localStorage.getItem("meai_history")||"[]");}catch{return [];}}
-    function saveHist(a){localStorage.setItem("meai_history",JSON.stringify(a));}
-    function addHist(e){const h=loadHist();h.push(e);saveHist(h);updateSaveBadge();}
-    function updateSaveBadge(){document.getElementById("saveState").textContent=T.saved(loadHist().length);}
-    function loadChat(){try{return JSON.parse(localStorage.getItem("meai_chat")||"[]");}catch{return[];}}
-    function saveChat(a){localStorage.setItem("meai_chat",JSON.stringify(a));}
-    function addChat(who,text){const c=loadChat();c.push({ts:Date.now(),who,text});saveChat(c);}
-    function pushMsg(text,who="ai"){const el=document.createElement("div");el.className=`msg ${who}`;el.textContent=text;chat.appendChild(el);addChat(who,text);}
-    function renderNewPrompt(){const r=pickRequest();aiLine.textContent=r;todLabel.textContent=T.period.now;localStorage.setItem("meai_last_prompt",r);}
-    function restoreChatAndPrompt(){const hist=loadChat();if(hist.length){for(const m of hist){pushMsg(m.text,m.who);}}const p=localStorage.getItem("meai_last_prompt");if(p){aiLine.textContent=p;}else{renderNewPrompt();}}
+    // ===== DOM =====
+    const title = document.getElementById('titleScreen');
+    const btnStart = document.getElementById('btnStart');
+    const btnContinue = document.getElementById('btnContinue');
+    const btnAbout = document.getElementById('btnAbout');
+    const noSaveMsg = document.getElementById('noSaveMsg');
 
-    document.getElementById("btnDone").addEventListener("click",()=>{
-      addHist({ts:Date.now(),type:"done",prompt:aiLine.textContent});
-      pushMsg(T.done,"me");pushMsg("記録したよ。おつかれさま。","ai");
-      // キャラ喜び表情
-      const c = localStorage.getItem("meai_character") || "blue";
+    const chat = document.getElementById("chat");
+    const petImg = document.getElementById("petImg");
+    const modal = document.getElementById("charSelectModal");
+    const aiLine = document.getElementById("aiLine");
+    const todLabel = document.getElementById("todLabel");
+    const input = document.getElementById("userInput");
+
+    // ===== storage helpers =====
+    const load = (k, d)=>{ try{return JSON.parse(localStorage.getItem(k) ?? JSON.stringify(d));}catch{return d;} };
+    const save = (k,v)=> localStorage.setItem(k, JSON.stringify(v));
+
+    function loadHist(){ return load('meai_history', []); }
+    function saveHist(a){ save('meai_history', a); }
+    function addHist(e){ const h=loadHist(); h.push(e); saveHist(h); updateSaveBadge(); }
+    function updateSaveBadge(){ document.getElementById('saveState').textContent = T.saved(loadHist().length); }
+
+    function loadChat(){ return load('meai_chat', []); }
+    function saveChat(a){ save('meai_chat', a); }
+    function addChat(who,text){ const c=loadChat(); c.push({ts:Date.now(), who, text}); saveChat(c); }
+
+    function savePrompt(p){ localStorage.setItem('meai_last_prompt', p); }
+    function loadPrompt(){ return localStorage.getItem('meai_last_prompt'); }
+
+    // ===== UI helpers =====
+    function pushMsg(text, who='ai'){
+      const el = document.createElement('div');
+      el.className = `msg ${who}`;
+      el.textContent = text;
+      chat.appendChild(el);
+      chat.scrollTop = chat.scrollHeight;
+      addChat(who, text);
+    }
+
+    function pickRequest(){
+      return T.requests[Math.floor(Math.random()*T.requests.length)];
+    }
+    function renderNewPrompt(){
+      const r = pickRequest();
+      aiLine.textContent = r;
+      todLabel.textContent = T.period.now;
+      savePrompt(r);
+    }
+
+    function restoreChatAndPrompt(){
+      // チャット復元
+      const hist = loadChat();
+      if(hist.length){
+        for(const m of hist){ 
+          const el = document.createElement('div');
+          el.className = `msg ${m.who}`;
+          el.textContent = m.text;
+          chat.appendChild(el);
+        }
+        chat.scrollTop = chat.scrollHeight;
+      }
+      // プロンプト復元
+      const p = loadPrompt();
+      if(p){ aiLine.textContent = p; todLabel.textContent = T.period.now; }
+      else { renderNewPrompt(); }
+    }
+
+    // ===== タイトル画面制御 =====
+    function showTitle(){
+      title.hidden = false;
+      const hasSave = !!localStorage.getItem('meai_history');
+      btnContinue.disabled = !hasSave;
+      noSaveMsg.hidden = hasSave;
+    }
+    function hideTitle(){ title.hidden = true; }
+
+    btnStart.onclick = ()=>{
+      // 新規開始：既存チャットは消さない派ならこの行をコメントアウト
+      // localStorage.removeItem('meai_chat'); localStorage.removeItem('meai_last_prompt');
+      ensureCharacter().then(()=>{ hideTitle(); renderNewPrompt(); });
+    };
+    btnContinue.onclick = ()=>{
+      ensureCharacter().then(()=>{ hideTitle(); restoreChatAndPrompt(); });
+    };
+    btnAbout.onclick = ()=>{
+      alert("このプロトタイプは固定メッセージ型です。\n「はい、やったよ」を押すとローカルに記録し、CSV出力できます。\n監視はありません。");
+    };
+
+    // ===== キャラ選択 =====
+    function ensureCharacter(){
+      return new Promise(resolve=>{
+        const savedChar = localStorage.getItem('meai_character');
+        if(savedChar){
+          petImg.src = `public/char/${savedChar}/calm.png`;
+          resolve(); 
+        }else{
+          modal.style.display = "flex";
+          function pick(c){
+            localStorage.setItem('meai_character', c);
+            petImg.src = `public/char/${c}/calm.png`;
+            modal.style.display = "none";
+            resolve();
+          }
+          modal.querySelectorAll('.charBtn').forEach(btn=>{
+            btn.onclick = ()=> pick(btn.dataset.char);
+          });
+        }
+      });
+    }
+
+    // ===== 入力・ボタン =====
+    document.getElementById("btnDone").addEventListener("click", ()=>{
+      addHist({ts:Date.now(), type:"done", prompt:aiLine.textContent});
+      pushMsg(T.done, 'me');
+      pushMsg("記録したよ。おつかれさま。", 'ai');
+      const c = localStorage.getItem('meai_character') || 'blue';
       petImg.src = `public/char/${c}/joy.png`;
-      setTimeout(()=>{petImg.src = `public/char/${c}/calm.png`;},3000);
+      setTimeout(()=>{ petImg.src = `public/char/${c}/calm.png`; }, 2000);
       renderNewPrompt();
     });
 
-    document.getElementById("userInput").addEventListener("keydown",e=>{
-      if(e.key==="Enter"){
-        const text=e.target.value.trim();if(!text)return;
-        pushMsg(text,"me");
-        pushMsg("うん、聞いてるよ。","ai");
-        e.target.value="";
+    input.addEventListener('keydown', e=>{
+      if(e.key==='Enter'){
+        const text = input.value.trim(); if(!text) return;
+        pushMsg(text, 'me');
+        pushMsg("うん、聞いてるよ。", 'ai');
+        addHist({ts:Date.now(), type:"free", text});
+        input.value='';
       }
     });
 
+    // ===== 初期化 =====
     updateSaveBadge();
-    restoreChatAndPrompt();
+    showTitle();
   </script>
 </body>
 </html>
