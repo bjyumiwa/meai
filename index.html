@@ -23,11 +23,11 @@
   .stars::after{ animation-duration:12s; opacity:.16; filter:blur(.4px) brightness(1.2); }
   @keyframes twinkle{ 0%{transform:translateY(0)} 100%{transform:translateY(-40px)} }
 
-  /* 画面レイヤ（※必ず最前面にしてクリック可能に） */
+  /* 画面レイヤ（クリック可能に最前面） */
   .screen{ position:fixed; inset:0; display:none; z-index:5; }
   .show{ display:block; }
 
-  /* カードUI（タイトル） */
+  /* タイトルカード */
   .center{
     width:min(92vw, 920px); margin:10vh auto 0; display:grid;
     grid-template-columns: 140px 1fr; gap:20px;
@@ -91,18 +91,26 @@
   #footerMenu{ position:fixed; bottom:12px; left:50%; transform:translateX(-50%); z-index:7; }
   #footerMenu .btn{ display:inline-block; width:auto; padding:8px 14px; }
 
-  /* 漂うマスコット（初期は非表示 → 本編で表示） */
+  /* === 画面内に居続ける“漂うマスコット” === */
   #pet{
-    position: fixed; left: 50vw; top: 60vh;
-    width: 120px; height: 120px; pointer-events:none; z-index:4;
-    transform: translate(-50%, -50%); transition: transform 12s ease-in-out;
-    display:none;
+    position: fixed;
+    left: 50vw;   /* JSでpxに上書き */
+    top:  60vh;   /* JSでpxに上書き */
+    width: 120px; height: 120px;
+    pointer-events: none;
+    z-index: 4;
+    transition: left 12s ease-in-out, top 12s ease-in-out; /* transformは使わない */
+    display: none;  /* タイトルでは非表示、メインで表示 */
   }
-  #pet img{ width:100%; height:100%; object-fit:contain;
+  #pet img{
+    width:100%; height:100%; object-fit:contain;
     filter: drop-shadow(0 8px 18px rgba(0,0,0,.45));
     animation: pet-breathe 3.6s ease-in-out infinite;
   }
-  @keyframes pet-breathe{ 0%,100%{ transform: translateY(0) rotate(0) scale(1);} 50%{ transform: translateY(-6px) rotate(.8deg) scale(1.02);} }
+  @keyframes pet-breathe{
+    0%,100%{ transform: translateY(0) scale(1); }
+    50%    { transform: translateY(-6px) scale(1.02); }
+  }
   #pet.pop img{ animation: pet-pop .6s ease; }
   @keyframes pet-pop{ 0%{transform:scale(1)} 40%{transform:scale(1.12)} 100%{transform:scale(1)} }
 
@@ -172,7 +180,7 @@
   <div id="pet"><img id="petImg" src="" alt="pet"></div>
 
 <script>
-  // すべてDOM構築後に初期化（イベント未付与を防ぐ）
+  // すべてDOM構築後に初期化
   window.addEventListener('DOMContentLoaded', () => {
     const $ = s => document.querySelector(s);
 
@@ -194,8 +202,7 @@
       btnCont.disabled = !has;
       saveState.textContent = has ? 'セーブデータがあります。「つづきから」で再開できます。' : 'セーブデータがありません。';
       show(scrTitle);
-      // タイトルではペット非表示
-      pet.style.display = 'none';
+      pet.style.display = 'none'; // タイトルでは非表示
     }
     refreshTitle();
 
@@ -225,10 +232,11 @@
       heartCountEl.textContent = hearts;
       sessionInfo.textContent = newSession ? '新しいセッション' : 'つづきから';
 
-      // ペット表示・移動開始
+      // ペット表示・移動開始（画面内保証）
       petImg.src = `public/char/${character}/calm.png`;
       pet.style.display = 'block';
-      setTimeout(()=>{ petMoveLoop(); }, 200);
+      clearTimeout(pet._timer);
+      petMoveLoop();
 
       chat.innerHTML='';
       if(newSession || log.length===0){
@@ -242,7 +250,7 @@
       setTimeout(()=>input.focus(), 10);
     }
 
-    // 送信処理
+    // メッセージ処理
     function append(sender, text){
       const div = document.createElement('div');
       div.className = `bubble ${sender}`;
@@ -288,12 +296,40 @@
     });
 
     // 文言
-    const REQUESTS=[
-      "今日はだれかに『おはよう』を伝えてみよう。",
-      "水をコップ一杯のもう。",
-      "5分だけストレッチしてみよう。",
-      "外の空気を吸いに行こう。",
-      "今日の良かったことを1つメモしよう。"
+   // 文言（30件）
+const REQUESTS = [
+  "おはようって言って。",
+  "コップ一杯のお水を飲んでみて。",
+  "5秒だけ、静かに目を閉じてみよう。",
+  "今日の空の色をひとことで教えて。",
+  "窓を少し開けて、空気を入れ替えよう。",
+  "深呼吸を3回してみよう。",
+  "好きな音を5秒だけ聞かせて。（心の中でもOK）",
+  "花や植物をひとつ思い浮かべて、名前を教えて。",
+  "今いる部屋で、やさしい色を探して教えて。",
+  "姿勢をすこし伸ばして、肩を回してみよう。",
+  "カーテンを少し開けて、明るさを感じてみて。",
+  "おやつか飲み物をひと口、味わってみよう。",
+  "机の上を10秒だけ整えてみよう。",
+  "目の前の“丸い形”をひとつ見つけて教えて。",
+  "耳をすませて、いちばん小さな音を探してみよう。",
+  "手を温めたり、冷たいものに触れたりして、感触を教えて。",
+  "「ありがとう」を心の中で1回言ってみよう。",
+  "外の風や空気の温度を感じて、ひと言で教えて。",
+  "時計の音、ある？ない？",
+  "今の気分を天気で言うと？（晴れ/曇り/雨/雪/風）",
+  "好きな言葉をひとつ思い出して、教えて。",
+  "部屋の中で“やわらかいもの”を触ってみよう。",
+  "窓の外を10秒見て、気づいたことをひと言。",
+  "スマホを裏向きにして10秒置いてみよう。",
+  "ゆっくり首を左右に回して、こり具合を教えて。",
+  "今日の色をひとつ選んで、教えて。",
+  "今の音量（静か/ふつう/にぎやか）を教えて。",
+  "好きな匂いをひとつ思い出して、教えて。",
+  "“おかえり”って言ってみて。",
+  "“おやすみ”って言ってくれる？"
+];
+
     ];
     function randomRequest(){ return REQUESTS[Math.floor(Math.random()*REQUESTS.length)]; }
     function firstRequest(char){
@@ -307,31 +343,56 @@
       localStorage.setItem(K.log, JSON.stringify(log));
     }
 
-    // 漂うロジック
+    /* ===== 画面内に必ず収まる“漂い”ロジック ===== */
+    function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
     function petRandomPos(){
-      const pad = 40, size = 120;
-      const w = Math.max(0, window.innerWidth  - size - pad*2);
-      const h = Math.max(0, window.innerHeight - size - pad*2);
+      const pad = 24, size = 120;
+      const W = window.innerWidth;
+      const H = window.innerHeight;
 
-      const avoid = document.getElementById('chat')?.getBoundingClientRect();
-      let x = pad + Math.random()*w;
-      let y = pad + Math.random()*h;
+      let x = pad + Math.random() * (W - size - pad*2);
+      let y = pad + Math.random() * (H - size - pad*2);
 
-      if(avoid){
-        if(x < avoid.right && y < avoid.bottom){
-          x = Math.min(window.innerWidth - pad - size, avoid.right + 60 + Math.random()*(w*0.6));
+      const r = document.getElementById('chat')?.getBoundingClientRect();
+      if (r) {
+        const overlaps = (x < r.right && x+size > r.left && y < r.bottom && y+size > r.top);
+        if (overlaps) {
+          x = clamp(r.right + 40, pad, W - size - pad);
+          y = clamp(y + 20, pad, H - size - pad);
         }
       }
+      x = clamp(x, pad, W - size - pad);
+      y = clamp(y, pad, H - size - pad);
       return {x,y};
     }
+
     function petMoveLoop(){
       const p = petRandomPos();
-      pet.style.transform = `translate(${p.x}px, ${p.y}px)`;
-      const next = 8000 + Math.random()*6000; // 8〜14s
+      pet.style.left = p.x + 'px';
+      pet.style.top  = p.y + 'px';
+      const next = 8000 + Math.random()*6000; // 8〜14秒
       clearTimeout(pet._timer);
       pet._timer = setTimeout(petMoveLoop, next);
     }
-    window.addEventListener('resize', ()=>{ clearTimeout(pet._timer); petMoveLoop(); });
+
+    window.addEventListener('resize', ()=>{
+      clearTimeout(pet._timer);
+      petMoveLoop();
+    });
+
+    // 安全ウォッチャー（念のため）
+    setInterval(()=>{
+      if (pet.style.display === 'none') return;
+      const pad = 24, size = 120;
+      const W = window.innerWidth, H = window.innerHeight;
+      const x = parseFloat(pet.style.left) || 0;
+      const y = parseFloat(pet.style.top)  || 0;
+      const nx = clamp(x, pad, W - size - pad);
+      const ny = clamp(y, pad, H - size - pad);
+      if (nx !== x) pet.style.left = nx + 'px';
+      if (ny !== y) pet.style.top  = ny + 'px';
+    }, 1500);
   });
 </script>
 </body>
