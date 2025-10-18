@@ -322,7 +322,7 @@ window.addEventListener('DOMContentLoaded', () => {
     hearts:'meai_heart',
     log:'meai_log',
     pool:'meai_request_pool',
-    next:'meai_next_due',
+    next:'meai_next_due',             // クールダウン終了時刻（ms）
     lastOpened:'meai_last_opened_at',
     lastUserText:'meai_last_user_text',
     userTextHistory:'meai_user_text_history',
@@ -336,6 +336,8 @@ window.addEventListener('DOMContentLoaded', () => {
   let hearts = parseInt(localStorage.getItem(K.hearts) || '0', 10);
   let log = JSON.parse(localStorage.getItem(K.log) || '[]');
   let nextTimer = null;
+  let labelTimer = null;
+  let doneReentrancyGuard = false;   // 連打の瞬間再入防止
 
   /* ===== ご褒美データ ===== */
   const STICKER_POOL = ["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"];
@@ -378,6 +380,7 @@ window.addEventListener('DOMContentLoaded', () => {
     show(scrTitle);
     pet.style.display = 'none';
     stopNextTimer();
+    stopLabelTimer();
   }
 
   // タイトル動線
@@ -410,7 +413,7 @@ window.addEventListener('DOMContentLoaded', () => {
     "今日の色をひとつ選んで、教えて。","今の音量（静か/ふつう/にぎやか）を教えて。","好きな匂いをひとつ思い出して、教えて。",
     "“おかえり”って言ってみて。","“おやすみ”って言ってくれる？"
   ];
-  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
+  function shuffle(a){ for(let i=a.length-1;i>0;i++){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
   function loadPool(){
     try{ const raw = JSON.parse(localStorage.getItem(K.pool)||'[]'); if(Array.isArray(raw)&&raw.length) return raw; }catch{}
     const fresh = shuffle([...REQUESTS]); localStorage.setItem(K.pool, JSON.stringify(fresh)); return fresh;
@@ -437,24 +440,62 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(K.next, String(due));
     updateDoneButtonState();
     startNextTimer();
+    startLabelTimer();
+  }
+  function canDoneNow(){
+    const due = parseInt(localStorage.getItem(K.next) || '0', 10);
+    return !due || due <= Date.now();
   }
   function updateDoneButtonState(){
     const due = parseInt(localStorage.getItem(K.next) || '0', 10);
     const disabled = due && due > Date.now();
     btnDone.disabled = disabled;
+    updateDoneButtonLabel();
+  }
+  function msToCountdown(ms){
+    if(ms <= 0) return "";
+    const sec = Math.ceil(ms/1000);
+    if(sec < 60) return `${sec}秒`;
+    const min = Math.ceil(sec/60);
+    if(min < 60) return `${min}分`;
+    const h = Math.floor(min/60), m = min%60;
+    return m ? `${h}時間${m}分` : `${h}時間`;
+  }
+  function updateDoneButtonLabel(){
+    const due = parseInt(localStorage.getItem(K.next) || '0', 10);
+    if(!due || due <= Date.now()){
+      btnDone.textContent = 'やったよ';
+    }else{
+      const rest = due - Date.now();
+      btnDone.textContent = `あと${msToCountdown(rest)}`;
+    }
   }
   function startNextTimer(){
     stopNextTimer();
     const due = parseInt(localStorage.getItem(K.next) || '0', 10);
-    if(!due){ btnDone.disabled = false; return; }
+    if(!due){ btnDone.disabled = false; updateDoneButtonLabel(); return; }
     const wait = due - Date.now();
     if(wait <= 0){ triggerNext(); return; }
     btnDone.disabled = true;
     nextTimer = setTimeout(triggerNext, wait);
   }
+  function startLabelTimer(){
+    stopLabelTimer();
+    const tick = () => {
+      updateDoneButtonLabel();
+      const due = parseInt(localStorage.getItem(K.next) || '0', 10);
+      if(!due || due <= Date.now()){ stopLabelTimer(); return; }
+    };
+    labelTimer = setInterval(tick, 1000 * 30); // 30秒ごと更新（十分軽い）
+    tick();
+  }
+  function stopLabelTimer(){ if(labelTimer){ clearInterval(labelTimer); labelTimer=null; } }
+
   function triggerNext(){
     localStorage.removeItem(K.next);
     btnDone.disabled = false;
+    updateDoneButtonLabel();
+    stopLabelTimer();
     push('ai', 'そろそろどうかな？');
     push('ai', nextRequest());
   }
@@ -579,10 +620,8 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
   function onHeartIncreased(){
-    // 毎回：スタンプ
-    grantSticker();
-    // 節目：称号・オーラ
-    grantMilestoneIfAny(hearts);
+    grantSticker();                 // 毎回：スタンプ
+    grantMilestoneIfAny(hearts);    // 節目：称号・オーラ
   }
 
   /* ===== ご褒美UI ===== */
@@ -660,6 +699,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(()=>input.focus(), 10);
     updateDoneButtonState();
     startNextTimer();
+    startLabelTimer();
     // 起動時、保存しているオーラを反映
     applyAura(loadRewards().activeAura);
   }
@@ -673,18 +713,19 @@ window.addEventListener('DOMContentLoaded', () => {
     chat.scrollTop = chat.scrollHeight;
   }
   function push(sender, text){ log.push({sender, text, ts:Date.now()}); append(sender, text); }
-  function aiReplyAfter(text){
-    if(/やった/.test(text)){
+  // intent: 'chat' | 'done'
+  function aiReplyAfter(text, intent='chat'){
+    if(intent==='done'){
       hearts++; heartCountEl.textContent = hearts;
       push('ai','すばらしい！ハートが増えたよ💖');
       saveAll();
-      onHeartIncreased();     // ★ ご褒美
-      scheduleLater();
+      onHeartIncreased();     // ご褒美
+      scheduleLater();        // クールダウンセット＋次の提案予約
       pet.classList.add('pop'); setTimeout(()=>pet.classList.remove('pop'), 600);
     }else{
       push('ai','うん、なるほどね。');
       saveAll();
-      scheduleLater();
+      // チャットではクールダウンは動かさない
     }
   }
   function send(){
@@ -693,17 +734,38 @@ window.addEventListener('DOMContentLoaded', () => {
     push('user', t);
     saveLastUserText(t);
     input.value = '';
-    aiReplyAfter(t);
+    aiReplyAfter(t, 'chat'); // ← テキスト入力ではハート加算しない
   }
   btnSend.addEventListener('click', send);
+  input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
+
+  // “やったよ”ボタン：ボタンからのみハート加算。連打/再入を厳格にブロック
   btnDone.addEventListener('click', ()=>{
-    if(btnDone.disabled) return;
+    if(doneReentrancyGuard) return;
+    // 瞬間ガード（超短時間の多重タップを遮断）
+    doneReentrancyGuard = true;
+    setTimeout(()=>{ doneReentrancyGuard = false; }, 600);
+
+    if(!canDoneNow()){
+      // まだクールダウン中：残り時間を案内
+      const due = parseInt(localStorage.getItem(K.next) || '0', 10);
+      const rest = Math.max(0, due - Date.now());
+      const label = msToCountdown(rest);
+      showToast(`<span class="ttl">もう少し休憩…</span><br>次は <b>${label}</b> 後に「やったよ」できるよ。`);
+      return;
+    }
+
+    // ここでUIを即時ロック（連打抑止）
+    btnDone.disabled = true;
+    updateDoneButtonLabel();
+
     const t = 'やったよ';
     push('user', t);
     saveLastUserText(t);
-    aiReplyAfter(t);
-  });
-  input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
+
+    // ハート加算・ご褒美・クールダウン設定まで一気に
+    aiReplyAfter(t, 'done');
+  }, {passive:true});
 
   /* ===== 補助 ===== */
   btnToTitle.addEventListener('click', refreshTitle);
@@ -715,6 +777,7 @@ window.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem(K.rewards); localStorage.removeItem(K.milestones);
       character=null; hearts=0; log=[]; show(scrCover);
       applyAura('');
+      stopNextTimer(); stopLabelTimer();
     }
   });
   btnShowLog.addEventListener('click', ()=>{
@@ -753,6 +816,10 @@ window.addEventListener('DOMContentLoaded', () => {
   /* ===== 起動時処理 ===== */
   maybeShowReunion();
   markOpenedNow();
+  // 初回のクールダウン表示・タイマー整備
+  updateDoneButtonState();
+  startNextTimer();
+  startLabelTimer();
 });
 </script>
 </body>
