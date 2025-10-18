@@ -49,7 +49,7 @@
   .cta:hover{ transform:translateY(-1px); box-shadow:0 16px 36px rgba(255,105,180,.45), inset 0 2px 0 rgba(255,255,255,.6); }
   .cta:active{ transform:translateY(1px); }
 
-  /* ===== 既存UI（タイトル・メイン等） ===== */
+  /* ===== 既存UI ===== */
   .center{
     width:min(92vw, 920px); margin:10vh auto 0; display:grid;
     grid-template-columns: 140px 1fr; gap:20px;
@@ -107,10 +107,10 @@
   #done{ padding:12px 16px; background:rgba(0,200,120,.35); }
   #done:hover{ background:rgba(0,200,120,.5); }
 
-  #footerMenu{ position:fixed; bottom:12px; left:50%; transform:translateX(-50%); z-index:11; }
+  #footerMenu{ position:fixed; bottom:12px; left:50%; transform:translateX(-50%); z-index:11; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
   #footerMenu .btn{ display:inline-block; width:auto; padding:8px 14px; }
 
-  /* 漂うマスコット（画面内に居続ける） */
+  /* 漂うマスコット */
   #pet{
     position: fixed; left: 50vw; top: 60vh;
     width: 120px; height: 120px; pointer-events: none; z-index: 5;
@@ -140,6 +140,62 @@
     padding: 4px 10px; font-size:12px; border:none;
   }
 
+  /* ===== ご褒美トースト ===== */
+  #rewardToast{
+    position:fixed; right:16px; bottom:80px; z-index:10000;
+    background:rgba(30,30,40,.95); border:1px solid rgba(255,255,255,.15);
+    padding:12px 14px; border-radius:14px; display:none; max-width:min(80vw,380px);
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+  }
+  #rewardToast .ttl{ font-weight:800; margin-bottom:4px; }
+  #rewardToast .emo{ font-size:24px; line-height:1; margin-right:6px; }
+
+  /* 紙吹雪 */
+  .confetti{
+    position: fixed; width:8px; height:14px; top:-20px; z-index:10001;
+    opacity:.9; transform:rotate(0deg);
+    animation: confetti-fall linear forwards;
+  }
+  @keyframes confetti-fall{
+    to { transform: translateY(120vh) rotate(360deg); opacity:1; }
+  }
+
+  /* ===== ご褒美モーダル ===== */
+  #rewardsModal{
+    position:fixed; inset:0; display:none; z-index:12000;
+    background: rgba(0,0,0,.6);
+  }
+  #rewardsModal .wrap{
+    width:min(92vw, 760px); max-height:80vh; overflow:auto;
+    background:rgba(15,15,24,.96); border:1px solid rgba(255,255,255,.18);
+    border-radius:20px; padding:18px; margin:10vh auto 0; backdrop-filter: blur(6px);
+  }
+  #rewardsModal h3{ margin:6px 0 10px; }
+  .badge{ display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.12); margin:4px; font-size:14px; border:1px solid rgba(255,255,255,.18);}
+  .stamps{ display:flex; flex-wrap:wrap; gap:8px; }
+  .stamp{ width:44px; height:44px; display:grid; place-items:center; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); border-radius:10px; font-size:22px; }
+  .closeX{ float:right; background:#fff; color:#111; border:none; border-radius:10px; padding:6px 10px; cursor:pointer; }
+
+  /* ===== ペットのオーラ（アンロック演出） ===== */
+  #pet::after{
+    content:""; position:absolute; inset:-8px; border-radius:24px; pointer-events:none; opacity:0; transition:.4s;
+  }
+  #pet.aura-star::after{
+    background: radial-gradient(closest-side, rgba(255,255,255,.35), transparent 70%);
+    box-shadow: 0 0 32px rgba(255,255,200,.35), 0 0 80px rgba(255,255,180,.25);
+    opacity:1; animation: aura-pulse 2.6s ease-in-out infinite;
+  }
+  #pet.aura-rainbow::after{
+    background: conic-gradient(from 0deg, #ff8bd2, #7ed5ff, #a1ff7a, #ffe07a, #ff8bd2);
+    filter: blur(14px) saturate(1.2); opacity:.6; animation: spin 6s linear infinite;
+  }
+  #pet.aura-moon::after{
+    background: radial-gradient(circle at 30% 30%, rgba(200,220,255,.5), transparent 60%);
+    box-shadow: 0 0 50px rgba(170,190,255,.3); opacity:1; animation: aura-pulse 3.2s ease-in-out infinite;
+  }
+  @keyframes aura-pulse{ 0%,100%{ transform:scale(1); opacity:.7;} 50%{ transform:scale(1.06); opacity:1; } }
+  @keyframes spin{ to { transform: rotate(1turn);} }
+
   @media (max-width:560px){
     .cover-title{ font-size:32px; }
     .cover-card{ padding:28px 22px; }
@@ -152,23 +208,42 @@
 <body>
   <div class="stars"></div>
 
-  <!-- 再会メッセージ（後付けOK） -->
+  <!-- 再会メッセージ -->
   <div id="reunionBanner" aria-live="polite"></div>
 
-  <!-- ===== 表紙（カバー） ===== -->
+  <!-- ご褒美トースト -->
+  <div id="rewardToast" role="status" aria-live="polite"></div>
+
+  <!-- ご褒美モーダル -->
+  <div id="rewardsModal" aria-modal="true" role="dialog">
+    <div class="wrap">
+      <button class="closeX" id="closeRewards">閉じる</button>
+      <h3>ご褒美コレクション</h3>
+      <div id="rewardSummary" style="opacity:.9;margin:4px 0 10px;"></div>
+
+      <h4>称号（マイルストーン）</h4>
+      <div id="badgeList"></div>
+
+      <h4 style="margin-top:12px;">スタンプ</h4>
+      <div class="stamps" id="stampList"></div>
+
+      <h4 style="margin-top:12px;">見た目（オーラ）</h4>
+      <div id="auraList"></div>
+      <p style="opacity:.8;margin-top:6px;">※ オーラは最新を自動装備。クリックで変更できます。</p>
+    </div>
+  </div>
+
+  <!-- ===== 表紙 ===== -->
   <section id="cover" class="screen show" aria-label="表紙">
     <div class="cover-card">
-      <img class="cover-illust"
-           src="public/miwacchi_open.png"
-           alt="MeAI cover mascot"
-           onerror="this.src='public/cover.png'">
+      <img class="cover-illust" src="public/miwacchi_open.png" alt="MeAI cover mascot" onerror="this.src='public/cover.png'">
       <div class="cover-title">MeAI</div>
       <p class="cover-sub">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
       <button id="coverStart" class="cta" type="button">▶︎ スタート</button>
     </div>
   </section>
 
-  <!-- ===== 既存タイトル ===== -->
+  <!-- ===== タイトル ===== -->
   <section id="title" class="screen">
     <div class="center">
       <div class="brand"><img src="public/char/green/calm.png" alt="mascot"></div>
@@ -216,6 +291,7 @@
     <div id="footerMenu">
       <button id="toTitle" class="btn secondary" type="button">メニューへ</button>
       <button id="showLog" class="btn secondary" type="button">ログを確認</button>
+      <button id="rewardsBtn" class="btn secondary" type="button">ご褒美</button>
       <button id="reset" class="btn secondary" type="button">データ初期化</button>
     </div>
   </section>
@@ -232,9 +308,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const btnStart = $('#start'), btnCont = $('#cont'), btnAbout = $('#about'), saveState = $('#savestate');
   const btnBackTitle = $('#backTitle'), btnToTitle = $('#toTitle'), btnReset = $('#reset'), btnShowLog = $('#showLog');
+  const btnRewards = $('#rewardsBtn');
   const chat = $('#chat'), input = $('#input'), btnSend = $('#send'), btnDone = $('#done');
   const heartCountEl = $('#heartCount'), charIcon = $('#charIcon'), sessionInfo = $('#sessionInfo');
   const pet = $('#pet'), petImg = $('#petImg');
+
+  const rewardToast = $('#rewardToast');
+  const rewardsModal = $('#rewardsModal'), closeRewards = $('#closeRewards');
+  const rewardSummary = $('#rewardSummary'), badgeList = $('#badgeList'), stampList = $('#stampList'), auraList = $('#auraList');
 
   const K = {
     char:'meai_character',
@@ -244,7 +325,9 @@ window.addEventListener('DOMContentLoaded', () => {
     next:'meai_next_due',
     lastOpened:'meai_last_opened_at',
     lastUserText:'meai_last_user_text',
-    userTextHistory:'meai_user_text_history'
+    userTextHistory:'meai_user_text_history',
+    rewards:'meai_rewards',          // {stamps:[], badges:[], aurasUnlocked:[], activeAura:""}
+    milestones:'meai_milestones'     // granted milestone numbers
   };
 
   const REMIND_MIN_H = 1, REMIND_MAX_H = 3;
@@ -254,13 +337,39 @@ window.addEventListener('DOMContentLoaded', () => {
   let log = JSON.parse(localStorage.getItem(K.log) || '[]');
   let nextTimer = null;
 
+  /* ===== ご褒美データ ===== */
+  const STICKER_POOL = ["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"];
+  const MILESTONES = [
+    {n:1,  badge:"はじめの一歩", aura:"aura-star",    note:"柔らかい光のオーラ"},
+    {n:3,  badge:"コツコツ名人",  aura:null,           note:"—"},
+    {n:5,  badge:"星くず集め",    aura:"aura-moon",    note:"月あかりのオーラ"},
+    {n:10, badge:"継続の達人",    aura:"aura-rainbow", note:"虹色のオーラ"},
+    {n:15, badge:"やさしさの泉",  aura:null,           note:"—"},
+    {n:20, badge:"MeAI 友だち",   aura:"aura-star",    note:"光のゆらめき強化"}
+  ];
+
+  function loadRewards(){
+    let r;
+    try{ r = JSON.parse(localStorage.getItem(K.rewards)||""); }catch{}
+    if(!r || typeof r!=='object') r = {stamps:[], badges:[], aurasUnlocked:[], activeAura:""};
+    return r;
+  }
+  function saveRewards(r){
+    localStorage.setItem(K.rewards, JSON.stringify(r));
+    renderRewardsUI();
+  }
+  function getGrantedMilestones(){
+    try{ const arr = JSON.parse(localStorage.getItem(K.milestones)||"[]"); return Array.isArray(arr)?arr:[]; }catch{ return []; }
+  }
+  function setGrantedMilestones(arr){
+    localStorage.setItem(K.milestones, JSON.stringify(arr));
+  }
+
+  /* ===== 画面切替 ===== */
   function show(el){ [scrCover,scrTitle,scrChoose,scrMain].forEach(s=>s.classList.remove('show')); el.classList.add('show'); }
 
-  // ====== カバーのスタート：続きがあれば直行、なければ既存タイトルへ
-  btnCoverStart.addEventListener('click', ()=>{
-    if(localStorage.getItem(K.char)){ startMain(false); }
-    else { refreshTitle(); }
-  });
+  // カバー
+  btnCoverStart.addEventListener('click', ()=>{ localStorage.getItem(K.char) ? startMain(false) : refreshTitle(); });
 
   function refreshTitle(){
     const has = !!localStorage.getItem(K.char);
@@ -271,15 +380,12 @@ window.addEventListener('DOMContentLoaded', () => {
     stopNextTimer();
   }
 
-  // ===== タイトル画面の動線
+  // タイトル動線
   btnStart.addEventListener('click', ()=> show(scrChoose));
-  btnCont.addEventListener('click', ()=>{
-    if(!localStorage.getItem(K.char)){ alert('セーブデータがありません。'); return; }
-    startMain(false);
-  });
+  btnCont.addEventListener('click', ()=>{ if(!localStorage.getItem(K.char)) return alert('セーブデータがありません。'); startMain(false); });
   btnAbout.addEventListener('click', ()=> alert('この試作はAIが監視するのではなく、ユーザーの自己申告（「やったよ」）で記録するだけの設計です。'));
 
-  // ===== キャラ選択
+  // キャラ選択
   document.querySelectorAll('.char').forEach(el=>{
     el.addEventListener('click', ()=>{
       character = el.dataset.char;
@@ -291,7 +397,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   btnBackTitle.addEventListener('click', refreshTitle);
 
-  // ===== 文言 + プール
+  // 文言プール
   const REQUESTS = [
     "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。","今日の空の色をひとことで教えて。",
     "窓を少し開けて、空気を入れ替えよう。","深呼吸を3回してみよう。","好きな音を5秒だけ聞かせて。（心の中でもOK）",
@@ -322,7 +428,7 @@ window.addEventListener('DOMContentLoaded', () => {
     return `${tag} ${nextRequest()}`;
   }
 
-  // ===== リマインド＆クールダウン
+  /* ===== リマインド＆クールダウン ===== */
   function stopNextTimer(){ if(nextTimer){ clearTimeout(nextTimer); nextTimer=null; } }
   function hoursToMs(h){ return Math.round(h * 3600 * 1000); }
   function pickHours(){ return REMIND_MIN_H + Math.random()*(REMIND_MAX_H - REMIND_MIN_H); }
@@ -335,20 +441,20 @@ window.addEventListener('DOMContentLoaded', () => {
   function updateDoneButtonState(){
     const due = parseInt(localStorage.getItem(K.next) || '0', 10);
     const disabled = due && due > Date.now();
-    document.getElementById('done').disabled = disabled;
+    btnDone.disabled = disabled;
   }
   function startNextTimer(){
     stopNextTimer();
     const due = parseInt(localStorage.getItem(K.next) || '0', 10);
-    if(!due){ document.getElementById('done').disabled = false; return; }
+    if(!due){ btnDone.disabled = false; return; }
     const wait = due - Date.now();
     if(wait <= 0){ triggerNext(); return; }
-    document.getElementById('done').disabled = true;
+    btnDone.disabled = true;
     nextTimer = setTimeout(triggerNext, wait);
   }
   function triggerNext(){
     localStorage.removeItem(K.next);
-    document.getElementById('done').disabled = false;
+    btnDone.disabled = false;
     push('ai', 'そろそろどうかな？');
     push('ai', nextRequest());
   }
@@ -358,7 +464,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setNextDueAfterHours(h);
   }
 
-  // ===== 再会メッセージ（ここが今回の追加ロジック） =====
+  /* ===== 再会バナー ===== */
   function showReunionBanner(messageHtml){
     const el = document.getElementById('reunionBanner');
     if(!el) return;
@@ -377,16 +483,14 @@ window.addEventListener('DOMContentLoaded', () => {
     return (clean.length <= max) ? clean : (clean.slice(0, max) + "…");
   }
   function maybeShowReunion(){
-    const last = Number(localStorage.getItem(K.lastOpened) || 0);
-    const gapH = last ? hoursSince(last) : Infinity; // 初回は必ず表示
+    const last = Number(localStorage.getItem('meai_last_opened_at') || 0);
+    const gapH = last ? hoursSince(last) : Infinity; // 初回は表示
     if (gapH >= 24) {
-      // 前回のあなたの言葉を取得（なければ履歴の最後）
-      let lastText = localStorage.getItem(K.lastUserText) || "";
+      let lastText = localStorage.getItem('meai_last_user_text') || "";
       if(!lastText){
-        const hist = JSON.parse(localStorage.getItem(K.userTextHistory) || "[]");
+        const hist = JSON.parse(localStorage.getItem('meai_user_text_history') || "[]");
         if(Array.isArray(hist) && hist.length) lastText = hist[hist.length-1].text || "";
       }
-      // 前回日時
       let lastDateStr = "";
       if(last && isFinite(last)){
         const d = new Date(last);
@@ -397,7 +501,6 @@ window.addEventListener('DOMContentLoaded', () => {
         const mm = String(d.getMinutes()).padStart(2,"0");
         lastDateStr = `${y}/${m}/${day} ${hh}:${mm}`;
       }
-      // テキスト組み立て
       const tier = (gapH >= 72) ? "ひさしぶり！" : "おかえり！";
       const quote = trimQuote(lastText);
       const quotePart = quote ? `前にこんなこと言ってたね：「<b>${quote}</b>」` : "また会えてうれしいよ。";
@@ -405,21 +508,133 @@ window.addEventListener('DOMContentLoaded', () => {
       showReunionBanner(`<b>${tier}</b> ${quotePart}${timePart}`);
     }
   }
-  function markOpenedNow(){
-    localStorage.setItem(K.lastOpened, String(Date.now()));
-  }
+  function markOpenedNow(){ localStorage.setItem('meai_last_opened_at', String(Date.now())); }
   function saveLastUserText(text){
     if(!text) return;
-    localStorage.setItem(K.lastUserText, text);
-    // 履歴（最大50件）
+    localStorage.setItem('meai_last_user_text', text);
     const now = Date.now();
-    const arr = JSON.parse(localStorage.getItem(K.userTextHistory) || "[]");
+    const arr = JSON.parse(localStorage.getItem('meai_user_text_history') || "[]");
     arr.push({ ts: now, text });
     while(arr.length > 50) arr.shift();
-    localStorage.setItem(K.userTextHistory, JSON.stringify(arr));
+    localStorage.setItem('meai_user_text_history', JSON.stringify(arr));
   }
 
-  // ===== メイン開始
+  /* ===== ご褒美ロジック ===== */
+  function showToast(html){
+    rewardToast.innerHTML = html;
+    rewardToast.style.display = 'block';
+    setTimeout(()=> rewardToast.style.display='none', 3800);
+  }
+  function confettiBurst(){
+    const colors = ['#ff8bd2','#7ed5ff','#ffe07a','#a1ff7a','#ffffff'];
+    for(let i=0;i<36;i++){
+      const e = document.createElement('div');
+      e.className = 'confetti';
+      e.style.left = (Math.random()*100)+'vw';
+      e.style.background = colors[i%colors.length];
+      e.style.animationDuration = (1.8 + Math.random()*1.8) + 's';
+      e.style.transform = `rotate(${Math.random()*360}deg)`;
+      document.body.appendChild(e);
+      setTimeout(()=> e.remove(), 3200);
+    }
+  }
+  function applyAura(aura){
+    pet.classList.remove('aura-star','aura-rainbow','aura-moon');
+    if(aura) pet.classList.add(aura);
+    const r = loadRewards();
+    r.activeAura = aura || "";
+    saveRewards(r);
+  }
+  function grantSticker(){
+    const emo = STICKER_POOL[Math.floor(Math.random()*STICKER_POOL.length)];
+    const r = loadRewards();
+    r.stamps.push({emo, ts: Date.now()});
+    saveRewards(r);
+    showToast(`<span class="ttl">ご褒美をゲット！</span><br><span class="emo">${emo}</span>スタンプを手に入れたよ！`);
+  }
+  function grantMilestoneIfAny(newHearts){
+    const granted = new Set(getGrantedMilestones());
+    const r = loadRewards();
+    let grantedSomething = false;
+
+    MILESTONES.forEach(ms=>{
+      if(newHearts >= ms.n && !granted.has(ms.n)){
+        granted.add(ms.n);
+        r.badges.push({name: ms.badge, n: ms.n, ts: Date.now()});
+        if(ms.aura && !r.aurasUnlocked.includes(ms.aura)){
+          r.aurasUnlocked.push(ms.aura);
+          applyAura(ms.aura); // 自動装備
+          showToast(`<span class="ttl">マイルストーン ${ms.n}</span><br>称号「${ms.badge}」と新オーラを解放！`);
+        }else{
+          showToast(`<span class="ttl">マイルストーン ${ms.n}</span><br>称号「${ms.badge}」を手に入れたよ！`);
+        }
+        grantedSomething = true;
+      }
+    });
+
+    if(grantedSomething){
+      setGrantedMilestones(Array.from(granted));
+      saveRewards(r);
+      confettiBurst();
+    }
+  }
+  function onHeartIncreased(){
+    // 毎回：スタンプ
+    grantSticker();
+    // 節目：称号・オーラ
+    grantMilestoneIfAny(hearts);
+  }
+
+  /* ===== ご褒美UI ===== */
+  function renderRewardsUI(){
+    const r = loadRewards();
+    rewardSummary.textContent = `ハート：${hearts}　スタンプ：${r.stamps.length}　称号：${r.badges.length}`;
+    // badges
+    badgeList.innerHTML = '';
+    const fragB = document.createDocumentFragment();
+    r.badges.sort((a,b)=>a.n-b.n).forEach(b=>{
+      const span = document.createElement('span');
+      span.className='badge';
+      span.textContent = `#${b.n} ${b.name}`;
+      fragB.appendChild(span);
+    });
+    badgeList.appendChild(fragB);
+    // stamps
+    stampList.innerHTML='';
+    const fragS = document.createDocumentFragment();
+    r.stamps.slice(-120).forEach(s=>{
+      const div = document.createElement('div');
+      div.className='stamp'; div.textContent = s.emo;
+      fragS.appendChild(div);
+    });
+    stampList.appendChild(fragS);
+    // auras
+    auraList.innerHTML='';
+    const auras = [
+      {key:'', label:'なし'},
+      {key:'aura-star', label:'星あかり'},
+      {key:'aura-moon', label:'月あかり'},
+      {key:'aura-rainbow', label:'にじ'}
+    ];
+    auras.forEach(a=>{
+      const btn = document.createElement('button');
+      btn.className='btn secondary';
+      btn.style.width='auto'; btn.style.display='inline-block'; btn.style.marginRight='8px';
+      const owned = a.key === '' || loadRewards().aurasUnlocked.includes(a.key);
+      btn.disabled = !owned;
+      btn.textContent = owned ? (loadRewards().activeAura===a.key ? `★ ${a.label}` : a.label) : `🔒 ${a.label}`;
+      btn.addEventListener('click', ()=>{ if(owned){ applyAura(a.key); renderRewardsUI(); }});
+      auraList.appendChild(btn);
+    });
+
+    // 現在のオーラを反映（安全側）
+    applyAura(loadRewards().activeAura);
+  }
+  btnRewards.addEventListener('click', ()=>{ renderRewardsUI(); rewardsModal.style.display='block'; });
+  closeRewards.addEventListener('click', ()=>{ rewardsModal.style.display='none'; });
+  rewardsModal.addEventListener('click', e=>{ if(e.target===rewardsModal) rewardsModal.style.display='none'; });
+
+  /* ===== メイン開始 ===== */
   function startMain(newSession){
     character = character || localStorage.getItem(K.char);
     if(!character){ refreshTitle(); return; }
@@ -445,9 +660,11 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(()=>input.focus(), 10);
     updateDoneButtonState();
     startNextTimer();
+    // 起動時、保存しているオーラを反映
+    applyAura(loadRewards().activeAura);
   }
 
-  // ===== 送受信
+  /* ===== チャット送受信 ===== */
   function append(sender, text){
     const div = document.createElement('div');
     div.className = `bubble ${sender}`;
@@ -460,19 +677,21 @@ window.addEventListener('DOMContentLoaded', () => {
     if(/やった/.test(text)){
       hearts++; heartCountEl.textContent = hearts;
       push('ai','すばらしい！ハートが増えたよ💖');
+      saveAll();
+      onHeartIncreased();     // ★ ご褒美
       scheduleLater();
       pet.classList.add('pop'); setTimeout(()=>pet.classList.remove('pop'), 600);
     }else{
       push('ai','うん、なるほどね。');
+      saveAll();
       scheduleLater();
     }
-    saveAll();
   }
   function send(){
     const t = input.value.trim();
     if(!t) return;
     push('user', t);
-    saveLastUserText(t);        // ★ 再会用に保存
+    saveLastUserText(t);
     input.value = '';
     aiReplyAfter(t);
   }
@@ -481,28 +700,33 @@ window.addEventListener('DOMContentLoaded', () => {
     if(btnDone.disabled) return;
     const t = 'やったよ';
     push('user', t);
-    saveLastUserText(t);        // ★ 「やったよ」も一応保存（任意）
+    saveLastUserText(t);
     aiReplyAfter(t);
   });
   input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
 
-  // 補助
+  /* ===== 補助 ===== */
   btnToTitle.addEventListener('click', refreshTitle);
   btnReset.addEventListener('click', ()=>{
-    if(confirm('セーブデータ（キャラ・ハート・ログ）を削除します。よろしいですか？')){
+    if(confirm('セーブデータ（キャラ・ハート・ログ・ご褒美）を削除します。よろしいですか？')){
       localStorage.removeItem(K.char); localStorage.removeItem(K.hearts); localStorage.removeItem(K.log);
       localStorage.removeItem(K.pool); localStorage.removeItem(K.next);
-      localStorage.removeItem(K.lastOpened); localStorage.removeItem(K.lastUserText); localStorage.removeItem(K.userTextHistory);
+      localStorage.removeItem('meai_last_opened_at'); localStorage.removeItem('meai_last_user_text'); localStorage.removeItem('meai_user_text_history');
+      localStorage.removeItem(K.rewards); localStorage.removeItem(K.milestones);
       character=null; hearts=0; log=[]; show(scrCover);
+      applyAura('');
     }
   });
   btnShowLog.addEventListener('click', ()=>{
     const text = log.map(l=>`${new Date(l.ts).toLocaleString()} [${l.sender}] ${l.text}`).join('\n') || '（ログなし）';
     alert(text);
   });
-  function saveAll(){ localStorage.setItem(K.hearts, String(hearts)); localStorage.setItem(K.log, JSON.stringify(log)); }
+  function saveAll(){
+    localStorage.setItem(K.hearts, String(hearts));
+    localStorage.setItem(K.log, JSON.stringify(log));
+  }
 
-  // 漂い
+  /* ===== 漂い ===== */
   function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
   function petRandomPos(){
     const pad = 24, size = 120;
@@ -526,7 +750,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   window.addEventListener('resize', ()=>{ clearTimeout(pet._timer); petMoveLoop(); });
 
-  // ===== ここで再会チェック → 最終起動時刻を更新 =====
+  /* ===== 起動時処理 ===== */
   maybeShowReunion();
   markOpenedNow();
 });
