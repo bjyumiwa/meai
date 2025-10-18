@@ -25,12 +25,7 @@
   .show{ display:block; }
 
   /* ===== カバー（表紙） ===== */
-  /* display は .show でのみ付与する（←ここが修正点） */
-  #cover{
-    /* display: grid; ←削除 */
-    place-items:center; text-align:center;
-  }
-  /* 表示時だけ grid にする */
+  #cover{ place-items:center; text-align:center; }
   #cover.show{ display:grid; }
 
   .cover-card{
@@ -123,9 +118,27 @@
   }
   #pet img{ width:100%; height:100%; object-fit:contain;
     filter: drop-shadow(0 8px 18px rgba(0,0,0,.45)); animation: pet-breathe 3.6s ease-in-out infinite; }
-  @keyframes pet-breathe{ 0%,100%{ transform: translateY(0) scale(1);} 50%{ transform: translateY(-6px) scale(1.02);} }
   #pet.pop img{ animation: pet-pop .6s ease; }
+  @keyframes pet-breathe{ 0%,100%{ transform: translateY(0) scale(1);} 50%{ transform: translateY(-6px) scale(1.02);} }
   @keyframes pet-pop{ 0%{transform:scale(1)} 40%{transform:scale(1.12)} 100%{transform:scale(1)} }
+
+  /* ===== 再会バナー ===== */
+  #reunionBanner{
+    position: fixed; inset: auto 12px 12px 12px;
+    display:none;
+    background: rgba(20,20,30,.9); color:#fff;
+    padding: 12px 14px; border-radius: 14px;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+    font-size: 14px; line-height: 1.6;
+    z-index: 9999; backdrop-filter: blur(6px);
+  }
+  #reunionBanner b{ font-weight: 700; }
+  #reunionBanner .small{ opacity:.8; font-size:12px; margin-top:4px; }
+  #reunionBanner .closeBtn{
+    float:right; margin-left:10px; cursor:pointer;
+    background:#fff; color:#111; border-radius: 10px;
+    padding: 4px 10px; font-size:12px; border:none;
+  }
 
   @media (max-width:560px){
     .cover-title{ font-size:32px; }
@@ -139,16 +152,16 @@
 <body>
   <div class="stars"></div>
 
-   <!-- ===== 表紙（カバー） ===== -->
+  <!-- 再会メッセージ（後付けOK） -->
+  <div id="reunionBanner" aria-live="polite"></div>
+
+  <!-- ===== 表紙（カバー） ===== -->
   <section id="cover" class="screen show" aria-label="表紙">
     <div class="cover-card">
-      <!-- ここを差し替え：提供いただいた画像を使用 -->
       <img class="cover-illust"
-     src="public/miwacchi_open.png"
-     alt="MeAI cover mascot"
-     onerror="this.src='public/cover.png'">
-
-      <!-- ここを差し替え：題名を MeAI に -->
+           src="public/miwacchi_open.png"
+           alt="MeAI cover mascot"
+           onerror="this.src='public/cover.png'">
       <div class="cover-title">MeAI</div>
       <p class="cover-sub">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
       <button id="coverStart" class="cta" type="button">▶︎ スタート</button>
@@ -211,7 +224,6 @@
   <div id="pet"><img id="petImg" src="" alt="pet"></div>
 
 <script>
-/* ここから下はそのまま（JS変更なし） */
 window.addEventListener('DOMContentLoaded', () => {
   const $ = s => document.querySelector(s);
 
@@ -229,7 +241,10 @@ window.addEventListener('DOMContentLoaded', () => {
     hearts:'meai_heart',
     log:'meai_log',
     pool:'meai_request_pool',
-    next:'meai_next_due'
+    next:'meai_next_due',
+    lastOpened:'meai_last_opened_at',
+    lastUserText:'meai_last_user_text',
+    userTextHistory:'meai_user_text_history'
   };
 
   const REMIND_MIN_H = 1, REMIND_MAX_H = 3;
@@ -276,7 +291,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   btnBackTitle.addEventListener('click', refreshTitle);
 
-  // ===== 文言30件 + 未出優先プール
+  // ===== 文言 + プール
   const REQUESTS = [
     "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。","今日の空の色をひとことで教えて。",
     "窓を少し開けて、空気を入れ替えよう。","深呼吸を3回してみよう。","好きな音を5秒だけ聞かせて。（心の中でもOK）",
@@ -343,6 +358,67 @@ window.addEventListener('DOMContentLoaded', () => {
     setNextDueAfterHours(h);
   }
 
+  // ===== 再会メッセージ（ここが今回の追加ロジック） =====
+  function showReunionBanner(messageHtml){
+    const el = document.getElementById('reunionBanner');
+    if(!el) return;
+    el.innerHTML = `
+      <button class="closeBtn" aria-label="閉じる">OK</button>
+      ${messageHtml}
+      <div class="small">（設定＞通知でOFFにできます）</div>
+    `;
+    el.style.display = 'block';
+    el.querySelector('.closeBtn')?.addEventListener('click', ()=> el.style.display='none');
+  }
+  function hoursSince(ts){ return (Date.now() - ts) / (1000*60*60); }
+  function trimQuote(s, max=28){
+    if(!s) return "";
+    const clean = String(s).replace(/\s+/g, " ").trim();
+    return (clean.length <= max) ? clean : (clean.slice(0, max) + "…");
+  }
+  function maybeShowReunion(){
+    const last = Number(localStorage.getItem(K.lastOpened) || 0);
+    const gapH = last ? hoursSince(last) : Infinity; // 初回は必ず表示
+    if (gapH >= 24) {
+      // 前回のあなたの言葉を取得（なければ履歴の最後）
+      let lastText = localStorage.getItem(K.lastUserText) || "";
+      if(!lastText){
+        const hist = JSON.parse(localStorage.getItem(K.userTextHistory) || "[]");
+        if(Array.isArray(hist) && hist.length) lastText = hist[hist.length-1].text || "";
+      }
+      // 前回日時
+      let lastDateStr = "";
+      if(last && isFinite(last)){
+        const d = new Date(last);
+        const y = d.getFullYear();
+        const m = String(d.getMonth()+1).padStart(2,"0");
+        const day = String(d.getDate()).padStart(2,"0");
+        const hh = String(d.getHours()).padStart(2,"0");
+        const mm = String(d.getMinutes()).padStart(2,"0");
+        lastDateStr = `${y}/${m}/${day} ${hh}:${mm}`;
+      }
+      // テキスト組み立て
+      const tier = (gapH >= 72) ? "ひさしぶり！" : "おかえり！";
+      const quote = trimQuote(lastText);
+      const quotePart = quote ? `前にこんなこと言ってたね：「<b>${quote}</b>」` : "また会えてうれしいよ。";
+      const timePart = lastDateStr ? `<div class="small">（前回：${lastDateStr}）</div>` : "";
+      showReunionBanner(`<b>${tier}</b> ${quotePart}${timePart}`);
+    }
+  }
+  function markOpenedNow(){
+    localStorage.setItem(K.lastOpened, String(Date.now()));
+  }
+  function saveLastUserText(text){
+    if(!text) return;
+    localStorage.setItem(K.lastUserText, text);
+    // 履歴（最大50件）
+    const now = Date.now();
+    const arr = JSON.parse(localStorage.getItem(K.userTextHistory) || "[]");
+    arr.push({ ts: now, text });
+    while(arr.length > 50) arr.shift();
+    localStorage.setItem(K.userTextHistory, JSON.stringify(arr));
+  }
+
   // ===== メイン開始
   function startMain(newSession){
     character = character || localStorage.getItem(K.char);
@@ -392,24 +468,35 @@ window.addEventListener('DOMContentLoaded', () => {
     }
     saveAll();
   }
-  function send(){ const t = input.value.trim(); if(!t) return; push('user', t); input.value = ''; aiReplyAfter(t); }
-  document.getElementById('send').addEventListener('click', send);
-  document.getElementById('done').addEventListener('click', ()=>{
-    if(document.getElementById('done').disabled) return;
-    push('user','やったよ'); aiReplyAfter('やったよ');
+  function send(){
+    const t = input.value.trim();
+    if(!t) return;
+    push('user', t);
+    saveLastUserText(t);        // ★ 再会用に保存
+    input.value = '';
+    aiReplyAfter(t);
+  }
+  btnSend.addEventListener('click', send);
+  btnDone.addEventListener('click', ()=>{
+    if(btnDone.disabled) return;
+    const t = 'やったよ';
+    push('user', t);
+    saveLastUserText(t);        // ★ 「やったよ」も一応保存（任意）
+    aiReplyAfter(t);
   });
   input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
 
   // 補助
-  document.getElementById('toTitle').addEventListener('click', refreshTitle);
-  document.getElementById('reset').addEventListener('click', ()=>{
+  btnToTitle.addEventListener('click', refreshTitle);
+  btnReset.addEventListener('click', ()=>{
     if(confirm('セーブデータ（キャラ・ハート・ログ）を削除します。よろしいですか？')){
       localStorage.removeItem(K.char); localStorage.removeItem(K.hearts); localStorage.removeItem(K.log);
       localStorage.removeItem(K.pool); localStorage.removeItem(K.next);
+      localStorage.removeItem(K.lastOpened); localStorage.removeItem(K.lastUserText); localStorage.removeItem(K.userTextHistory);
       character=null; hearts=0; log=[]; show(scrCover);
     }
   });
-  document.getElementById('showLog').addEventListener('click', ()=>{
+  btnShowLog.addEventListener('click', ()=>{
     const text = log.map(l=>`${new Date(l.ts).toLocaleString()} [${l.sender}] ${l.text}`).join('\n') || '（ログなし）';
     alert(text);
   });
@@ -438,6 +525,10 @@ window.addEventListener('DOMContentLoaded', () => {
     pet._timer = setTimeout(petMoveLoop, next);
   }
   window.addEventListener('resize', ()=>{ clearTimeout(pet._timer); petMoveLoop(); });
+
+  // ===== ここで再会チェック → 最終起動時刻を更新 =====
+  maybeShowReunion();
+  markOpenedNow();
 });
 </script>
 </body>
