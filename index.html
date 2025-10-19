@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MeAI Prototype</title>
+<title>MeAI Prototype (safe start)</title>
 <link rel="icon" href="data:,">
 <style>
   html, body { height:100%; }
@@ -12,822 +12,264 @@
     font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
     background:#000 url("public/space_background.png") center/cover fixed no-repeat;
     color:#fff;
-    overflow:hidden;
   }
-  .stars, .stars::after{
-    position:fixed; inset:0; content:"";
-    background: radial-gradient(white 1px, transparent 1px) 0 0/3px 3px;
-    opacity:.22; animation: twinkle 10s linear infinite;
-    pointer-events:none; z-index:0;
-  }
-  .stars::after{ animation-duration:15s; opacity:.15; filter:blur(.6px) brightness(1.2); }
-  @keyframes twinkle{ 0%{transform:translateY(0)} 100%{transform:translateY(-60px)} }
 
-  .screen{ position:fixed; inset:0; display:none; z-index:10; pointer-events:auto; }
-  .show{ display:block; }
+  /* ===== 共通 ===== */
+  .hidden{ display:none !important; }
+
+  .glass{
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:20px; backdrop-filter:blur(8px);
+  }
+  .btn{
+    display:inline-flex; align-items:center; gap:.5em;
+    border:none; border-radius:999px; padding:12px 18px; cursor:pointer; color:#fff;
+    background:rgba(255,255,255,.18);
+  }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; }
+  .btn.primary{ background:linear-gradient(180deg,#ff8bd2,#ff6db3 60%,#ff55a1); color:#231227; }
+
+  /* ===== 画面 ===== */
+  .screen{ min-height:100dvh; display:grid; place-items:center; padding:24px; }
+  .container{ width:min(92vw, 960px); margin:auto; }
 
   /* ===== 表紙 ===== */
-  #cover{ place-items:center; text-align:center; }
-  #cover.show{ display:grid; }
-  .cover-card{
-    width:min(92vw, 560px);
-    background:rgba(0,0,0,.28);
-    border:1px solid rgba(255,255,255,.18);
-    border-radius:28px; padding:40px 28px;
-    backdrop-filter:blur(12px);
-    box-shadow:0 24px 80px rgba(0,0,0,.55);
-  }
-  .cover-illust{ width:180px; height:180px; object-fit:contain; filter:drop-shadow(0 8px 20px rgba(0,0,0,.6)); }
-  .cover-title{ font-size:40px; font-weight:800; margin:18px 0 6px; letter-spacing:.02em; }
-  .cover-sub{ opacity:.9; margin:0 0 22px; }
-  .cta{
-    display:inline-flex; align-items:center; gap:10px;
-    border:none; border-radius:999px; padding:16px 28px; font-size:18px; cursor:pointer;
-    color:#251332; background:linear-gradient(180deg, #ff8bd2, #ff6db3 60%, #ff55a1);
-    box-shadow:0 12px 30px rgba(255,105,180,.35), inset 0 2px 0 rgba(255,255,255,.5);
-    transition: transform .08s ease, box-shadow .2s ease;
-  }
-  .cta:hover{ transform:translateY(-1px); box-shadow:0 16px 36px rgba(255,105,180,.45), inset 0 2px 0 rgba(255,255,255,.6); }
-  .cta:active{ transform:translateY(1px); }
+  .cover-card{ text-align:center; padding:28px; border-radius:28px; }
+  .cover-illust{ width:180px; height:180px; object-fit:contain; filter:drop-shadow(0 8px 22px rgba(0,0,0,.6)); }
+  .cover-title{ font-size:40px; font-weight:800; margin:16px 0 8px; }
+  .cover-sub{ opacity:.92; margin:0 0 18px; }
 
-  /* ===== 基本UI ===== */
-  .center{
-    width:min(92vw, 920px); margin:10vh auto 0; display:grid;
-    grid-template-columns: 140px 1fr; gap:20px;
-    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14);
-    border-radius:24px; padding:24px; backdrop-filter: blur(10px);
-    box-shadow:0 20px 60px rgba(0,0,0,.45);
-  }
-  .brand{display:grid; place-items:center;}
-  .brand img{ width:110px; height:110px; object-fit:contain; filter:drop-shadow(0 6px 10px rgba(0,0,0,.5));}
-  h1{margin:.1em 0 .2em; font-size:40px}
-  .lead{opacity:.95; margin:0 0 14px; line-height:1.6}
+  /* ===== タイトル ===== */
+  .title-grid{ display:grid; grid-template-columns:140px 1fr; gap:20px; align-items:center; }
+  .brand img{ width:110px; height:110px; object-fit:contain; }
+  .lead{ opacity:.95; line-height:1.7; }
 
-  .btn{
-    display:block; width:100%; margin:8px 0; padding:12px 16px;
-    border:none; border-radius:12px; cursor:pointer; color:#fff;
-    background:rgba(255,255,255,.14); transition:.2s;
-    backdrop-filter:blur(6px);
-    font-size:16px;
-  }
-  .btn:hover{ background:rgba(255,255,255,.24); }
-  .btn.secondary{ background:rgba(255,255,255,.10); }
-  .btn[disabled]{ opacity:.45; cursor:not-allowed; filter:saturate(.3); }
-
-  .panel{
-    width:min(92vw, 680px); margin:10vh auto;
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.14);
-    border-radius:20px; padding:22px; backdrop-filter:blur(8px);
-  }
-  .grid{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; margin-top:6px; }
-  .char{
-    width:92px; height:92px; border-radius:50%; border:1px solid rgba(255,255,255,.22);
-    display:grid; place-items:center; background:rgba(255,255,255,.12); cursor:pointer; transition:.2s;
-  }
+  /* ===== キャラ選択 ===== */
+  .grid{ display:flex; flex-wrap:wrap; gap:12px; }
+  .char{ width:92px; height:92px; border-radius:50%; border:1px solid rgba(255,255,255,.22);
+         display:grid; place-items:center; background:rgba(255,255,255,.10); cursor:pointer; }
   .char img{ width:70px; height:70px; object-fit:contain; }
-  .char:hover{ transform:scale(1.06); box-shadow:0 0 0 3px rgba(255,255,255,.22) inset; }
 
-  /* ヘッダー */
-  #header{
-    position:fixed; left:50%; transform:translateX(-50%); top:10px; z-index:11;
-    background:rgba(0,0,0,.30); border:1px solid rgba(255,255,255,.16);
-    border-radius:999px; padding:8px 12px; display:flex; gap:12px; align-items:center;
-    backdrop-filter: blur(10px);
-    box-shadow:0 8px 24px rgba(0,0,0,.25);
-  }
-  #header img{ width:30px; height:30px; }
-  #heart{ font-size:18px; }
-
-  /* チャット */
-  #chat{
-    width:min(92vw, 900px); height:min(64vh, 460px);
-    margin:100px auto 10px; padding:18px; overflow-y:auto; z-index:11; position:relative;
-    background:rgba(255,255,255,.04);
-    border:1px solid rgba(255,255,255,.10);
-    border-radius:18px;
-    backdrop-filter: blur(10px) brightness(1.1) contrast(1.05);
-    box-shadow:0 0 30px rgba(255,255,255,.06) inset, 0 20px 60px rgba(0,0,0,.35);
-  }
-  .bubble{
-    max-width:78%; margin:10px 0; padding:12px 16px;
-    border-radius:16px; line-height:1.7; font-size:18px;
-    box-shadow:0 2px 10px rgba(0,0,0,.15);
-  }
-  .ai {
-    float:left; clear:both;
-    background:linear-gradient(145deg, rgba(150,220,255,.32), rgba(150,200,255,.16));
-    border:1px solid rgba(150,220,255,.34);
-    color:#eaf6ff;
-    backdrop-filter:blur(6px);
-  }
-  .user{
-    float:right; clear:both;
-    background:linear-gradient(145deg, rgba(255,255,255,.30), rgba(255,255,255,.14));
-    border:1px solid rgba(255,255,255,.28);
-    color:#fff;
-    backdrop-filter:blur(6px);
-  }
-
-  /* 入力エリア */
-  #composer{ width:min(92vw, 900px); margin:8px auto 0; display:flex; gap:8px; z-index:11; position:relative; }
-  #input{
-    flex:1; padding:12px 14px; border:none; border-radius:14px; color:#fff; font-size:16px;
-    background:rgba(255,255,255,.14); outline:none; backdrop-filter:blur(6px);
-  }
-  #send, #done{
-    padding:12px 16px; border:none; border-radius:12px; cursor:pointer; color:#fff;
-    background:rgba(255,255,255,.18); transition:.2s; backdrop-filter:blur(6px);
-  }
-  #send:hover, #done:hover{ background:rgba(255,255,255,.28); }
-  #done{ background:rgba(0,200,120,.28); border:1px solid rgba(0,200,120,.35); }
-  #done:hover{ background:rgba(0,200,120,.42); }
-
-  /* フッター */
-  #footerMenu{ position:fixed; bottom:12px; left:50%; transform:translateX(-50%); z-index:11; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
-  #footerMenu .btn{ display:inline-block; width:auto; padding:8px 14px; background:rgba(255,255,255,.10); backdrop-filter:blur(6px); }
-  #footerMenu .btn:hover{ background:rgba(255,255,255,.22); }
-
-  /* ペット */
-  #pet{
-    position: fixed; left: 50vw; top: 60vh;
-    width: 120px; height: 120px; pointer-events: none; z-index: 999;
-    transition: left 12s ease-in-out, top 12s ease-in-out; display: none;
-  }
-  #pet img{ width:100%; height:100%; object-fit:contain;
-    filter: drop-shadow(0 8px 18px rgba(0,0,0,.45)); animation: pet-breathe 3.6s ease-in-out infinite; }
-  #pet.pop img{ animation: pet-pop .6s ease; }
-  @keyframes pet-breathe{ 0%,100%{ transform: translateY(0) scale(1);} 50%{ transform: translateY(-6px) scale(1.05);} }
-  @keyframes pet-pop{ 0%{transform:scale(1)} 40%{transform:scale(1.12)} 100%{transform:scale(1)} }
-
-  /* 再会バナー */
-  #reunionBanner{
-    position: fixed; inset: auto 12px 12px 12px;
-    display:none; background: rgba(20,20,30,.75); color:#fff;
-    padding: 12px 14px; border-radius: 14px;
-    box-shadow:0 8px 20px rgba(0,0,0,.25);
-    font-size: 14px; line-height: 1.6; z-index: 1200;
-    backdrop-filter: blur(8px); border:1px solid rgba(255,255,255,.16);
-  }
-  #reunionBanner .small{ opacity:.85; font-size:12px; margin-top:4px; }
-  #reunionBanner .closeBtn{
-    float:right; margin-left:10px; cursor:pointer; background:#fff; color:#111;
-    border-radius: 10px; padding: 4px 10px; font-size:12px; border:none;
-  }
-
-  /* トースト */
-  #rewardToast{
-    position:fixed; right:16px; bottom:80px; z-index:1300;
-    background:rgba(30,30,40,.85); border:1px solid rgba(255,255,255,.18);
-    padding:12px 14px; border-radius:14px; display:none; max-width:min(80vw,380px);
-    box-shadow:0 10px 30px rgba(0,0,0,.4); backdrop-filter: blur(8px);
-  }
-  #rewardToast .ttl{ font-weight:800; margin-bottom:4px; }
-  #rewardToast .emo{ font-size:24px; line-height:1; margin-right:6px; }
-
-  /* 紙吹雪 */
-  .confetti{ position: fixed; width:8px; height:14px; top:-20px; z-index:1400;
-    opacity:.95; transform:rotate(0deg); animation: confetti-fall linear forwards; }
-  @keyframes confetti-fall{ to { transform: translateY(120vh) rotate(360deg); opacity:1; } }
-
-  /* ご褒美モーダル */
-  #rewardsModal{
-    position:fixed; inset:0; display:none; z-index:1500;
-    background: rgba(0,0,0,.45); backdrop-filter: blur(3px);
-  }
-  #rewardsModal .wrap{
-    width:min(92vw, 760px); max-height:80vh; overflow:auto;
-    background:rgba(15,15,24,.86); border:1px solid rgba(255,255,255,.18);
-    border-radius:20px; padding:18px; margin:10vh auto 0; backdrop-filter: blur(10px);
-  }
-  #rewardsModal h3{ margin:6px 0 10px; }
-  .badge{ display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.12); margin:4px; font-size:14px; border:1px solid rgba(255,255,255,.18);}
-  .stamps{ display:flex; flex-wrap:wrap; gap:8px; }
-  .stamp{ width:44px; height:44px; display:grid; place-items:center; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); border-radius:10px; font-size:22px; }
-  .closeX{ float:right; background:#fff; color:#111; border:none; border-radius:10px; padding:6px 10px; cursor:pointer; }
-
-  .subtle{opacity:.82;}
-  .list-row{display:flex; gap:10px; align-items:center; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,.1);}
-  .list-row b{min-width:7em;}
-  .mono{font-family: ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;}
-  .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);}
-
-  /* ペットのオーラ */
-  #pet::after{ content:""; position:absolute; inset:-8px; border-radius:24px; pointer-events:none; opacity:0; transition:.4s; }
-  #pet.aura-star::after{
-    background: radial-gradient(closest-side, rgba(255,255,255,.35), transparent 70%);
-    box-shadow: 0 0 32px rgba(255,255,200,.35), 0 0 80px rgba(255,255,180,.25);
-    opacity:1; animation: aura-pulse 2.6s ease-in-out infinite;
-  }
-  #pet.aura-rainbow::after{
-    background: conic-gradient(from 0deg, #ff8bd2, #7ed5ff, #a1ff7a, #ffe07a, #ff8bd2);
-    filter: blur(14px) saturate(1.2); opacity:.6; animation: spin 6s linear infinite;
-  }
-  #pet.aura-moon::after{
-    background: radial-gradient(circle at 30% 30%, rgba(200,220,255,.5), transparent 60%);
-    box-shadow: 0 0 50px rgba(170,190,255,.3); opacity:1; animation: aura-pulse 3.2s ease-in-out infinite;
-  }
-  @keyframes aura-pulse{ 0%,100%{ transform:scale(1); opacity:.7;} 50%{ transform:scale(1.06); opacity:1; } }
-  @keyframes spin{ to { transform: rotate(1turn);} }
-
-  @media (max-width:560px){
-    .cover-title{ font-size:32px; }
-    .cover-card{ padding:28px 22px; }
-    h1{font-size:30px}
-    .center{ grid-template-columns: 1fr; text-align:center; }
-    .brand{ order:-1; }
-  }
+  /* ===== メイン ===== */
+  #header{ display:flex; gap:12px; align-items:center; padding:8px 12px; border-radius:999px; margin:10px auto 12px; width:max-content; }
+  #chat{ height:min(60vh,460px); overflow:auto; padding:16px; border-radius:16px; }
+  .bubble{ max-width:78%; margin:10px 0; padding:12px 16px; border-radius:16px; line-height:1.7; font-size:18px; }
+  .ai{ background:linear-gradient(145deg, rgba(150,220,255,.28), rgba(150,200,255,.14)); border:1px solid rgba(150,220,255,.34); float:left; clear:both; }
+  .user{ background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.12)); border:1px solid rgba(255,255,255,.28); float:right; clear:both; }
+  #composer{ display:flex; gap:8px; margin:10px 0; }
+  #input{ flex:1; padding:12px 14px; border:none; border-radius:12px; color:#fff; background:rgba(255,255,255,.14); }
+  #footerMenu{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:10px 0 20px; }
 </style>
 </head>
 <body>
-  <div class="stars"></div>
 
-  <div id="reunionBanner" aria-live="polite"></div>
-  <div id="rewardToast" role="status" aria-live="polite"></div>
-
-  <!-- ご褒美モーダル -->
-  <div id="rewardsModal" aria-modal="true" role="dialog">
-    <div class="wrap" tabindex="-1">
-      <button class="closeX" id="closeRewards" type="button">閉じる</button>
-      <h3>ご褒美コレクション</h3>
-      <div id="rewardSummary" class="subtle" style="margin:4px 0 10px;"></div>
-
-      <h4>称号（マイルストーン）</h4>
-      <div id="badgeList"></div>
-
-      <h4 style="margin-top:12px;">スタンプ</h4>
-      <div class="stamps" id="stampList"></div>
-
-      <h4 style="margin-top:12px;">見た目（オーラ）</h4>
-      <div id="auraList"></div>
-      <p class="subtle" style="margin-top:6px;">※ オーラは最新を自動装備。クリックで変更できます。</p>
-
-      <hr style="border:none; border-top:1px solid rgba(255,255,255,.12); margin:16px 0;">
-      <h3>ご褒美カタログ</h3>
-      <div id="catalogStamps" class="stamps"></div>
-      <div id="catalogBadges"></div>
-
-      <hr style="border:none; border-top:1px solid rgba(255,255,255,.12); margin:16px 0;">
-      <h3>獲得履歴</h3>
-      <p class="subtle">最近の獲得（最大20件）</p>
-      <div id="rewardHistory"></div>
-    </div>
-  </div>
-
-  <!-- 表紙 -->
-  <section id="cover" class="screen show" aria-label="表紙">
-    <div class="cover-card">
-      <img class="cover-illust" src="public/miwacchi_open.png" alt="MeAI cover mascot" onerror="this.src='public/cover.png'">
+<!-- ===== 表紙 ===== -->
+<section id="cover" class="screen">
+  <div class="container">
+    <div class="glass cover-card">
+      <img class="cover-illust" src="public/miwacchi_open.png" alt="MeAI cover" onerror="this.src='public/cover.png'">
       <div class="cover-title">MeAI</div>
       <p class="cover-sub">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
-      <button id="coverStart" class="cta" type="button" autofocus>▶︎ スタート</button>
+      <button id="coverStart" class="btn primary" type="button">▶︎ スタート</button>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- タイトル -->
-  <section id="title" class="screen" aria-label="タイトル">
-    <div class="center">
-      <div class="brand"><img src="public/char/green/calm.png" alt="mascot" onerror="this.src='public/char/blue/calm.png'"></div>
+<!-- ===== タイトル ===== -->
+<section id="title" class="screen hidden">
+  <div class="container glass" style="padding:20px;">
+    <div class="title-grid">
+      <div class="brand"><img src="public/char/green/calm.png" alt=""></div>
       <div>
-        <h1>MeAI</h1>
+        <h1 style="margin:.2em 0 .1em;">MeAI</h1>
         <p class="lead">“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で自己申告して記録するミニアプリです。<br>※ 監視はしません。ボタン/文字入力で記録するだけ。</p>
-        <button id="start" class="btn" type="button">はじめから</button>
-        <button id="cont"  class="btn" type="button">つづきから</button>
-        <button id="about" class="btn secondary" type="button">このプロトタイプについて</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="start" class="btn" type="button">はじめから</button>
+          <button id="cont"  class="btn" type="button">つづきから</button>
+          <button id="about" class="btn" type="button">このプロトタイプについて</button>
+        </div>
         <p id="savestate" style="opacity:.9;margin-top:8px;"></p>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- キャラ選択 -->
-  <section id="choose" class="screen" aria-label="キャラクター選択">
-    <div class="panel">
-      <h2 style="margin:0 0 8px;">キャラクターを選んでね</h2>
-      <div class="grid">
-        <button class="char" data-char="green" type="button" aria-label="green"><img src="public/char/green/calm.png" alt="green" onerror="this.src='public/char/blue/calm.png'"></button>
-        <button class="char" data-char="blue"  type="button" aria-label="blue"><img src="public/char/blue/calm.png"  alt="blue"  onerror="this.src='public/char/green/calm.png'"></button>
-        <button class="char" data-char="pink"  type="button" aria-label="pink"><img src="public/char/pink/calm.png"  alt="pink"  onerror="this.src='public/char/green/calm.png'"></button>
-        <button class="char" data-char="purple"type="button" aria-label="purple"><img src="public/char/purple/calm.png"alt="purple"onerror="this.src='public/char/green/calm.png'"></button>
-      </div>
-      <button id="backTitle" class="btn" type="button" style="margin-top:14px; width:auto;">← タイトルへ</button>
+<!-- ===== キャラ選択 ===== -->
+<section id="choose" class="screen hidden">
+  <div class="container glass" style="padding:18px;">
+    <h2 style="margin:6px 0 12px;">キャラクターを選んでね</h2>
+    <div class="grid" id="charGrid">
+      <button class="char" data-char="green" type="button" aria-label="green"><img src="public/char/green/calm.png" alt=""></button>
+      <button class="char" data-char="blue"  type="button" aria-label="blue"><img  src="public/char/blue/calm.png"  alt=""></button>
+      <button class="char" data-char="pink"  type="button" aria-label="pink"><img  src="public/char/pink/calm.png"  alt=""></button>
+      <button class="char" data-char="purple"type="button" aria-label="purple"><img src="public/char/purple/calm.png"alt=""></button>
     </div>
-  </section>
+    <div style="margin-top:14px;"><button id="backTitle" class="btn" type="button">← タイトルへ</button></div>
+  </div>
+</section>
 
-  <!-- メイン -->
-  <section id="main" class="screen" aria-label="メイン">
-    <div id="header">
-      <img id="charIcon" src="" alt="char">
+<!-- ===== メイン ===== -->
+<section id="main" class="screen hidden">
+  <div class="container">
+    <div id="header" class="glass">
+      <img id="charIcon" src="" alt="" width="30" height="30">
       <div id="heart">❤️ × <span id="heartCount">0</span></div>
       <div id="sessionInfo" style="opacity:.85;"></div>
     </div>
 
-    <div id="chat" aria-live="polite"></div>
+    <div id="chat" class="glass" aria-live="polite"></div>
 
     <div id="composer">
-      <input id="input" type="text" placeholder="返答を入力…（Enterで送信）" />
+      <input id="input" class="glass" type="text" placeholder="返答を入力…（Enterで送信）" />
       <button id="send" class="btn" type="button">送信</button>
       <button id="done" class="btn" type="button">やったよ</button>
     </div>
 
     <div id="footerMenu">
-      <button id="toTitle" class="btn secondary" type="button">メニューへ</button>
-      <button id="showLog" class="btn secondary" type="button">ログを確認</button>
-      <button id="rewardsBtn" class="btn secondary" type="button">ご褒美</button>
-      <button id="reset" class="btn secondary" type="button">データ初期化</button>
+      <button id="toTitle" class="btn" type="button">メニューへ</button>
+      <button id="showLog" class="btn" type="button">ログを確認</button>
+      <button id="reset" class="btn" type="button">データ初期化</button>
     </div>
-  </section>
-
-  <!-- ペット -->
-  <div id="pet" aria-hidden="true"><img id="petImg" src="" alt="pet"></div>
+  </div>
+</section>
 
 <script>
-window.addEventListener('DOMContentLoaded', () => {
-  const $ = s => document.querySelector(s);
-  const scrCover = $('#cover'), scrTitle = $('#title'), scrChoose = $('#choose'), scrMain = $('#main');
+(function(){
+  // ===== 安全ヘルパー =====
+  const $ = (s,root=document)=>root.querySelector(s);
+  const $$ = (s,root=document)=>Array.from(root.querySelectorAll(s));
+  const on = (el,ev,fn,opt)=>{ if(el) el.addEventListener(ev,fn,opt||false); };
 
-  /* ========== DOM refs ========== */
+  // 画面
+  const scr = {
+    cover: $('#cover'),
+    title: $('#title'),
+    choose: $('#choose'),
+    main:  $('#main')
+  };
+  function show(id){
+    Object.values(scr).forEach(el=>el && el.classList.add('hidden'));
+    scr[id]?.classList.remove('hidden');
+  }
+
+  // DOM
   const btnCoverStart = $('#coverStart');
   const btnStart = $('#start'), btnCont = $('#cont'), btnAbout = $('#about'), saveState = $('#savestate');
   const btnBackTitle = $('#backTitle'), btnToTitle = $('#toTitle'), btnReset = $('#reset'), btnShowLog = $('#showLog');
-  const btnRewards = $('#rewardsBtn');
   const chat = $('#chat'), input = $('#input'), btnSend = $('#send'), btnDone = $('#done');
   const heartCountEl = $('#heartCount'), charIcon = $('#charIcon'), sessionInfo = $('#sessionInfo');
-  const pet = $('#pet'), petImg = $('#petImg');
-  const rewardToast = $('#rewardToast');
-  const rewardsModal = $('#rewardsModal'), rewardsWrap = rewardsModal.querySelector('.wrap'), closeRewards = $('#closeRewards');
-  const rewardSummary = $('#rewardSummary'), badgeList = $('#badgeList'), stampList = $('#stampList'), auraList = $('#auraList');
-  const catalogStamps = $('#catalogStamps'), catalogBadges = $('#catalogBadges'), rewardHistory = $('#rewardHistory');
 
-  /* ========== Keys & State ========== */
+  // 保存キー
   const K = {
     char:'meai_character',
     hearts:'meai_heart',
     log:'meai_log',
-    pool:'meai_request_pool',
-    next:'meai_next_due',
-    lastOpened:'meai_last_opened_at',
-    lastUserText:'meai_last_user_text',
-    userTextHistory:'meai_user_text_history',
-    rewards:'meai_rewards',
-    milestones:'meai_milestones'
+    next:'meai_next_due'
   };
-  const REMIND_MIN_H = 1, REMIND_MAX_H = 3;
 
-  let character = safeGet(K.char);
-  let hearts = toInt(safeGet(K.hearts), 0);
-  let log = toArrayJSON(safeGet(K.log), []);
-  let nextTimer = null;
-  let labelTimer = null;
-  let doneReentrancyGuard = false;
+  // 状態
+  let character = get(K.char);
+  let hearts = toInt(get(K.hearts),0);
+  let log = toArray(get(K.log),[]);
+  let nextTimer=null, labelTimer=null;
 
-  /* ========== Utils ========== */
-  function toInt(v, d=0){ const n = parseInt(v,10); return Number.isFinite(n)?n:d; }
-  function safeGet(key){ try{ return localStorage.getItem(key); }catch{ return null; } }
-  function safeSet(key, val){ try{ localStorage.setItem(key, val); }catch{} }
-  function toArrayJSON(raw, fallback=[]){
-    try{
-      const v = typeof raw==='string' ? JSON.parse(raw) : raw;
-      return Array.isArray(v) ? v : fallback;
-    }catch{ return fallback; }
+  // ユーティリティ
+  function get(k){ try{return localStorage.getItem(k)}catch{return null} }
+  function set(k,v){ try{localStorage.setItem(k,v)}catch{} }
+  function del(k){ try{localStorage.removeItem(k)}catch{} }
+  function toInt(v,d=0){ const n=parseInt(v,10); return Number.isFinite(n)?n:d; }
+  function toArray(raw,f=[]){ try{ const v=typeof raw==='string'?JSON.parse(raw):raw; return Array.isArray(v)?v:f }catch{ return f } }
+
+  // チャット
+  function append(sender,text){
+    const d=document.createElement('div');
+    d.className='bubble '+sender;
+    d.textContent=text;
+    chat.appendChild(d);
+    chat.scrollTop = chat.scrollHeight;
   }
-  function toObjectJSON(raw, fallback={}){
-    try{
-      const v = typeof raw==='string' ? JSON.parse(raw) : raw;
-      return (v && typeof v==='object') ? v : fallback;
-    }catch{ return fallback; }
+  function push(sender,text){
+    const item={sender,text,ts:Date.now()};
+    log.push(item);
+    append(sender,text);
+  }
+  function saveAll(){
+    set(K.hearts,String(hearts));
+    set(K.log,JSON.stringify(log));
   }
 
-  /* ========== Requests ========== */
-  const REQUESTS = [
-    "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。","今日の空の色をひとことで教えて。",
-    "窓を少し開けて、空気を入れ替えよう。","深呼吸を3回してみよう。","好きな音を5秒だけ聞かせて。（心の中でもOK）",
-    "花や植物をひとつ思い浮かべて、名前を教えて。","今いる部屋で、やさしい色を探して教えて。","姿勢をすこし伸ばして、肩を回してみよう。",
-    "カーテンを少し開けて、明るさを感じてみて。","おやつか飲み物をひと口、味わってみよう。","机の上を10秒だけ整えてみよう。",
-    "目の前の“丸い形”をひとつ見つけて教えて。","耳をすませて、いちばん小さな音を探してみよう。","手を温めたり、冷たいものに触れたりして、感触を教えて。",
-    "「ありがとう」を心の中で1回言ってみよう。","外の風や空気の温度を感じて、ひと言で教えて。","時計の音、ある？ない？",
-    "今の気分を天気で言うと？（晴れ/曇り/雨/雪/風）","好きな言葉をひとつ思い出して、教えて。","部屋の中で“やわらかいもの”を触ってみよう。",
-    "窓の外を10秒見て、気づいたことをひと言。","スマホを裏向きにして10秒置いてみよう。","ゆっくり首を左右に回して、こり具合を教えて。",
-    "今日の色をひとつ選んで、教えて。","今の音量（静か/ふつう/にぎやか）を教えて。","好きな匂いをひとつ思い出して、教えて。",
-    "“おかえり”って言ってみて。","“おやすみ”って言ってくれる？"
+  // リクエスト
+  const REQUESTS=[
+    "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。",
+    "今日の空の色をひとことで教えて。","深呼吸を3回してみよう。"
   ];
-  function shuffle(a){ for(let i=a.length-1;i>0;i++){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
-  function loadPool(){
-    const raw = toArrayJSON(safeGet(K.pool), []);
-    if(raw.length) return raw;
-    const fresh = shuffle([...REQUESTS]); safeSet(K.pool, JSON.stringify(fresh)); return fresh;
-  }
-  function savePool(p){ safeSet(K.pool, JSON.stringify(p)); }
-  function nextRequest(){
-    let pool = loadPool();
-    const text = pool.shift();
-    if(pool.length===0) pool = shuffle([...REQUESTS]);
-    savePool(pool);
-    return text;
-  }
-  function firstRequest(char){
-    const tag = {green:"（やさしく）", blue:"（ていねいに）", pink:"（わくわく）", purple:"（おちついて）"}[char] || "";
-    return `${tag} ${nextRequest()}`;
+  function pick(){ return REQUESTS[Math.floor(Math.random()*REQUESTS.length)] }
+  function firstRequest(c){
+    const tag={green:"（やさしく）",blue:"（ていねいに）",pink:"（わくわく）",purple:"（おちついて）"}[c]||"";
+    return `${tag} ${pick()}`;
   }
 
-  /* ========== Remind ========== */
-  function stopNextTimer(){ if(nextTimer){ clearTimeout(nextTimer); nextTimer=null; } }
-  function stopLabelTimer(){ if(labelTimer){ clearInterval(labelTimer); labelTimer=null; } }
-  function hoursToMs(h){ return Math.round(h * 3600 * 1000); }
-  function pickHours(){ return REMIND_MIN_H + Math.random()*(REMIND_MAX_H - REMIND_MIN_H); }
-  function setNextDueAfterHours(h){
-    const due = Date.now() + hoursToMs(h);
-    safeSet(K.next, String(due));
-    updateDoneButtonState();
+  // 「やったよ」クールタイム
+  function canDoneNow(){
+    const due = toInt(get(K.next),0);
+    return !due || due<=Date.now();
+  }
+  function setNextAfterHours(h){
+    const due = Date.now() + Math.round(h*3600*1000);
+    set(K.next,String(due));
+    updateDoneState();
     startNextTimer();
     startLabelTimer();
   }
-  function canDoneNow(){
-    const due = toInt(safeGet(K.next), 0);
-    return !due || due <= Date.now();
-  }
-  function msToCountdown(ms){
-    if(ms <= 0) return "";
-    const sec = Math.ceil(ms/1000);
-    if(sec < 60) return `${sec}秒`;
-    const min = Math.ceil(sec/60);
-    if(min < 60) return `${min}分`;
-    const h = Math.floor(min/60), m = min%60;
-    return m ? `${h}時間${m}分` : `${h}時間`;
-  }
-  function updateDoneButtonLabel(){
-    const due = toInt(safeGet(K.next), 0);
-    if(!due || due <= Date.now()){
-      btnDone.textContent = 'やったよ';
+  function updateDoneState(){
+    const due = toInt(get(K.next),0);
+    const disabled = due && due>Date.now();
+    btnDone.disabled = !!disabled;
+    if(disabled){
+      const left = due-Date.now();
+      btnDone.textContent = "あと" + countdown(left);
     }else{
-      const rest = Math.max(0, due - Date.now());
-      btnDone.textContent = `あと${msToCountdown(rest)}`;
+      btnDone.textContent = "やったよ";
     }
   }
-  function updateDoneButtonState(){
-    const due = toInt(safeGet(K.next), 0);
-    const disabled = due && due > Date.now();
-    btnDone.disabled = !!disabled;
-    updateDoneButtonLabel();
+  function countdown(ms){
+    if(ms<=0) return "";
+    const s=Math.ceil(ms/1000);
+    if(s<60) return `${s}秒`;
+    const m=Math.ceil(s/60);
+    if(m<60) return `${m}分`;
+    const h=Math.floor(m/60), mm=m%60;
+    return mm?`${h}時間${mm}分`:`${h}時間`;
   }
   function startNextTimer(){
-    stopNextTimer();
-    const due = toInt(safeGet(K.next), 0);
-    if(!due){ btnDone.disabled = false; updateDoneButtonLabel(); return; }
+    if(nextTimer) clearTimeout(nextTimer);
+    const due = toInt(get(K.next),0);
+    if(!due) return;
     const wait = due - Date.now();
-    if(wait <= 0){ triggerNext(); return; }
-    btnDone.disabled = true;
-    nextTimer = setTimeout(triggerNext, wait);
+    if(wait<=0){ push('ai', pick()); del(K.next); updateDoneState(); return; }
+    nextTimer = setTimeout(()=>{ del(K.next); updateDoneState(); push('ai', pick()); }, wait);
   }
   function startLabelTimer(){
-    stopLabelTimer();
-    const tick = () => {
-      updateDoneButtonLabel();
-      const due = toInt(safeGet(K.next), 0);
-      if(!due || due <= Date.now()){ stopLabelTimer(); }
-    };
-    labelTimer = setInterval(tick, 1000 * 30);
-    tick();
-  }
-  function triggerNext(){
-    try{ localStorage.removeItem(K.next); }catch{}
-    btnDone.disabled = false;
-    updateDoneButtonLabel();
-    stopLabelTimer();
-    push('ai', 'そろそろどうかな？');
-    push('ai', nextRequest());
-  }
-  function scheduleLater(){
-    const h = Math.round(pickHours()*10)/10;
-    push('ai', `また後でね。約${h}時間後に次の提案を送るね。`);
-    setNextDueAfterHours(h);
+    if(labelTimer) clearInterval(labelTimer);
+    labelTimer = setInterval(()=>{
+      updateDoneState();
+      const due = toInt(get(K.next),0);
+      if(!due || due<=Date.now()){ clearInterval(labelTimer); labelTimer=null; }
+    }, 30000);
   }
 
-  /* ========== Reunion Banner ========== */
-  function showReunionBanner(messageHtml){
-    const el = document.getElementById('reunionBanner');
-    if(!el) return;
-    el.innerHTML = `<button class="closeBtn" aria-label="閉じる" type="button">OK</button>${messageHtml}<div class="small">（設定＞通知でOFFにできます）</div>`;
-    el.style.display = 'block';
-    el.querySelector('.closeBtn')?.addEventListener('click', ()=> el.style.display='none');
-  }
-  function hoursSince(ts){ return (Date.now() - ts) / (1000*60*60); }
-  function trimQuote(s, max=28){
-    if(!s) return "";
-    const clean = String(s).replace(/\s+/g, " ").trim();
-    return (clean.length <= max) ? clean : (clean.slice(0, max) + "…");
-  }
-  function maybeShowReunion(){
-    const last = Number(safeGet(K.lastOpened) || 0);
-    const gapH = last ? hoursSince(last) : Infinity;
-    if (gapH >= 24) {
-      let lastText = safeGet(K.lastUserText) || "";
-      if(!lastText){
-        const hist = toArrayJSON(safeGet(K.userTextHistory), []);
-        if(hist.length) lastText = hist[hist.length-1].text || "";
-      }
-      let lastDateStr = "";
-      if(last && isFinite(last)){
-        const d = new Date(last);
-        const y = d.getFullYear();
-        const m = String(d.getMonth()+1).padStart(2,"0");
-        const day = String(d.getDate()).padStart(2,"0");
-        const hh = String(d.getHours()).padStart(2,"0");
-        const mm = String(d.getMinutes()).padStart(2,"0");
-        lastDateStr = `${y}/${m}/${day} ${hh}:${mm}`;
-      }
-      const tier = (gapH >= 72) ? "ひさしぶり！" : "おかえり！";
-      const quote = trimQuote(lastText);
-      const quotePart = quote ? `前にこんなこと言ってたね：「<b>${quote}</b>」` : "また会えてうれしいよ。";
-      const timePart = lastDateStr ? `<div class="small">（前回：${lastDateStr}）</div>` : "";
-      showReunionBanner(`<b>${tier}</b> ${quotePart}${timePart}`);
-    }
-  }
-  function markOpenedNow(){ safeSet(K.lastOpened, String(Date.now())); }
-  function saveLastUserText(text){
-    if(!text) return;
-    safeSet(K.lastUserText, text);
-    const now = Date.now();
-    const arr = toArrayJSON(safeGet(K.userTextHistory), []);
-    arr.push({ ts: now, text });
-    while(arr.length > 50) arr.shift();
-    safeSet(K.userTextHistory, JSON.stringify(arr));
-  }
-
-  /* ========== Rewards ========== */
-  const STICKER_POOL = ["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"];
-  const MILESTONES = [
-    {n:1,  badge:"はじめの一歩", aura:"aura-star"},
-    {n:3,  badge:"コツコツ名人",  aura:null},
-    {n:5,  badge:"星くず集め",    aura:"aura-moon"},
-    {n:10, badge:"継続の達人",    aura:"aura-rainbow"},
-    {n:15, badge:"やさしさの泉",  aura:null},
-    {n:20, badge:"MeAI 友だち",   aura:"aura-star"}
-  ];
-
-  function loadRewards(){
-    const r = toObjectJSON(safeGet(K.rewards), {stamps:[], badges:[], aurasUnlocked:[], activeAura:""});
-    r.stamps ??= []; r.badges ??= []; r.aurasUnlocked ??= []; r.activeAura ??= "";
-    return r;
-  }
-  function saveRewards(r){ safeSet(K.rewards, JSON.stringify(r)); }
-  function getGrantedMilestones(){
-    return toArrayJSON(safeGet(K.milestones), []);
-  }
-  function setGrantedMilestones(arr){ safeSet(K.milestones, JSON.stringify(arr)); }
-
-  function showToast(html){
-    rewardToast.innerHTML = html;
-    rewardToast.style.display = 'block';
-    setTimeout(()=> rewardToast.style.display='none', 3800);
-  }
-  function confettiBurst(){
-    const colors = ['#ff8bd2','#7ed5ff','#ffe07a','#a1ff7a','#ffffff'];
-    for(let i=0;i<36;i++){
-      const e = document.createElement('div');
-      e.className = 'confetti';
-      e.style.left = (Math.random()*100)+'vw';
-      e.style.background = colors[i%colors.length];
-      e.style.animationDuration = (1.8 + Math.random()*1.8) + 's';
-      e.style.transform = `rotate(${Math.random()*360}deg)`;
-      document.body.appendChild(e);
-      setTimeout(()=> e.remove(), 3200);
-    }
-  }
-
-  function setAuraClass(aura){
-    pet.classList.remove('aura-star','aura-rainbow','aura-moon');
-    if(aura) pet.classList.add(aura);
-  }
-  function applyAura(aura){
-    setAuraClass(aura);
-    const r = loadRewards();
-    r.activeAura = aura || "";
-    saveRewards(r);
-  }
-
-  function grantSticker(){
-    const emo = STICKER_POOL[Math.floor(Math.random()*STICKER_POOL.length)];
-    const r = loadRewards();
-    r.stamps.push({emo, ts: Date.now()});
-    saveRewards(r);
-    renderRewardsUI();
-    showToast(`<span class="ttl">ご褒美をゲット！</span><br><span class="emo">${emo}</span>スタンプを手に入れたよ！`);
-  }
-
-  function grantMilestoneIfAny(newHearts){
-    const granted = new Set(getGrantedMilestones());
-    const r = loadRewards();
-    let grantedSomething = false;
-
-    MILESTONES.forEach(ms=>{
-      if(newHearts >= ms.n && !granted.has(ms.n)){
-        granted.add(ms.n);
-        r.badges.push({name: ms.badge, n: ms.n, ts: Date.now(), aura: ms.aura||null});
-        if(ms.aura && !r.aurasUnlocked.includes(ms.aura)){
-          r.aurasUnlocked.push(ms.aura);
-          saveRewards(r);
-          applyAura(ms.aura);
-          renderRewardsUI();
-          showToast(`<span class="ttl">マイルストーン ${ms.n}</span><br>称号「${ms.badge}」と新オーラを解放！`);
-        }else{
-          saveRewards(r);
-          renderRewardsUI();
-          showToast(`<span class="ttl">マイルストーン ${ms.n}</span><br>称号「${ms.badge}」を手に入れたよ！`);
-        }
-        grantedSomething = true;
-      }
-    });
-
-    if(grantedSomething){
-      setGrantedMilestones(Array.from(granted));
-      confettiBurst();
-    }
-  }
-  function onHeartIncreased(){
-    grantSticker();
-    grantMilestoneIfAny(hearts);
-  }
-
-  function renderCatalog(){
-    catalogStamps.innerHTML = '';
-    STICKER_POOL.forEach(emo=>{
-      const d = document.createElement('div');
-      d.className = 'stamp'; d.textContent = emo;
-      catalogStamps.appendChild(d);
-    });
-
-    catalogBadges.innerHTML = '';
-    MILESTONES.forEach(ms=>{
-      const row = document.createElement('div');
-      row.className = 'list-row';
-      const aura = ms.aura ? `<span class="pill mono">${ms.aura.replace('aura-','')}</span>` : '<span class="subtle">（オーラなし）</span>';
-      row.innerHTML = `<b>#${ms.n} ${ms.badge}</b><span class="subtle">条件：ハート${ms.n}個</span> ${aura}`;
-      catalogBadges.appendChild(row);
-    });
-  }
-
-  function renderHistory(){
-    const r = loadRewards();
-    const events = [];
-    r.stamps.forEach(s => events.push({type:'stamp', label:`スタンプ ${s.emo}`, ts:s.ts}));
-    r.badges.forEach(b => events.push({type:'badge', label:`称号「${b.name}」`, ts:b.ts || 0}));
-    events.sort((a,b)=>b.ts-a.ts);
-    const latest = events.slice(0, 20);
-
-    rewardHistory.innerHTML = latest.length ? '' : '<div class="subtle">（まだ獲得履歴がありません）</div>';
-    latest.forEach(ev=>{
-      const d = new Date(ev.ts||Date.now());
-      const time = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-      const row = document.createElement('div');
-      row.className = 'list-row';
-      row.innerHTML = `<b>${ev.type==='stamp'?'🖼️ スタンプ':'🏅 称号'}</b><span>${ev.label}</span><span class="subtle mono" style="margin-left:auto;">${time}</span>`;
-      rewardHistory.appendChild(row);
-    });
-  }
-
-  function renderRewardsUI(){
-    const r = loadRewards();
-    rewardSummary.textContent = `ハート：${hearts}　スタンプ：${r.stamps.length}　称号：${r.badges.length}`;
-
-    badgeList.innerHTML = '';
-    const fragB = document.createDocumentFragment();
-    r.badges.sort((a,b)=>a.n-b.n).forEach(b=>{
-      const span = document.createElement('span'); span.className='badge'; span.textContent = `#${b.n} ${b.name}`; fragB.appendChild(span);
-    });
-    badgeList.appendChild(fragB);
-
-    stampList.innerHTML='';
-    const fragS = document.createDocumentFragment();
-    r.stamps.slice(-120).forEach(s=>{
-      const div = document.createElement('div'); div.className='stamp'; div.textContent = s.emo; fragS.appendChild(div);
-    });
-    stampList.appendChild(fragS);
-
-    auraList.innerHTML='';
-    const auras = [
-      {key:'', label:'なし'},
-      {key:'aura-star', label:'星あかり'},
-      {key:'aura-moon', label:'月あかり'},
-      {key:'aura-rainbow', label:'にじ'}
-    ];
-    const rNow = loadRewards();
-    auras.forEach(a=>{
-      const btn = document.createElement('button');
-      btn.className='btn secondary';
-      btn.style.width='auto'; btn.style.display='inline-block'; btn.style.marginRight='8px';
-      const owned = a.key === '' || rNow.aurasUnlocked.includes(a.key);
-      btn.disabled = !owned;
-      btn.textContent = owned ? (rNow.activeAura===a.key ? `★ ${a.label}` : a.label) : `🔒 ${a.label}`;
-      btn.addEventListener('click', ()=>{ if(owned){ applyAura(a.key); renderRewardsUI(); }});
-      auraList.appendChild(btn);
-    });
-
-    renderCatalog();
-    renderHistory();
-    setAuraClass(loadRewards().activeAura);
-  }
-
-  /* ========== Screens ========== */
-  function show(el){
-    [scrCover,scrTitle,scrChoose,scrMain].forEach(s=>s.classList.remove('show'));
-    el.classList.add('show');
-  }
-
-  function refreshTitle(){
-    const has = !!safeGet(K.char);
-    btnCont.disabled = !has;
-    saveState.textContent = has ? 'セーブデータがあります。「つづきから」で再開できます。' : 'セーブデータがありません。';
-    show(scrTitle);
-    pet.style.display = 'none';
-    stopNextTimer();
-    stopLabelTimer();
-  }
-
-  /* ========== Chat ========== */
-  function append(sender, text){
-    const div = document.createElement('div');
-    div.className = `bubble ${sender}`;
-    div.textContent = text;
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-  }
-  function push(sender, text){
-    const item = {sender, text, ts:Date.now()};
-    log.push(item);
-    append(sender, text);
-  }
-
-  function aiReplyAfter(text, intent='chat'){
-    if(intent==='done'){
-      hearts++; heartCountEl.textContent = hearts;
-      push('ai','すばらしい！ハートが増えたよ💖');
-      saveAll();
-      onHeartIncreased();
-      scheduleLater();
-      pet.classList.add('pop'); setTimeout(()=>pet.classList.remove('pop'), 600);
-    }else{
-      push('ai','うん、なるほどね。');
-      saveAll();
-    }
-  }
-  function send(){
-    const t = input.value.trim();
-    if(!t) return;
-    push('user', t);
-    saveLastUserText(t);
-    input.value = '';
-    aiReplyAfter(t, 'chat');
-  }
-
-  /* ========== Pet ========== */
-  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
-  function petRandomPos(){
-    const pad = 24, size = 120;
-    const W = window.innerWidth, H = window.innerHeight;
-    let x = pad + Math.random() * (W - size - pad*2);
-    let y = pad + Math.random() * (H - size - pad*2);
-    const r = document.getElementById('chat')?.getBoundingClientRect();
-    if (r) {
-      const overlap = (x < r.right && x+size > r.left && y < r.bottom && y+size > r.top);
-      if (overlap) { x = clamp(r.right + 40, pad, W - size - pad); y = clamp(y + 20, pad, H - size - pad); }
-    }
-    return { x: clamp(x, pad, W - size - pad), y: clamp(y, pad, H - size - pad) };
-  }
-  function petMoveLoop(){
-    const p = petRandomPos();
-    pet.style.left = p.x + 'px';
-    pet.style.top  = p.y + 'px';
-    const next = 8000 + Math.random()*6000;
-    clearTimeout(pet._timer);
-    pet._timer = setTimeout(petMoveLoop, next);
-  }
-
-  /* ========== Save ========== */
-  function saveAll(){
-    safeSet(K.hearts, String(hearts));
-    safeSet(K.log, JSON.stringify(log));
-  }
-
-  /* ========== Main Start ========== */
+  // メイン開始
   function startMain(newSession){
-    character = character || safeGet(K.char);
-    if(!character){ refreshTitle(); return; }
-
-    const charPath = `public/char/${character}/calm.png`;
+    character = character || get(K.char);
+    if(!character){ return showTitle(); }
+    const charPath=`public/char/${character}/calm.png`;
     charIcon.src = charPath;
-    charIcon.onerror = () => { charIcon.src = 'public/char/green/calm.png'; };
-
+    charIcon.onerror = ()=>{ charIcon.src='public/char/green/calm.png'; };
     heartCountEl.textContent = hearts;
     sessionInfo.textContent = newSession ? '新しいセッション' : 'つづきから';
 
-    petImg.src = charPath;
-    petImg.onerror = () => { petImg.src = 'public/char/green/calm.png'; };
-    pet.style.display = 'block';
-    clearTimeout(pet._timer);
-    petMoveLoop();
-
     chat.innerHTML='';
-
     if(newSession || log.length===0){
       log = [];
       push('ai', firstRequest(character));
@@ -836,128 +278,118 @@ window.addEventListener('DOMContentLoaded', () => {
       log.forEach(m=>append(m.sender,m.text));
       chat.scrollTop = chat.scrollHeight;
     }
-    show(scrMain);
-    setTimeout(()=>input?.focus(), 10);
-    updateDoneButtonState();
+    show('main');
+    setTimeout(()=> input?.focus(), 10);
+    updateDoneState();
     startNextTimer();
     startLabelTimer();
-    renderRewardsUI();
   }
 
-  /* ========== Event Bindings ========== */
-
-  // ★ 修正1：カバーの「スタート」
-  btnCoverStart.addEventListener('click', ()=>{
-    const has = !!safeGet(K.char);
-    if (has) {
-      startMain(false);           // セーブあり → 直でメインへ
-    } else {
-      show(scrChoose);            // セーブなし → キャラ選択に直行
+  // 画面表示
+  function showTitle(){
+    const has = !!get(K.char);
+    if(saveState){
+      saveState.textContent = has ? 'セーブデータがあります。「つづきから」で再開できます。' : 'セーブデータがありません。';
     }
+    if(btnCont) btnCont.disabled = !has;
+    show('title');
+  }
+
+  // 送信
+  function send(){
+    const t=input.value.trim();
+    if(!t) return;
+    push('user',t);
+    input.value='';
+    push('ai','うん、なるほどね。');
+    saveAll();
+  }
+
+  // ====== バインド（存在チェックつき） ======
+  on(btnCoverStart,'click',()=>{
+    try{
+      if(get(K.char)){
+        startMain(false);
+      }else{
+        show('choose');
+      }
+    }catch(e){ console.error(e); show('title'); }
   });
 
-  // ★ 修正2：「はじめから」は確実にキャラ選択へ
-  btnStart.addEventListener('click', ()=>{
-    if (!scrChoose) return;
-    show(scrChoose);
-  });
-
-  btnCont.addEventListener('click', ()=>{
-    if(!safeGet(K.char)) { alert('セーブデータがありません。'); return; }
+  on(btnStart,'click', ()=> show('choose'));
+  on(btnCont,'click', ()=>{
+    if(!get(K.char)){ alert('セーブデータがありません。'); return; }
     startMain(false);
   });
+  on(btnAbout,'click', ()=> alert('この試作はAIが監視するのではなく、ユーザーの自己申告（「やったよ」）で記録するだけの設計です。'));
 
-  btnAbout.addEventListener('click', ()=>{
-    alert('この試作はAIが監視するのではなく、ユーザーの自己申告（「やったよ」）で記録するだけの設計です。');
-  });
-
-  // ★ 修正3：キャラ選択はイベントデリゲーションで確実に反応
-  document.getElementById('choose')?.addEventListener('click', (e)=>{
+  // キャラ選択はデリゲーションで確実に拾う
+  on($('#choose'),'click',(e)=>{
     const el = e.target.closest('.char');
-    if (!el) return;
+    if(!el) return;
     character = el.dataset.char;
-    safeSet(K.char, character);
-    hearts = toInt(safeGet(K.hearts), 0);
-    if(!Array.isArray(log)) log=[];
+    set(K.char, character);
+    hearts = toInt(get(K.hearts),0);
+    log = toArray(get(K.log),[]);
     startMain(true);
   });
 
-  btnBackTitle.addEventListener('click', refreshTitle);
+  on(btnBackTitle,'click', showTitle);
+  on(btnToTitle,'click', showTitle);
 
-  btnSend.addEventListener('click', send);
-  input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
+  on(btnSend,'click', send);
+  on(input,'keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
 
-  btnDone.addEventListener('click', ()=>{
-    if(doneReentrancyGuard) return;
-    doneReentrancyGuard = true;
-    setTimeout(()=>{ doneReentrancyGuard = false; }, 600);
+  let guard=false;
+  on(btnDone,'click', ()=>{
+    if(guard) return;
+    guard=true; setTimeout(()=>guard=false, 500);
 
     if(!canDoneNow()){
-      const due = toInt(safeGet(K.next), 0);
-      const rest = Math.max(0, due - Date.now());
-      const label = msToCountdown(rest);
-      showToast(`<span class="ttl">もう少し休憩…</span><br>次は <b>${label}</b> 後に「やったよ」できるよ。`);
+      const due=toInt(get(K.next),0);
+      const rest=Math.max(0,due-Date.now());
+      alert(`もう少し休憩… 次は ${countdown(rest)} 後に「やったよ」できます。`);
       return;
     }
-
-    btnDone.disabled = true;
-    updateDoneButtonLabel();
-
-    const t = 'やったよ';
-    push('user', t);
-    saveLastUserText(t);
-    aiReplyAfter(t, 'done');
-  }, {passive:true});
-
-  btnToTitle.addEventListener('click', refreshTitle);
-  btnReset.addEventListener('click', ()=>{
-    if(confirm('セーブデータ（キャラ・ハート・ログ・ご褒美）を削除します。よろしいですか？')){
-      try{
-        localStorage.removeItem(K.char); localStorage.removeItem(K.hearts); localStorage.removeItem(K.log);
-        localStorage.removeItem(K.pool); localStorage.removeItem(K.next);
-        localStorage.removeItem(K.lastOpened); localStorage.removeItem(K.lastUserText); localStorage.removeItem(K.userTextHistory);
-        localStorage.removeItem(K.rewards); localStorage.removeItem(K.milestones);
-      }catch{}
-      character=null; hearts=0; log=[];
-      setAuraClass('');
-      stopNextTimer(); stopLabelTimer();
-      clearTimeout(pet._timer);
-      pet.style.display='none';
-      show(scrCover);
-    }
+    btnDone.disabled=true; updateDoneState();
+    const t='やったよ';
+    push('user',t);
+    hearts++; heartCountEl.textContent=hearts;
+    push('ai','すばらしい！ハートが増えたよ💖');
+    saveAll();
+    const h = Math.round((1 + Math.random()*2)*10)/10; // 1.0〜3.0h
+    push('ai', `また後でね。約${h}時間後に次の提案を送るね。`);
+    setNextAfterHours(h);
   });
-  btnShowLog.addEventListener('click', ()=>{
-    const text = (log||[]).map(l=>`${new Date(l.ts).toLocaleString()} [${l.sender}] ${l.text}`).join('\n') || '（ログなし）';
+
+  on(btnShowLog,'click', ()=>{
+    const text=(log||[]).map(l=>`${new Date(l.ts).toLocaleString()} [${l.sender}] ${l.text}`).join('\n')||'（ログなし）';
     alert(text);
   });
 
-  btnRewards.addEventListener('click', ()=>{
-    const r = loadRewards();
-    const nothingYet = (!r.stamps?.length) && (!r.badges?.length);
-    renderRewardsUI();
-    rewardsModal.style.display='block';
-    rewardsWrap.focus();
-    if (nothingYet) {
-      showToast(`<span class="ttl">ご褒美の集め方</span><br>「<b>やったよ</b>」でハートが増えると、スタンプや称号が手に入るよ！`);
-    }
+  on(btnReset,'click', ()=>{
+    if(!confirm('セーブデータ（キャラ・ハート・ログ）を削除します。よろしいですか？')) return;
+    [K.char,K.hearts,K.log,K.next].forEach(del);
+    character=null; hearts=0; log=[];
+    if(nextTimer) clearTimeout(nextTimer);
+    if(labelTimer) clearInterval(labelTimer);
+    show('cover');
   });
-  closeRewards.addEventListener('click', ()=>{ rewardsModal.style.display='none'; });
-  rewardsModal.addEventListener('click', e=>{ if(e.target===rewardsModal) rewardsModal.style.display='none'; });
-  window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && rewardsModal.style.display==='block') rewardsModal.style.display='none'; });
 
-  window.addEventListener('resize', ()=>{ clearTimeout(pet._timer); petMoveLoop(); });
-
-  /* ========== Boot ========== */
-  (function init(){
-    renderCatalog();
-    renderRewardsUI();
-    maybeShowReunion();
-    markOpenedNow();
-    updateDoneButtonState();
-    startNextTimer();
-    startLabelTimer();
-  })();
-});
+  // ===== 初期表示（安全順序） =====
+  try{
+    // ここではタイマー起動はしない（画面入ってからにする）
+    if(get(K.char)){
+      // 既に遊んだことがある → 表紙→スタート→メイン直行でも、まずは表紙を見せる
+      show('cover');
+    }else{
+      show('cover');
+    }
+  }catch(e){
+    console.error(e);
+    show('title');
+  }
+})();
 </script>
 </body>
 </html>
