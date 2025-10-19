@@ -3,178 +3,656 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MeAI Minimal Boot (debug)</title>
+<title>MeAI Prototype (rewards + safe start)</title>
+<link rel="icon" href="data:,">
 <style>
-  html,body{height:100%}
-  body{margin:0;font-family:"Noto Sans JP",system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;background:#000 url("public/space_background.png") center/cover fixed no-repeat;color:#fff}
-  .hidden{display:none!important}
-  .screen{min-height:100dvh;display:grid;place-items:center;padding:24px}
-  .glass{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:20px;backdrop-filter:blur(8px)}
-  .btn{display:inline-flex;align-items:center;gap:.5em;border:none;border-radius:999px;padding:12px 18px;cursor:pointer;color:#fff;background:rgba(255,255,255,.18)}
-  .btn.primary{background:linear-gradient(180deg,#ff8bd2,#ff6db3 60%,#ff55a1);color:#231227}
-  #chat{height:min(60vh,460px);overflow:auto;padding:16px;border-radius:16px}
-  .bubble{max-width:78%;margin:10px 0;padding:12px 16px;border-radius:16px;line-height:1.7;font-size:18px}
-  .ai{background:linear-gradient(145deg, rgba(150,220,255,.28), rgba(150,200,255,.14));border:1px solid rgba(150,220,255,.34);float:left;clear:both}
-  .user{background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.12));border:1px solid rgba(255,255,255,.28);float:right;clear:both}
-  #errbox{position:fixed;right:12px;top:12px;z-index:9999;max-width:min(90vw,520px);background:#2b0c10;color:#fff;border:1px solid #ff8ba1;border-radius:10px;padding:10px 12px;display:none;white-space:pre-wrap;font-size:12px}
+  html, body { height:100%; }
+  body{
+    margin:0;
+    font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    background:#000 url("public/space_background.png") center/cover fixed no-repeat;
+    color:#fff;
+  }
+
+  /* ===== 共通 ===== */
+  .hidden{ display:none !important; }
+  .glass{
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:20px; backdrop-filter:blur(8px);
+  }
+  .btn{
+    display:inline-flex; align-items:center; gap:.5em;
+    border:none; border-radius:999px; padding:12px 18px; cursor:pointer; color:#fff;
+    background:rgba(255,255,255,.18);
+  }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; filter:saturate(.5); }
+  .btn.primary{ background:linear-gradient(180deg,#ff8bd2,#ff6db3 60%,#ff55a1); color:#231227; }
+
+  /* ===== 画面 ===== */
+  .screen{ min-height:100dvh; display:grid; place-items:center; padding:24px; }
+  .container{ width:min(92vw, 960px); margin:auto; }
+
+  /* ===== 表紙 ===== */
+  .cover-card{ text-align:center; padding:28px; border-radius:28px; }
+  .cover-illust{ width:180px; height:180px; object-fit:contain; filter:drop-shadow(0 8px 22px rgba(0,0,0,.6)); }
+  .cover-title{ font-size:40px; font-weight:800; margin:16px 0 8px; }
+  .cover-sub{ opacity:.92; margin:0 0 18px; }
+
+  /* ===== タイトル ===== */
+  .title-grid{ display:grid; grid-template-columns:140px 1fr; gap:20px; align-items:center; }
+  .brand img{ width:110px; height:110px; object-fit:contain; }
+  .lead{ opacity:.95; line-height:1.7; }
+
+  /* ===== キャラ選択 ===== */
+  .grid{ display:flex; flex-wrap:wrap; gap:12px; }
+  .char{ width:92px; height:92px; border-radius:50%; border:1px solid rgba(255,255,255,.22);
+         display:grid; place-items:center; background:rgba(255,255,255,.10); cursor:pointer; }
+  .char img{ width:70px; height:70px; object-fit:contain; }
+
+  /* ===== メイン ===== */
+  #header{ display:flex; gap:12px; align-items:center; padding:8px 12px; border-radius:999px; margin:10px auto 12px; width:max-content; }
+  #chat{ height:min(60vh,460px); overflow:auto; padding:16px; border-radius:16px; }
+  .bubble{ max-width:78%; margin:10px 0; padding:12px 16px; border-radius:16px; line-height:1.7; font-size:18px; }
+  .ai{ background:linear-gradient(145deg, rgba(150,220,255,.28), rgba(150,200,255,.14)); border:1px solid rgba(150,220,255,.34); float:left; clear:both; }
+  .user{ background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.12)); border:1px solid rgba(255,255,255,.28); float:right; clear:both; }
+  #composer{ display:flex; gap:8px; margin:10px 0; }
+  #input{ flex:1; padding:12px 14px; border:none; border-radius:12px; color:#fff; background:rgba(255,255,255,.14); }
+  #footerMenu{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:10px 0 20px; }
+
+  /* ===== ご褒美UI ===== */
+  #rewardToast{
+    position:fixed; right:16px; bottom:80px; z-index:1300;
+    background:rgba(30,30,40,.85); border:1px solid rgba(255,255,255,.18);
+    padding:12px 14px; border-radius:14px; display:none; max-width:min(80vw,380px);
+    box-shadow:0 10px 30px rgba(0,0,0,.4); backdrop-filter: blur(8px);
+  }
+  #rewardToast .ttl{ font-weight:800; margin-bottom:4px; }
+  #rewardToast .emo{ font-size:24px; line-height:1; margin-right:6px; }
+
+  #rewardsModal{
+    position:fixed; inset:0; display:none; z-index:1500;
+    background: rgba(0,0,0,.45); backdrop-filter: blur(3px);
+  }
+  #rewardsModal .wrap{
+    width:min(92vw, 760px); max-height:80vh; overflow:auto;
+    background:rgba(15,15,24,.86); border:1px solid rgba(255,255,255,.18);
+    border-radius:20px; padding:18px; margin:10vh auto 0; backdrop-filter: blur(10px);
+  }
+  .badge{ display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.12); margin:4px; font-size:14px; border:1px solid rgba(255,255,255,.18); }
+  .stamps{ display:flex; flex-wrap:wrap; gap:8px; }
+  .stamp{ width:44px; height:44px; display:grid; place-items:center; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); border-radius:10px; font-size:22px; }
+  .list-row{display:flex; gap:10px; align-items:center; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,.1);}
+  .list-row b{min-width:7em;}
+  .mono{font-family: ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);}
+
+  /* 紙吹雪 */
+  .confetti{ position: fixed; width:8px; height:14px; top:-20px; z-index:1400;
+    opacity:.95; transform:rotate(0deg); animation: confetti-fall linear forwards; }
+  @keyframes confetti-fall{ to { transform: translateY(120vh) rotate(360deg); opacity:1; } }
 </style>
 </head>
 <body>
-<div id="errbox" aria-live="polite"></div>
 
-<!-- 表紙 -->
+<!-- トースト -->
+<div id="rewardToast" role="status" aria-live="polite"></div>
+
+<!-- ご褒美モーダル -->
+<div id="rewardsModal" aria-modal="true" role="dialog">
+  <div class="wrap" tabindex="-1">
+    <button class="btn" id="closeRewards" type="button" style="float:right;background:#fff;color:#111;border-radius:10px;">閉じる</button>
+    <h3>ご褒美コレクション</h3>
+    <div id="rewardSummary" class="mono" style="margin:4px 0 10px;opacity:.9;"></div>
+
+    <h4>称号（マイルストーン）</h4>
+    <div id="badgeList"></div>
+
+    <h4 style="margin-top:12px;">スタンプ</h4>
+    <div class="stamps" id="stampList"></div>
+
+    <h4 style="margin-top:12px;">見た目（オーラ）</h4>
+    <div id="auraList"></div>
+    <p class="mono" style="margin-top:6px;opacity:.8;">※ オーラは最新を自動装備。クリックで変更できます。</p>
+
+    <hr style="border:none; border-top:1px solid rgba(255,255,255,.12); margin:16px 0;">
+    <h3>ご褒美カタログ</h3>
+    <div id="catalogStamps" class="stamps"></div>
+    <div id="catalogBadges"></div>
+
+    <hr style="border:none; border-top:1px solid rgba(255,255,255,.12); margin:16px 0;">
+    <h3>獲得履歴</h3>
+    <p class="mono" style="opacity:.8;">最近の獲得（最大20件）</p>
+    <div id="rewardHistory"></div>
+  </div>
+</div>
+
+<!-- ===== 表紙 ===== -->
 <section id="cover" class="screen">
-  <div class="glass" style="padding:28px;text-align:center;border-radius:28px;">
-    <img src="public/miwacchi_open.png" alt="" width="160" height="160" onerror="this.src='public/cover.png'"><br>
-    <h1 style="margin:.4em 0 .2em">MeAI</h1>
-    <p style="opacity:.9;margin:.2em 0 1em">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
-    <button id="coverStart" class="btn primary" type="button">▶︎ スタート</button>
+  <div class="container">
+    <div class="glass cover-card">
+      <img class="cover-illust" src="public/miwacchi_open.png" alt="MeAI cover" onerror="this.src='public/cover.png'">
+      <div class="cover-title">MeAI</div>
+      <p class="cover-sub">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
+      <button id="coverStart" class="btn primary" type="button">▶︎ スタート</button>
+    </div>
   </div>
 </section>
 
-<!-- タイトル -->
+<!-- ===== タイトル ===== -->
 <section id="title" class="screen hidden">
-  <div class="glass" style="padding:20px;width:min(92vw,900px)">
-    <h2 style="margin-top:0">メニュー</h2>
-    <p id="savestate" style="opacity:.9"></p>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button id="start" class="btn" type="button">はじめから</button>
-      <button id="cont" class="btn" type="button">つづきから</button>
-      <button id="about" class="btn" type="button">このプロトタイプについて</button>
+  <div class="container glass" style="padding:20px;">
+    <div class="title-grid">
+      <div class="brand"><img src="public/char/green/calm.png" alt=""></div>
+      <div>
+        <h1 style="margin:.2em 0 .1em;">MeAI</h1>
+        <p class="lead">“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で自己申告して記録するミニアプリです。<br>※ 監視はしません。ボタン/文字入力で記録するだけ。</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button id="start" class="btn" type="button">はじめから</button>
+          <button id="cont"  class="btn" type="button">つづきから</button>
+          <button id="about" class="btn" type="button">このプロトタイプについて</button>
+          <button id="rewardsBtn" class="btn" type="button">ご褒美</button>
+        </div>
+        <p id="savestate" style="opacity:.9;margin-top:8px;"></p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- メイン -->
-<section id="main" class="screen hidden">
-  <div style="width:min(92vw,960px);margin:auto">
-    <div class="glass" style="padding:8px 12px;border-radius:999px;margin:0 auto 12px;width:max-content">
-      <img id="charIcon" src="" alt="" width="28" height="28" style="vertical-align:middle">　
-      ❤️ × <span id="heartCount">0</span>　
-      <span id="sessionInfo" style="opacity:.85"></span>
+<!-- ===== キャラ選択 ===== -->
+<section id="choose" class="screen hidden">
+  <div class="container glass" style="padding:18px;">
+    <h2 style="margin:6px 0 12px;">キャラクターを選んでね</h2>
+    <div class="grid" id="charGrid">
+      <button class="char" data-char="green" type="button" aria-label="green" id="charGreen"><img src="public/char/green/calm.png" alt=""></button>
+      <button class="char" data-char="blue"  type="button" aria-label="blue"  id="charBlue"><img  src="public/char/blue/calm.png"  alt=""></button>
+      <button class="char" data-char="pink"  type="button" aria-label="pink"  id="charPink"><img  src="public/char/pink/calm.png"  alt=""></button>
+      <button class="char" data-char="purple"type="button" aria-label="purple" id="charPurple"><img src="public/char/purple/calm.png"alt=""></button>
     </div>
+    <div style="margin-top:14px;"><button id="backTitle" class="btn" type="button">← タイトルへ</button></div>
+  </div>
+</section>
+
+<!-- ===== メイン ===== -->
+<section id="main" class="screen hidden">
+  <div class="container">
+    <div id="header" class="glass">
+      <img id="charIcon" src="" alt="" width="30" height="30">
+      <div id="heart">❤️ × <span id="heartCount">0</span></div>
+      <div id="sessionInfo" style="opacity:.85;"></div>
+    </div>
+
     <div id="chat" class="glass" aria-live="polite"></div>
-    <div style="display:flex;gap:8px;margin:10px 0">
-      <input id="input" class="glass" type="text" placeholder="返答を入力…（Enterで送信）" style="flex:1;padding:12px 14px;border:none;border-radius:12px;color:#fff;background:rgba(255,255,255,.12)">
+
+    <div id="composer">
+      <input id="input" class="glass" type="text" placeholder="返答を入力…（Enterで送信）" />
       <button id="send" class="btn" type="button">送信</button>
       <button id="done" class="btn" type="button">やったよ</button>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+
+    <div id="footerMenu">
       <button id="toTitle" class="btn" type="button">メニューへ</button>
       <button id="showLog" class="btn" type="button">ログを確認</button>
+      <button id="rewardsBtn2" class="btn" type="button">ご褒美</button>
       <button id="reset" class="btn" type="button">データ初期化</button>
     </div>
   </div>
 </section>
 
 <script>
-/* ===== 1) エラー捕捉（原因の行/列/スタックを出す） ===== */
-(function setupErrorTrap(){
-  const box = document.getElementById('errbox');
-  const show = (msg)=>{ if(!box) return; box.style.display='block'; box.textContent = msg; };
-  window.addEventListener('error', (e)=>{
-    const m = [
-      '[window.onerror]',
-      e.message || 'Unknown error',
-      e.filename ? (e.filename + ':' + e.lineno + ':' + e.colno) : '',
-      e.error && e.error.stack ? e.error.stack : ''
-    ].filter(Boolean).join('\n');
-    console.error(m);
-    show(m);
-  });
-  window.addEventListener('unhandledrejection', (e)=>{
-    const m = '[unhandledrejection]\n' + (e.reason && e.reason.stack ? e.reason.stack : String(e.reason));
-    console.error(m);
-    show(m);
-  });
-})();
-
-/* ===== 2) 最小ロジック（確実に遷移する） ===== */
 (function(){
-  const $=s=>document.querySelector(s);
-  const scr={ cover:$('#cover'), title:$('#title'), main:$('#main') };
-  function show(id){ Object.values(scr).forEach(el=>el.classList.add('hidden')); scr[id].classList.remove('hidden'); }
+  // ===== 安全ヘルパー =====
+  const $ = (s,root=document)=>root.querySelector(s);
+  const on = (el,ev,fn,opt)=>{ if(el) el.addEventListener(ev,fn,opt||false); };
 
-  const K = { char:'meai_character', hearts:'meai_heart', log:'meai_log', next:'meai_next_due' };
-  const get=k=>{ try{return localStorage.getItem(k)}catch{return null} };
-  const set=(k,v)=>{ try{localStorage.setItem(k,v)}catch{} };
-  const del=k=>{ try{localStorage.removeItem(k)}catch{} };
-  const toInt=(v,d=0)=>{ const n=parseInt(v,10); return Number.isFinite(n)?n:d; };
-  const toArr=(raw,f=[])=>{ try{ const v=typeof raw==='string'?JSON.parse(raw):raw; return Array.isArray(v)?v:f }catch{ return f } };
+  // 画面
+  const scr = {
+    cover: $('#cover'),
+    title: $('#title'),
+    choose: $('#choose'),
+    main:  $('#main')
+  };
+  function show(id){
+    Object.values(scr).forEach(el=>el && el.classList.add('hidden'));
+    scr[id]?.classList.remove('hidden');
+  }
 
-  const btnCoverStart=$('#coverStart');
-  const btnStart=$('#start'), btnCont=$('#cont'), btnAbout=$('#about');
-  const btnToTitle=$('#toTitle'), btnReset=$('#reset'), btnShowLog=$('#showLog');
-  const savestate=$('#savestate');
-  const chat=$('#chat'), input=$('#input'), btnSend=$('#send'), btnDone=$('#done');
-  const heartEl=$('#heartCount'), charIcon=$('#charIcon'), sessionInfo=$('#sessionInfo');
+  // DOM
+  const btnCoverStart = $('#coverStart');
+  const btnStart = $('#start'), btnCont = $('#cont'), btnAbout = $('#about'), saveState = $('#savestate');
+  const btnBackTitle = $('#backTitle'), btnToTitle = $('#toTitle'), btnReset = $('#reset'), btnShowLog = $('#showLog');
+  const btnRewardsTitle = $('#rewardsBtn'), btnRewardsMain = $('#rewardsBtn2');
+  const rewardsModal = $('#rewardsModal'), rewardsWrap = rewardsModal.querySelector('.wrap'), closeRewards = $('#closeRewards');
+  const rewardToast = $('#rewardToast');
+  const rewardSummary = $('#rewardSummary'), badgeList = $('#badgeList'), stampList = $('#stampList'), auraList = $('#auraList');
+  const catalogStamps = $('#catalogStamps'), catalogBadges = $('#catalogBadges'), rewardHistory = $('#rewardHistory');
 
-  let character=get(K.char);
-  let hearts=toInt(get(K.hearts),0);
-  let log=toArr(get(K.log),[]);
+  const chat = $('#chat'), input = $('#input'), btnSend = $('#send'), btnDone = $('#done');
+  const heartCountEl = $('#heartCount'), charIcon = $('#charIcon'), sessionInfo = $('#sessionInfo');
+
+  // 保存キー
+  const K = {
+    char:'meai_character',
+    hearts:'meai_heart',
+    log:'meai_log',
+    next:'meai_next_due',
+    rewards:'meai_rewards',
+    milestones:'meai_milestones'
+  };
+
+  // 状態
+  let character = get(K.char);
+  let hearts = toInt(get(K.hearts),0);
+  let log = toArray(get(K.log),[]);
   let nextTimer=null, labelTimer=null;
-
-  const REQUESTS=["おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。","今日の空の色をひとことで教えて。","深呼吸を3回してみよう。"];
-  const pick=()=>REQUESTS[Math.floor(Math.random()*REQUESTS.length)];
-  const firstReq=(c)=>({green:"（やさしく）",blue:"（ていねいに）",pink:"（わくわく）",purple:"（おちついて）"}[c]||"")+" "+pick();
-
-  function append(sender,text){
-    const d=document.createElement('div'); d.className='bubble '+sender; d.textContent=text;
-    chat.appendChild(d); chat.scrollTop=chat.scrollHeight;
-  }
-  function push(sender,text){ const it={sender,text,ts:Date.now()}; log.push(it); append(sender,text); }
-  function save(){ set(K.hearts,String(hearts)); set(K.log,JSON.stringify(log)); }
-
-  function canDoneNow(){ const due=toInt(get(K.next),0); return !due || due<=Date.now(); }
-  function countdown(ms){ if(ms<=0) return ""; const s=Math.ceil(ms/1000); if(s<60) return s+"秒"; const m=Math.ceil(s/60); if(m<60) return m+"分"; const h=Math.floor(m/60),mm=m%60; return mm?`${h}時間${mm}分`:`${h}時間`; }
-  function updDone(){ const due=toInt(get(K.next),0); const dis=due && due>Date.now(); btnDone.disabled=!!dis; btnDone.textContent=dis?("あと"+countdown(due-Date.now())):"やったよ"; }
-  function setNext(h){ const due=Date.now()+Math.round(h*3600*1000); set(K.next,String(due)); updDone(); if(nextTimer) clearTimeout(nextTimer); const wait=due-Date.now(); nextTimer=setTimeout(()=>{ del(K.next); updDone(); push('ai',pick()); }, Math.max(wait,0)); if(labelTimer) clearInterval(labelTimer); labelTimer=setInterval(()=>{ updDone(); const d=toInt(get(K.next),0); if(!d || d<=Date.now()){ clearInterval(labelTimer); labelTimer=null; } },30000); }
-
-  function startMain(newSession){
-    character = character || get(K.char) || 'green';
-    set(K.char, character);
-    const icon=`public/char/${character}/calm.png`;
-    charIcon.src=icon; charIcon.onerror=()=>{charIcon.src='public/char/green/calm.png'};
-    heartEl.textContent=hearts; sessionInfo.textContent=newSession?'新しいセッション':'つづきから';
-    chat.innerHTML='';
-    if(newSession || log.length===0){ log=[]; push('ai', firstReq(character)); save(); } else { log.forEach(m=>append(m.sender,m.text)); chat.scrollTop=chat.scrollHeight; }
-    show('main'); setTimeout(()=>input?.focus(),10); updDone();
-  }
-
-  // ボタン
-  btnCoverStart?.addEventListener('click', ()=>{
-    try{
-      if(get(K.char)){ startMain(false); }
-      else { show('title'); const has=!!get(K.char); savestate.textContent = has?'セーブデータがあります。「つづきから」で再開できます。':'セーブデータがありません。'; btnCont.disabled=!has; }
-      console.log('start clicked');
-    }catch(e){ console.error(e); }
-  });
-  btnStart?.addEventListener('click', ()=>{ character=null; set(K.char,'green'); startMain(true); });
-  btnCont?.addEventListener('click', ()=>{ if(!get(K.char)) return alert('セーブデータがありません。'); startMain(false); });
-  btnAbout?.addEventListener('click', ()=> alert('監視はしません。自己申告の「やったよ」で記録するだけの試作です。'));
-  btnToTitle?.addEventListener('click', ()=> show('title'));
-  btnShowLog?.addEventListener('click', ()=>{ const t=(log||[]).map(l=>`${new Date(l.ts).toLocaleString()} [${l.sender}] ${l.text}`).join('\n')||'（ログなし）'; alert(t); });
-  btnReset?.addEventListener('click', ()=>{ if(!confirm('セーブデータを削除します。')) return; [K.char,K.hearts,K.log,K.next].forEach(del); character=null; hearts=0; log=[]; show('cover'); });
-
-  // 入力
-  function send(){ const t=input.value.trim(); if(!t) return; push('user',t); input.value=''; push('ai','うん、なるほどね。'); save(); }
-  input?.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
-  btnSend?.addEventListener('click', send);
-
   let guard=false;
-  btnDone?.addEventListener('click', ()=>{
-    if(guard) return; guard=true; setTimeout(()=>guard=false,450);
-    if(!canDoneNow()){ const due=toInt(get(K.next),0); const rest=Math.max(0, due-Date.now()); return alert('あと '+countdown(rest)+' 後に「やったよ」できます'); }
-    btnDone.disabled=true; updDone();
-    push('user','やったよ'); hearts++; heartEl.textContent=hearts; push('ai','すばらしい！ハートが増えたよ💖'); save();
-    const h=Math.round((1+Math.random()*2)*10)/10; // 1.0〜3.0h
-    push('ai',`また後でね。約${h}時間後に次の提案を送るね。`);
-    setNext(h);
+
+  // ユーティリティ
+  function get(k){ try{return localStorage.getItem(k)}catch{return null} }
+  function set(k,v){ try{localStorage.setItem(k,v)}catch{} }
+  function del(k){ try{localStorage.removeItem(k)}catch{} }
+  function toInt(v,d=0){ const n=parseInt(v,10); return Number.isFinite(n)?n:d; }
+  function toArray(raw,f=[]){ try{ const v=typeof raw==='string'?JSON.parse(raw):raw; return Array.isArray(v)?v:f }catch{ return f } }
+
+  // チャット
+  function append(sender,text){
+    const d=document.createElement('div');
+    d.className='bubble '+sender;
+    d.textContent=text;
+    chat.appendChild(d);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function push(sender,text){
+    const item={sender,text,ts:Date.now()};
+    log.push(item);
+    append(sender,text);
+  }
+  function saveAll(){
+    set(K.hearts,String(hearts));
+    set(K.log,JSON.stringify(log));
+  }
+
+  // リクエスト
+  const REQUESTS=[
+    // リクエスト（30項目）
+const REQUESTS = [
+  "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。",
+  "今日の空の色をひとことで教えて。","窓を少し開けて、空気を入れ替えよう。","深呼吸を3回してみよう。",
+  "好きな音を5秒だけ聞かせて。（心の中でもOK）","花や植物をひとつ思い浮かべて、名前を教えて。",
+  "今いる部屋で、やさしい色を探して教えて。","姿勢をすこし伸ばして、肩を回してみよう。",
+  "カーテンを少し開けて、明るさを感じてみて。","おやつか飲み物をひと口、味わってみよう。",
+  "机の上を10秒だけ整えてみよう。","目の前の“丸い形”をひとつ見つけて教えて。",
+  "耳をすませて、いちばん小さな音を探してみよう。","手を温めたり、冷たいものに触れたりして、感触を教えて。",
+  "「ありがとう」を心の中で1回言ってみよう。","外の風や空気の温度を感じて、ひと言で教えて。",
+  "時計の音、ある？ない？","今の気分を天気で言うと？（晴れ/曇り/雨/雪/風）",
+  "好きな言葉をひとつ思い出して、教えて。","部屋の中で“やわらかいもの”を触ってみよう。",
+  "窓の外を10秒見て、気づいたことをひと言。","スマホを裏向きにして10秒置いてみよう。",
+  "ゆっくり首を左右に回して、こり具合を教えて。","今日の色をひとつ選んで、教えて。",
+  "今の音量（静か/ふつう/にぎやか）を教えて。","好きな匂いをひとつ思い出して、教えて。",
+  "“おかえり”って言ってみて。","“おやすみ”って言ってくれる？"
+];
+
+  ];
+  function pick(){ return REQUESTS[Math.floor(Math.random()*REQUESTS.length)] }
+  function firstRequest(c){
+    const tag={green:"（やさしく）",blue:"（ていねいに）",pink:"（わくわく）",purple:"（おちついて）"}[c]||"";
+    return `${tag} ${pick()}`;
+  }
+
+  // ===== ご褒美 =====
+  const STICKER_POOL = ["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"];
+  const MILESTONES = [
+    {n:1,  badge:"はじめの一歩", aura:"aura-star"},
+    {n:3,  badge:"コツコツ名人",  aura:null},
+    {n:5,  badge:"星くず集め",    aura:"aura-moon"},
+    {n:10, badge:"継続の達人",    aura:"aura-rainbow"},
+    {n:15, badge:"やさしさの泉",  aura:null},
+    {n:20, badge:"MeAI 友だち",   aura:"aura-star"}
+  ];
+
+  function loadRewards(){
+    const r = toObj(get(K.rewards), {stamps:[], badges:[], aurasUnlocked:[], activeAura:""});
+    r.stamps ??= []; r.badges ??= []; r.aurasUnlocked ??= []; r.activeAura ??= "";
+    return r;
+  }
+  function saveRewards(r){ set(K.rewards, JSON.stringify(r)); }
+  function getGrantedMilestones(){ return toArray(get(K.milestones), []); }
+  function setGrantedMilestones(arr){ set(K.milestones, JSON.stringify(arr)); }
+  function toObj(raw,f={}){ try{ const v=typeof raw==='string'?JSON.parse(raw):raw; return (v && typeof v==='object')?v:f }catch{ return f } }
+
+  function showToast(html){
+    rewardToast.innerHTML = html;
+    rewardToast.style.display = 'block';
+    setTimeout(()=> rewardToast.style.display='none', 3800);
+  }
+  function confettiBurst(){
+    const colors = ['#ff8bd2','#7ed5ff','#ffe07a','#a1ff7a','#ffffff'];
+    for(let i=0;i<36;i++){
+      const e = document.createElement('div');
+      e.className = 'confetti';
+      e.style.left = (Math.random()*100)+'vw';
+      e.style.background = colors[i%colors.length];
+      e.style.animationDuration = (1.8 + Math.random()*1.8) + 's';
+      e.style.transform = `rotate(${Math.random()*360}deg)`;
+      document.body.appendChild(e);
+      setTimeout(()=> e.remove(), 3200);
+    }
+  }
+
+  function setAuraClass(aura){
+    // 本版はオーラの見た目エフェクトは省略し、保存とUI反映のみ
+    document.body.dataset.aura = aura || '';
+  }
+  function applyAura(aura){
+    setAuraClass(aura);
+    const r = loadRewards();
+    r.activeAura = aura || "";
+    saveRewards(r);
+  }
+
+  function grantSticker(){
+    const emo = STICKER_POOL[Math.floor(Math.random()*STICKER_POOL.length)];
+    const r = loadRewards();
+    r.stamps.push({emo, ts: Date.now()});
+    saveRewards(r);
+    renderRewardsUI();
+    showToast(`<span class="ttl">ご褒美をゲット！</span><br><span class="emo">${emo}</span>スタンプを手に入れたよ！`);
+  }
+
+  function grantMilestoneIfAny(newHearts){
+    const granted = new Set(getGrantedMilestones());
+    const r = loadRewards();
+    let grantedSomething = false;
+
+    MILESTONES.forEach(ms=>{
+      if(newHearts >= ms.n && !granted.has(ms.n)){
+        granted.add(ms.n);
+        r.badges.push({name: ms.badge, n: ms.n, ts: Date.now(), aura: ms.aura||null});
+        if(ms.aura && !r.aurasUnlocked.includes(ms.aura)){
+          r.aurasUnlocked.push(ms.aura);
+          saveRewards(r);
+          applyAura(ms.aura);
+          renderRewardsUI();
+          showToast(`<span class="ttl">マイルストーン ${ms.n}</span><br>称号「${ms.badge}」と新オーラを解放！`);
+        }else{
+          saveRewards(r);
+          renderRewardsUI();
+          showToast(`<span class="ttl">マイルストーン ${ms.n}</span><br>称号「${ms.badge}」を手に入れたよ！`);
+        }
+        grantedSomething = true;
+      }
+    });
+
+    if(grantedSomething){
+      setGrantedMilestones(Array.from(granted));
+      confettiBurst();
+    }
+  }
+  function onHeartIncreased(){
+    grantSticker();
+    grantMilestoneIfAny(hearts);
+  }
+
+  function renderCatalog(){
+    catalogStamps.innerHTML = '';
+    STICKER_POOL.forEach(emo=>{
+      const d = document.createElement('div');
+      d.className = 'stamp'; d.textContent = emo;
+      catalogStamps.appendChild(d);
+    });
+
+    catalogBadges.innerHTML = '';
+    MILESTONES.forEach(ms=>{
+      const row = document.createElement('div');
+      row.className = 'list-row';
+      const aura = ms.aura ? `<span class="pill mono">${ms.aura.replace('aura-','')}</span>` : '<span style="opacity:.8">（オーラなし）</span>';
+      row.innerHTML = `<b>#${ms.n} ${ms.badge}</b><span style="opacity:.8">条件：ハート${ms.n}個</span> ${aura}`;
+      catalogBadges.appendChild(row);
+    });
+  }
+
+  function renderHistory(){
+    const r = loadRewards();
+    const events = [];
+    r.stamps.forEach(s => events.push({type:'stamp', label:`スタンプ ${s.emo}`, ts:s.ts}));
+    r.badges.forEach(b => events.push({type:'badge', label:`称号「${b.name}」`, ts:b.ts || 0}));
+    events.sort((a,b)=>b.ts-a.ts);
+    const latest = events.slice(0, 20);
+
+    rewardHistory.innerHTML = latest.length ? '' : '<div style="opacity:.8">（まだ獲得履歴がありません）</div>';
+    latest.forEach(ev=>{
+      const d = new Date(ev.ts||Date.now());
+      const time = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      const row = document.createElement('div');
+      row.className = 'list-row';
+      row.innerHTML = `<b>${ev.type==='stamp'?'🖼️ スタンプ':'🏅 称号'}</b><span>${ev.label}</span><span class="mono" style="margin-left:auto;opacity:.8">${time}</span>`;
+      rewardHistory.appendChild(row);
+    });
+  }
+
+  function renderRewardsUI(){
+    const r = loadRewards();
+    rewardSummary.textContent = `ハート：${hearts}　スタンプ：${r.stamps.length}　称号：${r.badges.length}`;
+
+    badgeList.innerHTML = '';
+    const fragB = document.createDocumentFragment();
+    r.badges.sort((a,b)=>a.n-b.n).forEach(b=>{
+      const span = document.createElement('span'); span.className='badge'; span.textContent = `#${b.n} ${b.name}`; fragB.appendChild(span);
+    });
+    badgeList.appendChild(fragB);
+
+    stampList.innerHTML='';
+    const fragS = document.createDocumentFragment();
+    r.stamps.slice(-120).forEach(s=>{
+      const div = document.createElement('div'); div.className='stamp'; div.textContent = s.emo; fragS.appendChild(div);
+    });
+    stampList.appendChild(fragS);
+
+    auraList.innerHTML='';
+    const auras = [
+      {key:'', label:'なし'},
+      {key:'aura-star', label:'星あかり'},
+      {key:'aura-moon', label:'月あかり'},
+      {key:'aura-rainbow', label:'にじ'}
+    ];
+    const rNow = loadRewards();
+    auras.forEach(a=>{
+      const btn = document.createElement('button');
+      btn.className='btn';
+      btn.style.width='auto'; btn.style.display='inline-block'; btn.style.marginRight='8px';
+      const owned = a.key === '' || rNow.aurasUnlocked.includes(a.key);
+      btn.disabled = !owned;
+      btn.textContent = owned ? (rNow.activeAura===a.key ? `★ ${a.label}` : a.label) : `🔒 ${a.label}`;
+      btn.addEventListener('click', ()=>{ if(owned){ applyAura(a.key); renderRewardsUI(); }});
+      auraList.appendChild(btn);
+    });
+
+    renderCatalog();
+    renderHistory();
+    setAuraClass(loadRewards().activeAura);
+  }
+
+  // 「やったよ」クールタイム
+  function canDoneNow(){
+    const due = toInt(get(K.next),0);
+    return !due || due<=Date.now();
+  }
+  function setNextAfterHours(h){
+    const due = Date.now() + Math.round(h*3600*1000);
+    set(K.next,String(due));
+    updateDoneState();
+    startNextTimer();
+    startLabelTimer();
+  }
+  function updateDoneState(){
+    const due = toInt(get(K.next),0);
+    const disabled = due && due>Date.now();
+    btnDone.disabled = !!disabled;
+    if(disabled){
+      const left = due-Date.now();
+      btnDone.textContent = "あと" + countdown(left);
+    }else{
+      btnDone.textContent = "やったよ";
+    }
+  }
+  function countdown(ms){
+    if(ms<=0) return "";
+    const s=Math.ceil(ms/1000);
+    if(s<60) return `${s}秒`;
+    const m=Math.ceil(s/60);
+    if(m<60) return `${m}分`;
+    const h=Math.floor(m/60), mm=m%60;
+    return mm?`${h}時間${mm}分`:`${h}時間`;
+  }
+  function startNextTimer(){
+    if(nextTimer) clearTimeout(nextTimer);
+    const due = toInt(get(K.next),0);
+    if(!due) return;
+    const wait = due - Date.now();
+    if(wait<=0){ push('ai', pick()); del(K.next); updateDoneState(); return; }
+    nextTimer = setTimeout(()=>{ del(K.next); updateDoneState(); push('ai', pick()); }, wait);
+  }
+  function startLabelTimer(){
+    if(labelTimer) clearInterval(labelTimer);
+    labelTimer = setInterval(()=>{
+      updateDoneState();
+      const due = toInt(get(K.next),0);
+      if(!due || due<=Date.now()){ clearInterval(labelTimer); labelTimer=null; }
+    }, 30000);
+  }
+
+  // メイン開始
+  function startMain(newSession){
+    character = character || get(K.char);
+    if(!character){ return showTitle(); }
+    const charPath=`public/char/${character}/calm.png`;
+    charIcon.src = charPath;
+    charIcon.onerror = ()=>{ charIcon.src='public/char/green/calm.png'; };
+    heartCountEl.textContent = hearts;
+    sessionInfo.textContent = newSession ? '新しいセッション' : 'つづきから';
+
+    chat.innerHTML='';
+    if(newSession || log.length===0){
+      log = [];
+      push('ai', firstRequest(character));
+      saveAll();
+    }else{
+      log.forEach(m=>append(m.sender,m.text));
+      chat.scrollTop = chat.scrollHeight;
+    }
+    show('main');
+    setTimeout(()=> input?.focus(), 10);
+    updateDoneState();
+    startNextTimer();
+    startLabelTimer();
+    renderRewardsUI();
+  }
+
+  // 画面表示
+  function showTitle(){
+    const has = !!get(K.char);
+    if(saveState){
+      saveState.textContent = has ? 'セーブデータがあります。「つづきから」で再開できます。' : 'セーブデータがありません。';
+    }
+    if(btnCont) btnCont.disabled = !has;
+    show('title');
+  }
+
+  // 送信
+  function send(){
+    const t=input.value.trim();
+    if(!t) return;
+    push('user',t);
+    input.value='';
+    push('ai','うん、なるほどね。');
+    saveAll();
+  }
+
+  // ====== バインド ======
+  on(btnCoverStart,'click',()=>{
+    try{
+      if(get(K.char)){
+        startMain(false);            // セーブあり → 直でメイン
+      }else{
+        show('choose');              // セーブなし → キャラ選択へ
+      }
+    }catch(e){ console.error(e); show('title'); }
   });
 
-  // 初期表示：まずは表紙
-  console.log('BOOT OK');
-  show('cover');
+  on(btnStart,'click', ()=> { show('choose'); }); // ★ 初期化しない、必ず選択へ
+  on(btnCont,'click', ()=>{
+    if(!get(K.char)){ alert('セーブデータがありません。'); return; }
+    startMain(false);
+  });
+  on(btnAbout,'click', ()=> alert('この試作はAIが監視するのではなく、ユーザーの自己申告（「やったよ」）で記録するだけの設計です。'));
+
+  // ★ キャラ選択：デリゲーション＋個別バインド（確実に拾う）
+  const chooseEl = $('#charGrid');
+  on(chooseEl,'click',(e)=>{
+    const el = e.target.closest('.char');
+    if(!el) return;
+    character = el.dataset.char;
+    set(K.char, character);
+    hearts = toInt(get(K.hearts),0);
+    log = toArray(get(K.log),[]);
+    startMain(true);
+  });
+  ['charGreen','charBlue','charPink','charPurple'].forEach(id=>{
+    const b = document.getElementById(id);
+    on(b,'click', (e)=>{ e.stopPropagation(); b?.blur(); });
+  });
+
+  on(btnBackTitle,'click', showTitle);
+  on(btnToTitle,'click', showTitle);
+
+  on(btnSend,'click', send);
+  on(input,'keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
+
+  on(btnDone,'click', ()=>{
+    if(guard) return; guard=true; setTimeout(()=>guard=false, 500);
+
+    if(!canDoneNow()){
+      const due=toInt(get(K.next),0);
+      const rest=Math.max(0,due-Date.now());
+      alert(`もう少し休憩… 次は ${countdown(rest)} 後に「やったよ」できます。`);
+      return;
+    }
+    btnDone.disabled=true; updateDoneState();
+    const t='やったよ';
+    push('user',t);
+    hearts++; heartCountEl.textContent=hearts;
+    push('ai','すばらしい！ハートが増えたよ💖');
+    saveAll();
+    onHeartIncreased();                // ★ ご褒美付与
+    const h = Math.round((1 + Math.random()*2)*10)/10; // 1.0〜3.0h
+    push('ai', `また後でね。約${h}時間後に次の提案を送るね。`);
+    setNextAfterHours(h);
+  });
+
+  on(btnShowLog,'click', ()=>{
+    const text=(log||[]).map(l=>`${new Date(l.ts).toLocaleString()} [${l.sender}] ${l.text}`).join('\n')||'（ログなし）';
+    alert(text);
+  });
+
+  // ご褒美モーダル
+  function openRewards(){
+    renderRewardsUI();
+    rewardsModal.style.display='block';
+    rewardsWrap.focus();
+  }
+  on(btnRewardsTitle,'click', openRewards);
+  on(btnRewardsMain,'click', openRewards);
+  on(closeRewards,'click', ()=>{ rewardsModal.style.display='none'; });
+  on(rewardsModal,'click', e=>{ if(e.target===rewardsModal) rewardsModal.style.display='none'; });
+  on(window,'keydown', e=>{ if(e.key==='Escape' && rewardsModal.style.display==='block') rewardsModal.style.display='none'; });
+
+  // 初期
+  try{
+    show('cover');
+  }catch(e){
+    console.error(e);
+    show('title');
+  }
 })();
 </script>
 </body>
