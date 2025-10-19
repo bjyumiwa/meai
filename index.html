@@ -845,28 +845,43 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ========== Event Bindings ========== */
+
+  // ★ 修正1：カバーの「スタート」
   btnCoverStart.addEventListener('click', ()=>{
-    safeGet(K.char) ? startMain(false) : refreshTitle();
+    const has = !!safeGet(K.char);
+    if (has) {
+      startMain(false);           // セーブあり → 直でメインへ
+    } else {
+      show(scrChoose);            // セーブなし → キャラ選択に直行
+    }
   });
 
-  btnStart.addEventListener('click', ()=> show(scrChoose));
+  // ★ 修正2：「はじめから」は確実にキャラ選択へ
+  btnStart.addEventListener('click', ()=>{
+    if (!scrChoose) return;
+    show(scrChoose);
+  });
+
   btnCont.addEventListener('click', ()=>{
     if(!safeGet(K.char)) { alert('セーブデータがありません。'); return; }
     startMain(false);
   });
+
   btnAbout.addEventListener('click', ()=>{
     alert('この試作はAIが監視するのではなく、ユーザーの自己申告（「やったよ」）で記録するだけの設計です。');
   });
 
-  document.querySelectorAll('.char').forEach(el=>{
-    el.addEventListener('click', ()=>{
-      character = el.dataset.char;
-      safeSet(K.char, character);
-      hearts = toInt(safeGet(K.hearts), 0);
-      if(!Array.isArray(log)) log=[];
-      startMain(true);
-    });
+  // ★ 修正3：キャラ選択はイベントデリゲーションで確実に反応
+  document.getElementById('choose')?.addEventListener('click', (e)=>{
+    const el = e.target.closest('.char');
+    if (!el) return;
+    character = el.dataset.char;
+    safeSet(K.char, character);
+    hearts = toInt(safeGet(K.hearts), 0);
+    if(!Array.isArray(log)) log=[];
+    startMain(true);
   });
+
   btnBackTitle.addEventListener('click', refreshTitle);
 
   btnSend.addEventListener('click', send);
@@ -934,7 +949,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
   /* ========== Boot ========== */
   (function init(){
-    // UIがある程度揃ってから初期処理
     renderCatalog();
     renderRewardsUI();
     maybeShowReunion();
