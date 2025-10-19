@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>MeAI Prototype</title>
+<link rel="icon" href="data:,">
 <style>
   html, body { height:100%; }
   body{
@@ -11,10 +12,8 @@
     font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
     background:#000 url("public/space_background.png") center/cover fixed no-repeat;
     color:#fff;
-    overflow:hidden; /* 透過レイヤのはみ出し防止 */
+    overflow:hidden;
   }
-
-  /* 星空 */
   .stars, .stars::after{
     position:fixed; inset:0; content:"";
     background: radial-gradient(white 1px, transparent 1px) 0 0/3px 3px;
@@ -27,10 +26,9 @@
   .screen{ position:fixed; inset:0; display:none; z-index:10; pointer-events:auto; }
   .show{ display:block; }
 
-  /* ===== カバー（表紙） ===== */
+  /* ===== 表紙 ===== */
   #cover{ place-items:center; text-align:center; }
   #cover.show{ display:grid; }
-
   .cover-card{
     width:min(92vw, 560px);
     background:rgba(0,0,0,.28);
@@ -90,7 +88,7 @@
   .char img{ width:70px; height:70px; object-fit:contain; }
   .char:hover{ transform:scale(1.06); box-shadow:0 0 0 3px rgba(255,255,255,.22) inset; }
 
-  /* ヘッダー（透明リング） */
+  /* ヘッダー */
   #header{
     position:fixed; left:50%; transform:translateX(-50%); top:10px; z-index:11;
     background:rgba(0,0,0,.30); border:1px solid rgba(255,255,255,.16);
@@ -101,18 +99,16 @@
   #header img{ width:30px; height:30px; }
   #heart{ font-size:18px; }
 
-  /* チャット枠（よりクリアに） */
+  /* チャット */
   #chat{
     width:min(92vw, 900px); height:min(64vh, 460px);
     margin:100px auto 10px; padding:18px; overflow-y:auto; z-index:11; position:relative;
-    background:rgba(255,255,255,.04); /* さらに薄く */
+    background:rgba(255,255,255,.04);
     border:1px solid rgba(255,255,255,.10);
     border-radius:18px;
     backdrop-filter: blur(10px) brightness(1.1) contrast(1.05);
     box-shadow:0 0 30px rgba(255,255,255,.06) inset, 0 20px 60px rgba(0,0,0,.35);
   }
-
-  /* バブル（透明グラデ） */
   .bubble{
     max-width:78%; margin:10px 0; padding:12px 16px;
     border-radius:16px; line-height:1.7; font-size:18px;
@@ -147,15 +143,15 @@
   #done{ background:rgba(0,200,120,.28); border:1px solid rgba(0,200,120,.35); }
   #done:hover{ background:rgba(0,200,120,.42); }
 
-  /* フッターメニュー */
+  /* フッター */
   #footerMenu{ position:fixed; bottom:12px; left:50%; transform:translateX(-50%); z-index:11; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;}
   #footerMenu .btn{ display:inline-block; width:auto; padding:8px 14px; background:rgba(255,255,255,.10); backdrop-filter:blur(6px); }
   #footerMenu .btn:hover{ background:rgba(255,255,255,.22); }
 
-  /* 漂うマスコット（最前面へ） */
+  /* ペット */
   #pet{
     position: fixed; left: 50vw; top: 60vh;
-    width: 120px; height: 120px; pointer-events: none; z-index: 999; /* ← 最前面に */
+    width: 120px; height: 120px; pointer-events: none; z-index: 999;
     transition: left 12s ease-in-out, top 12s ease-in-out; display: none;
   }
   #pet img{ width:100%; height:100%; object-fit:contain;
@@ -164,26 +160,22 @@
   @keyframes pet-breathe{ 0%,100%{ transform: translateY(0) scale(1);} 50%{ transform: translateY(-6px) scale(1.05);} }
   @keyframes pet-pop{ 0%{transform:scale(1)} 40%{transform:scale(1.12)} 100%{transform:scale(1)} }
 
-  /* ===== 再会バナー ===== */
+  /* 再会バナー */
   #reunionBanner{
     position: fixed; inset: auto 12px 12px 12px;
-    display:none;
-    background: rgba(20,20,30,.75); color:#fff;
+    display:none; background: rgba(20,20,30,.75); color:#fff;
     padding: 12px 14px; border-radius: 14px;
     box-shadow:0 8px 20px rgba(0,0,0,.25);
-    font-size: 14px; line-height: 1.6;
-    z-index: 1200; backdrop-filter: blur(8px);
-    border:1px solid rgba(255,255,255,.16);
+    font-size: 14px; line-height: 1.6; z-index: 1200;
+    backdrop-filter: blur(8px); border:1px solid rgba(255,255,255,.16);
   }
-  #reunionBanner b{ font-weight: 700; }
   #reunionBanner .small{ opacity:.85; font-size:12px; margin-top:4px; }
   #reunionBanner .closeBtn{
-    float:right; margin-left:10px; cursor:pointer;
-    background:#fff; color:#111; border-radius: 10px;
-    padding: 4px 10px; font-size:12px; border:none;
+    float:right; margin-left:10px; cursor:pointer; background:#fff; color:#111;
+    border-radius: 10px; padding: 4px 10px; font-size:12px; border:none;
   }
 
-  /* ===== ご褒美トースト ===== */
+  /* トースト */
   #rewardToast{
     position:fixed; right:16px; bottom:80px; z-index:1300;
     background:rgba(30,30,40,.85); border:1px solid rgba(255,255,255,.18);
@@ -194,18 +186,14 @@
   #rewardToast .emo{ font-size:24px; line-height:1; margin-right:6px; }
 
   /* 紙吹雪 */
-  .confetti{
-    position: fixed; width:8px; height:14px; top:-20px; z-index:1400;
-    opacity:.95; transform:rotate(0deg);
-    animation: confetti-fall linear forwards;
-  }
+  .confetti{ position: fixed; width:8px; height:14px; top:-20px; z-index:1400;
+    opacity:.95; transform:rotate(0deg); animation: confetti-fall linear forwards; }
   @keyframes confetti-fall{ to { transform: translateY(120vh) rotate(360deg); opacity:1; } }
 
-  /* ===== ご褒美モーダル ===== */
+  /* ご褒美モーダル */
   #rewardsModal{
     position:fixed; inset:0; display:none; z-index:1500;
-    background: rgba(0,0,0,.45);
-    backdrop-filter: blur(3px);
+    background: rgba(0,0,0,.45); backdrop-filter: blur(3px);
   }
   #rewardsModal .wrap{
     width:min(92vw, 760px); max-height:80vh; overflow:auto;
@@ -218,17 +206,14 @@
   .stamp{ width:44px; height:44px; display:grid; place-items:center; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); border-radius:10px; font-size:22px; }
   .closeX{ float:right; background:#fff; color:#111; border:none; border-radius:10px; padding:6px 10px; cursor:pointer; }
 
-  /* ===== カタログ／履歴 ===== */
   .subtle{opacity:.82;}
   .list-row{display:flex; gap:10px; align-items:center; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,.1);}
   .list-row b{min-width:7em;}
-  .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;}
+  .mono{font-family: ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;}
   .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);}
 
-  /* ===== ペットのオーラ ===== */
-  #pet::after{
-    content:""; position:absolute; inset:-8px; border-radius:24px; pointer-events:none; opacity:0; transition:.4s;
-  }
+  /* ペットのオーラ */
+  #pet::after{ content:""; position:absolute; inset:-8px; border-radius:24px; pointer-events:none; opacity:0; transition:.4s; }
   #pet.aura-star::after{
     background: radial-gradient(closest-side, rgba(255,255,255,.35), transparent 70%);
     box-shadow: 0 0 32px rgba(255,255,200,.35), 0 0 80px rgba(255,255,180,.25);
@@ -257,10 +242,7 @@
 <body>
   <div class="stars"></div>
 
-  <!-- 再会メッセージ -->
   <div id="reunionBanner" aria-live="polite"></div>
-
-  <!-- ご褒美トースト -->
   <div id="rewardToast" role="status" aria-live="polite"></div>
 
   <!-- ご褒美モーダル -->
@@ -282,12 +264,7 @@
 
       <hr style="border:none; border-top:1px solid rgba(255,255,255,.12); margin:16px 0;">
       <h3>ご褒美カタログ</h3>
-      <p class="subtle">このアプリで手に入るご褒美の一覧です。</p>
-
-      <h4>スタンプ候補</h4>
       <div id="catalogStamps" class="stamps"></div>
-
-      <h4 style="margin-top:12px;">称号一覧（到達条件）</h4>
       <div id="catalogBadges"></div>
 
       <hr style="border:none; border-top:1px solid rgba(255,255,255,.12); margin:16px 0;">
@@ -297,7 +274,7 @@
     </div>
   </div>
 
-  <!-- ===== 表紙 ===== -->
+  <!-- 表紙 -->
   <section id="cover" class="screen show" aria-label="表紙">
     <div class="cover-card">
       <img class="cover-illust" src="public/miwacchi_open.png" alt="MeAI cover mascot" onerror="this.src='public/cover.png'">
@@ -307,7 +284,7 @@
     </div>
   </section>
 
-  <!-- ===== タイトル ===== -->
+  <!-- タイトル -->
   <section id="title" class="screen">
     <div class="center">
       <div class="brand"><img src="public/char/green/calm.png" alt="mascot"></div>
@@ -322,7 +299,7 @@
     </div>
   </section>
 
-  <!-- ===== キャラ選択 ===== -->
+  <!-- キャラ選択 -->
   <section id="choose" class="screen">
     <div class="panel">
       <h2 style="margin:0 0 8px;">キャラクターを選んでね</h2>
@@ -336,7 +313,7 @@
     </div>
   </section>
 
-  <!-- ===== メイン ===== -->
+  <!-- メイン -->
   <section id="main" class="screen">
     <div id="header">
       <img id="charIcon" src="" alt="char">
@@ -360,7 +337,7 @@
     </div>
   </section>
 
-  <!-- 漂うマスコット -->
+  <!-- ペット -->
   <div id="pet"><img id="petImg" src="" alt="pet"></div>
 
 <script>
@@ -406,15 +383,15 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const STICKER_POOL = ["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"];
   const MILESTONES = [
-    {n:1,  badge:"はじめの一歩", aura:"aura-star",    note:"柔らかい光のオーラ"},
-    {n:3,  badge:"コツコツ名人",  aura:null,           note:"—"},
-    {n:5,  badge:"星くず集め",    aura:"aura-moon",    note:"月あかりのオーラ"},
-    {n:10, badge:"継続の達人",    aura:"aura-rainbow", note:"虹色のオーラ"},
-    {n:15, badge:"やさしさの泉",  aura:null,           note:"—"},
-    {n:20, badge:"MeAI 友だち",   aura:"aura-star",    note:"光のゆらめき強化"}
+    {n:1,  badge:"はじめの一歩", aura:"aura-star"},
+    {n:3,  badge:"コツコツ名人",  aura:null},
+    {n:5,  badge:"星くず集め",    aura:"aura-moon"},
+    {n:10, badge:"継続の達人",    aura:"aura-rainbow"},
+    {n:15, badge:"やさしさの泉",  aura:null},
+    {n:20, badge:"MeAI 友だち",   aura:"aura-star"}
   ];
 
-  /* ====== ご褒美データ ====== */
+  /* ===== ご褒美データ ===== */
   function loadRewards(){
     let r;
     try{ r = JSON.parse(localStorage.getItem(K.rewards)||""); }catch{}
@@ -423,7 +400,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   function saveRewards(r){
     localStorage.setItem(K.rewards, JSON.stringify(r));
-    renderRewardsUI();
+    // 描画は呼び出し側で行う（無限ループ防止）
   }
   function getGrantedMilestones(){
     try{ const arr = JSON.parse(localStorage.getItem(K.milestones)||"[]"); return Array.isArray(arr)?arr:[]; }catch{ return []; }
@@ -432,7 +409,7 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(K.milestones, JSON.stringify(arr));
   }
 
-  /* ====== 画面制御 ====== */
+  /* ===== 画面制御 ===== */
   function show(el){ [scrCover,scrTitle,scrChoose,scrMain].forEach(s=>s.classList.remove('show')); el.classList.add('show'); }
 
   btnCoverStart.addEventListener('click', ()=>{ localStorage.getItem(K.char) ? startMain(false) : refreshTitle(); });
@@ -462,7 +439,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   btnBackTitle.addEventListener('click', refreshTitle);
 
-  /* ====== リクエストプール ====== */
+  /* ===== リクエストプール ===== */
   const REQUESTS = [
     "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。","今日の空の色をひとことで教えて。",
     "窓を少し開けて、空気を入れ替えよう。","深呼吸を3回してみよう。","好きな音を5秒だけ聞かせて。（心の中でもOK）",
@@ -493,7 +470,7 @@ window.addEventListener('DOMContentLoaded', () => {
     return `${tag} ${nextRequest()}`;
   }
 
-  /* ====== リマインド制御 ====== */
+  /* ===== リマインド ===== */
   function stopNextTimer(){ if(nextTimer){ clearTimeout(nextTimer); nextTimer=null; } }
   function hoursToMs(h){ return Math.round(h * 3600 * 1000); }
   function pickHours(){ return REMIND_MIN_H + Math.random()*(REMIND_MAX_H - REMIND_MIN_H); }
@@ -552,7 +529,6 @@ window.addEventListener('DOMContentLoaded', () => {
     tick();
   }
   function stopLabelTimer(){ if(labelTimer){ clearInterval(labelTimer); labelTimer=null; } }
-
   function triggerNext(){
     localStorage.removeItem(K.next);
     btnDone.disabled = false;
@@ -567,15 +543,11 @@ window.addEventListener('DOMContentLoaded', () => {
     setNextDueAfterHours(h);
   }
 
-  /* ====== 再会バナー ====== */
+  /* ===== 再会バナー ===== */
   function showReunionBanner(messageHtml){
     const el = document.getElementById('reunionBanner');
     if(!el) return;
-    el.innerHTML = `
-      <button class="closeBtn" aria-label="閉じる">OK</button>
-      ${messageHtml}
-      <div class="small">（設定＞通知でOFFにできます）</div>
-    `;
+    el.innerHTML = `<button class="closeBtn" aria-label="閉じる">OK</button>${messageHtml}<div class="small">（設定＞通知でOFFにできます）</div>`;
     el.style.display = 'block';
     el.querySelector('.closeBtn')?.addEventListener('click', ()=> el.style.display='none');
   }
@@ -622,7 +594,7 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(K.userTextHistory, JSON.stringify(arr));
   }
 
-  /* ====== ご褒美UI ====== */
+  /* ===== ご褒美UI & ロジック ===== */
   function showToast(html){
     rewardToast.innerHTML = html;
     rewardToast.style.display = 'block';
@@ -641,20 +613,29 @@ window.addEventListener('DOMContentLoaded', () => {
       setTimeout(()=> e.remove(), 3200);
     }
   }
-  function applyAura(aura){
+
+  /* 描画だけ（保存なし） */
+  function setAuraClass(aura){
     pet.classList.remove('aura-star','aura-rainbow','aura-moon');
     if(aura) pet.classList.add(aura);
+  }
+  /* 保存を伴う適用（描画呼ばない） */
+  function applyAura(aura){
+    setAuraClass(aura);
     const r = loadRewards();
     r.activeAura = aura || "";
     saveRewards(r);
   }
+
   function grantSticker(){
-    const emo = ["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"][Math.floor(Math.random()*15)];
+    const emo = STICKER_POOL[Math.floor(Math.random()*STICKER_POOL.length)];
     const r = loadRewards();
     r.stamps.push({emo, ts: Date.now()});
     saveRewards(r);
+    renderRewardsUI();  // ← 保存後に描画
     showToast(`<span class="ttl">ご褒美をゲット！</span><br><span class="emo">${emo}</span>スタンプを手に入れたよ！`);
   }
+
   function grantMilestoneIfAny(newHearts){
     const granted = new Set(getGrantedMilestones());
     const r = loadRewards();
@@ -666,9 +647,13 @@ window.addEventListener('DOMContentLoaded', () => {
         r.badges.push({name: ms.badge, n: ms.n, ts: Date.now(), aura: ms.aura||null});
         if(ms.aura && !r.aurasUnlocked.includes(ms.aura)){
           r.aurasUnlocked.push(ms.aura);
-          applyAura(ms.aura);
+          saveRewards(r);
+          applyAura(ms.aura);   // 保存（描画しない）→直後に描画更新
+          renderRewardsUI();
           showToast(`<span class="ttl">マイルストーン ${ms.n}</span><br>称号「${ms.badge}」と新オーラを解放！`);
         }else{
+          saveRewards(r);
+          renderRewardsUI();
           showToast(`<span class="ttl">マイルストーン ${ms.n}</span><br>称号「${ms.badge}」を手に入れたよ！`);
         }
         grantedSomething = true;
@@ -677,7 +662,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     if(grantedSomething){
       setGrantedMilestones(Array.from(granted));
-      saveRewards(r);
       confettiBurst();
     }
   }
@@ -688,7 +672,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function renderCatalog(){
     catalogStamps.innerHTML = '';
-    ["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"].forEach(emo=>{
+    STICKER_POOL.forEach(emo=>{
       const d = document.createElement('div');
       d.className = 'stamp'; d.textContent = emo;
       catalogStamps.appendChild(d);
@@ -726,6 +710,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function renderRewardsUI(){
     const r = loadRewards();
     rewardSummary.textContent = `ハート：${hearts}　スタンプ：${r.stamps.length}　称号：${r.badges.length}`;
+
     badgeList.innerHTML = '';
     const fragB = document.createDocumentFragment();
     r.badges.sort((a,b)=>a.n-b.n).forEach(b=>{
@@ -747,8 +732,8 @@ window.addEventListener('DOMContentLoaded', () => {
       {key:'aura-moon', label:'月あかり'},
       {key:'aura-rainbow', label:'にじ'}
     ];
-    const rNow = loadRewards();
     auras.forEach(a=>{
+      const rNow = loadRewards();
       const btn = document.createElement('button');
       btn.className='btn secondary';
       btn.style.width='auto'; btn.style.display='inline-block'; btn.style.marginRight='8px';
@@ -761,10 +746,10 @@ window.addEventListener('DOMContentLoaded', () => {
 
     renderCatalog();
     renderHistory();
-    applyAura(rNow.activeAura);
+    /* 保存は行わず、見た目だけ反映（無限ループ防止） */
+    setAuraClass(loadRewards().activeAura);
   }
 
-  /* ご褒美はいつでも閲覧可 */
   btnRewards.addEventListener('click', ()=>{
     const r = loadRewards();
     const nothingYet = (!r.stamps || r.stamps.length===0) && (!r.badges || r.badges.length===0);
@@ -778,7 +763,7 @@ window.addEventListener('DOMContentLoaded', () => {
   rewardsModal.addEventListener('click', e=>{ if(e.target===rewardsModal) rewardsModal.style.display='none'; });
   window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && rewardsModal.style.display==='block') rewardsModal.style.display='none'; });
 
-  /* ====== メイン起動 ====== */
+  /* ===== メイン起動 ===== */
   function startMain(newSession){
     character = character || localStorage.getItem(K.char);
     if(!character){ refreshTitle(); return; }
@@ -814,7 +799,7 @@ window.addEventListener('DOMContentLoaded', () => {
     renderRewardsUI();
   }
 
-  /* ====== チャット ====== */
+  /* ===== チャット ===== */
   function append(sender, text){
     const div = document.createElement('div');
     div.className = `bubble ${sender}`;
@@ -879,7 +864,7 @@ window.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem(K.rewards); localStorage.removeItem(K.milestones);
       character=null; hearts=0; log=[];
       show(scrCover);
-      applyAura('');
+      setAuraClass('');
       stopNextTimer(); stopLabelTimer();
     }
   });
@@ -892,7 +877,7 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(K.log, JSON.stringify(log));
   }
 
-  /* ====== ペット移動 ====== */
+  /* ===== ペット移動 ===== */
   function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
   function petRandomPos(){
     const pad = 24, size = 120;
@@ -916,12 +901,11 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   window.addEventListener('resize', ()=>{ clearTimeout(pet._timer); petMoveLoop(); });
 
-  /* ====== 起動処理 ====== */
+  /* ===== 起動 ===== */
   function initRewardsUIOnce(){
     renderCatalog();
     renderRewardsUI();
   }
-
   (function init(){
     initRewardsUIOnce();
     maybeShowReunion();
