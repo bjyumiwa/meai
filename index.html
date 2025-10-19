@@ -238,7 +238,6 @@
       <div id="auraList"></div>
       <p class="subtle" style="margin-top:6px;">※ オーラは最新を自動装備。クリックで変更できます。</p>
 
-      <!-- ここから追加：ご褒美カタログ＆履歴 -->
       <hr style="border:none; border-top:1px solid rgba(255,255,255,.12); margin:16px 0;">
       <h3>ご褒美カタログ</h3>
       <p class="subtle">このアプリで手に入るご褒美の一覧です。</p>
@@ -253,7 +252,6 @@
       <h3>獲得履歴</h3>
       <p class="subtle">最近の獲得（最大20件）</p>
       <div id="rewardHistory"></div>
-      <!-- 追加ここまで -->
     </div>
   </div>
 
@@ -734,7 +732,7 @@ window.addEventListener('DOMContentLoaded', () => {
       auraList.appendChild(btn);
     });
 
-    // カタログ＆履歴（新設）
+    // カタログ＆履歴
     renderCatalog();
     renderHistory();
 
@@ -742,7 +740,21 @@ window.addEventListener('DOMContentLoaded', () => {
     applyAura(loadRewards().activeAura);
   }
 
-  btnRewards.addEventListener('click', ()=>{ renderRewardsUI(); rewardsModal.style.display='block'; });
+  /* ===== ここが「いつでも見れる」クリック処理（差し替え済み） ===== */
+  btnRewards.addEventListener('click', ()=>{
+    const r = loadRewards();
+    const nothingYet = (!r.stamps || r.stamps.length===0) && (!r.badges || r.badges.length===0);
+
+    renderRewardsUI();                  // 所持＋カタログ＋履歴を描画
+    rewardsModal.style.display='block'; // いつでも開く
+
+    // 未獲得ならヒントを出して迷わない
+    if (nothingYet) {
+      showToast(`<span class="ttl">ご褒美の集め方</span><br>
+        「<b>やったよ</b>」でハートが増えると、<b>スタンプ</b>や<b>称号</b>が手に入るよ！`);
+    }
+  });
+
   closeRewards.addEventListener('click', ()=>{ rewardsModal.style.display='none'; });
   rewardsModal.addEventListener('click', e=>{ if(e.target===rewardsModal) rewardsModal.style.display='none'; });
 
