@@ -496,7 +496,7 @@ window.addEventListener('DOMContentLoaded', () => {
   /* ====== リマインド制御 ====== */
   function stopNextTimer(){ if(nextTimer){ clearTimeout(nextTimer); nextTimer=null; } }
   function hoursToMs(h){ return Math.round(h * 3600 * 1000); }
-  function pickHours(){ return REMIND_MIN_H + Math.random()*(REMIND_MAX_H - REMIND_MIN_H); } // ← 修正済み
+  function pickHours(){ return REMIND_MIN_H + Math.random()*(REMIND_MAX_H - REMIND_MIN_H); }
   function setNextDueAfterHours(h){
     const due = Date.now() + hoursToMs(h);
     localStorage.setItem(K.next, String(due));
@@ -649,7 +649,7 @@ window.addEventListener('DOMContentLoaded', () => {
     saveRewards(r);
   }
   function grantSticker(){
-    const emo = STICKER_POOL[Math.floor(Math.random()*STICKER_POOL.length)];
+    const emo = ["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"][Math.floor(Math.random()*15)];
     const r = loadRewards();
     r.stamps.push({emo, ts: Date.now()});
     saveRewards(r);
@@ -776,6 +776,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   closeRewards.addEventListener('click', ()=>{ rewardsModal.style.display='none'; });
   rewardsModal.addEventListener('click', e=>{ if(e.target===rewardsModal) rewardsModal.style.display='none'; });
+  window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && rewardsModal.style.display==='block') rewardsModal.style.display='none'; });
 
   /* ====== メイン起動 ====== */
   function startMain(newSession){
@@ -795,7 +796,6 @@ window.addEventListener('DOMContentLoaded', () => {
     clearTimeout(pet._timer);
     petMoveLoop();
 
-    // チャットを“クリアに”＝履歴可視のままでもOKだが、今回は初期化して見やすく
     chat.innerHTML='';
 
     if(newSession || log.length===0){
@@ -811,7 +811,7 @@ window.addEventListener('DOMContentLoaded', () => {
     updateDoneButtonState();
     startNextTimer();
     startLabelTimer();
-    renderRewardsUI(); // ← 起動時にも更新
+    renderRewardsUI();
   }
 
   /* ====== チャット ====== */
