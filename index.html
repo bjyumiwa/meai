@@ -247,8 +247,8 @@
 
   <!-- ご褒美モーダル -->
   <div id="rewardsModal" aria-modal="true" role="dialog">
-    <div class="wrap">
-      <button class="closeX" id="closeRewards">閉じる</button>
+    <div class="wrap" tabindex="-1">
+      <button class="closeX" id="closeRewards" type="button">閉じる</button>
       <h3>ご褒美コレクション</h3>
       <div id="rewardSummary" class="subtle" style="margin:4px 0 10px;"></div>
 
@@ -280,14 +280,14 @@
       <img class="cover-illust" src="public/miwacchi_open.png" alt="MeAI cover mascot" onerror="this.src='public/cover.png'">
       <div class="cover-title">MeAI</div>
       <p class="cover-sub">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
-      <button id="coverStart" class="cta" type="button">▶︎ スタート</button>
+      <button id="coverStart" class="cta" type="button" autofocus>▶︎ スタート</button>
     </div>
   </section>
 
   <!-- タイトル -->
-  <section id="title" class="screen">
+  <section id="title" class="screen" aria-label="タイトル">
     <div class="center">
-      <div class="brand"><img src="public/char/green/calm.png" alt="mascot"></div>
+      <div class="brand"><img src="public/char/green/calm.png" alt="mascot" onerror="this.src='public/char/blue/calm.png'"></div>
       <div>
         <h1>MeAI</h1>
         <p class="lead">“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で自己申告して記録するミニアプリです。<br>※ 監視はしません。ボタン/文字入力で記録するだけ。</p>
@@ -300,21 +300,21 @@
   </section>
 
   <!-- キャラ選択 -->
-  <section id="choose" class="screen">
+  <section id="choose" class="screen" aria-label="キャラクター選択">
     <div class="panel">
       <h2 style="margin:0 0 8px;">キャラクターを選んでね</h2>
       <div class="grid">
-        <div class="char" data-char="green"><img src="public/char/green/calm.png" alt="green" onerror="this.src='public/char/blue/calm.png'"></div>
-        <div class="char" data-char="blue"><img src="public/char/blue/calm.png" alt="blue" onerror="this.src='public/char/green/calm.png'"></div>
-        <div class="char" data-char="pink"><img src="public/char/pink/calm.png" alt="pink" onerror="this.src='public/char/green/calm.png'"></div>
-        <div class="char" data-char="purple"><img src="public/char/purple/calm.png" alt="purple" onerror="this.src='public/char/green/calm.png'"></div>
+        <button class="char" data-char="green" type="button" aria-label="green"><img src="public/char/green/calm.png" alt="green" onerror="this.src='public/char/blue/calm.png'"></button>
+        <button class="char" data-char="blue"  type="button" aria-label="blue"><img src="public/char/blue/calm.png"  alt="blue"  onerror="this.src='public/char/green/calm.png'"></button>
+        <button class="char" data-char="pink"  type="button" aria-label="pink"><img src="public/char/pink/calm.png"  alt="pink"  onerror="this.src='public/char/green/calm.png'"></button>
+        <button class="char" data-char="purple"type="button" aria-label="purple"><img src="public/char/purple/calm.png"alt="purple"onerror="this.src='public/char/green/calm.png'"></button>
       </div>
       <button id="backTitle" class="btn" type="button" style="margin-top:14px; width:auto;">← タイトルへ</button>
     </div>
   </section>
 
   <!-- メイン -->
-  <section id="main" class="screen">
+  <section id="main" class="screen" aria-label="メイン">
     <div id="header">
       <img id="charIcon" src="" alt="char">
       <div id="heart">❤️ × <span id="heartCount">0</span></div>
@@ -338,27 +338,27 @@
   </section>
 
   <!-- ペット -->
-  <div id="pet"><img id="petImg" src="" alt="pet"></div>
+  <div id="pet" aria-hidden="true"><img id="petImg" src="" alt="pet"></div>
 
 <script>
 window.addEventListener('DOMContentLoaded', () => {
   const $ = s => document.querySelector(s);
-
   const scrCover = $('#cover'), scrTitle = $('#title'), scrChoose = $('#choose'), scrMain = $('#main');
-  const btnCoverStart = $('#coverStart');
 
+  /* ========== DOM refs ========== */
+  const btnCoverStart = $('#coverStart');
   const btnStart = $('#start'), btnCont = $('#cont'), btnAbout = $('#about'), saveState = $('#savestate');
   const btnBackTitle = $('#backTitle'), btnToTitle = $('#toTitle'), btnReset = $('#reset'), btnShowLog = $('#showLog');
   const btnRewards = $('#rewardsBtn');
   const chat = $('#chat'), input = $('#input'), btnSend = $('#send'), btnDone = $('#done');
   const heartCountEl = $('#heartCount'), charIcon = $('#charIcon'), sessionInfo = $('#sessionInfo');
   const pet = $('#pet'), petImg = $('#petImg');
-
   const rewardToast = $('#rewardToast');
-  const rewardsModal = $('#rewardsModal'), closeRewards = $('#closeRewards');
+  const rewardsModal = $('#rewardsModal'), rewardsWrap = rewardsModal.querySelector('.wrap'), closeRewards = $('#closeRewards');
   const rewardSummary = $('#rewardSummary'), badgeList = $('#badgeList'), stampList = $('#stampList'), auraList = $('#auraList');
   const catalogStamps = $('#catalogStamps'), catalogBadges = $('#catalogBadges'), rewardHistory = $('#rewardHistory');
 
+  /* ========== Keys & State ========== */
   const K = {
     char:'meai_character',
     hearts:'meai_heart',
@@ -371,75 +371,33 @@ window.addEventListener('DOMContentLoaded', () => {
     rewards:'meai_rewards',
     milestones:'meai_milestones'
   };
-
   const REMIND_MIN_H = 1, REMIND_MAX_H = 3;
 
-  let character = localStorage.getItem(K.char) || null;
-  let hearts = parseInt(localStorage.getItem(K.hearts) || '0', 10);
-  let log = JSON.parse(localStorage.getItem(K.log) || '[]');
+  let character = safeGet(K.char);
+  let hearts = toInt(safeGet(K.hearts), 0);
+  let log = toArrayJSON(safeGet(K.log), []);
   let nextTimer = null;
   let labelTimer = null;
   let doneReentrancyGuard = false;
 
-  const STICKER_POOL = ["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"];
-  const MILESTONES = [
-    {n:1,  badge:"はじめの一歩", aura:"aura-star"},
-    {n:3,  badge:"コツコツ名人",  aura:null},
-    {n:5,  badge:"星くず集め",    aura:"aura-moon"},
-    {n:10, badge:"継続の達人",    aura:"aura-rainbow"},
-    {n:15, badge:"やさしさの泉",  aura:null},
-    {n:20, badge:"MeAI 友だち",   aura:"aura-star"}
-  ];
-
-  /* ===== ご褒美データ ===== */
-  function loadRewards(){
-    let r;
-    try{ r = JSON.parse(localStorage.getItem(K.rewards)||""); }catch{}
-    if(!r || typeof r!=='object') r = {stamps:[], badges:[], aurasUnlocked:[], activeAura:""};
-    return r;
+  /* ========== Utils ========== */
+  function toInt(v, d=0){ const n = parseInt(v,10); return Number.isFinite(n)?n:d; }
+  function safeGet(key){ try{ return localStorage.getItem(key); }catch{ return null; } }
+  function safeSet(key, val){ try{ localStorage.setItem(key, val); }catch{} }
+  function toArrayJSON(raw, fallback=[]){
+    try{
+      const v = typeof raw==='string' ? JSON.parse(raw) : raw;
+      return Array.isArray(v) ? v : fallback;
+    }catch{ return fallback; }
   }
-  function saveRewards(r){
-    localStorage.setItem(K.rewards, JSON.stringify(r));
-    // 描画は呼び出し側で行う（無限ループ防止）
-  }
-  function getGrantedMilestones(){
-    try{ const arr = JSON.parse(localStorage.getItem(K.milestones)||"[]"); return Array.isArray(arr)?arr:[]; }catch{ return []; }
-  }
-  function setGrantedMilestones(arr){
-    localStorage.setItem(K.milestones, JSON.stringify(arr));
+  function toObjectJSON(raw, fallback={}){
+    try{
+      const v = typeof raw==='string' ? JSON.parse(raw) : raw;
+      return (v && typeof v==='object') ? v : fallback;
+    }catch{ return fallback; }
   }
 
-  /* ===== 画面制御 ===== */
-  function show(el){ [scrCover,scrTitle,scrChoose,scrMain].forEach(s=>s.classList.remove('show')); el.classList.add('show'); }
-
-  btnCoverStart.addEventListener('click', ()=>{ localStorage.getItem(K.char) ? startMain(false) : refreshTitle(); });
-
-  function refreshTitle(){
-    const has = !!localStorage.getItem(K.char);
-    btnCont.disabled = !has;
-    saveState.textContent = has ? 'セーブデータがあります。「つづきから」で再開できます。' : 'セーブデータがありません。';
-    show(scrTitle);
-    pet.style.display = 'none';
-    stopNextTimer();
-    stopLabelTimer();
-  }
-
-  btnStart.addEventListener('click', ()=> show(scrChoose));
-  btnCont.addEventListener('click', ()=>{ if(!localStorage.getItem(K.char)) return alert('セーブデータがありません。'); startMain(false); });
-  btnAbout.addEventListener('click', ()=> alert('この試作はAIが監視するのではなく、ユーザーの自己申告（「やったよ」）で記録するだけの設計です。'));
-
-  document.querySelectorAll('.char').forEach(el=>{
-    el.addEventListener('click', ()=>{
-      character = el.dataset.char;
-      localStorage.setItem(K.char, character);
-      hearts = parseInt(localStorage.getItem(K.hearts) || '0',10);
-      if(!Array.isArray(log)) log=[];
-      startMain(true);
-    });
-  });
-  btnBackTitle.addEventListener('click', refreshTitle);
-
-  /* ===== リクエストプール ===== */
+  /* ========== Requests ========== */
   const REQUESTS = [
     "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。","今日の空の色をひとことで教えて。",
     "窓を少し開けて、空気を入れ替えよう。","深呼吸を3回してみよう。","好きな音を5秒だけ聞かせて。（心の中でもOK）",
@@ -454,10 +412,11 @@ window.addEventListener('DOMContentLoaded', () => {
   ];
   function shuffle(a){ for(let i=a.length-1;i>0;i++){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]];} return a; }
   function loadPool(){
-    try{ const raw = JSON.parse(localStorage.getItem(K.pool)||'[]'); if(Array.isArray(raw)&&raw.length) return raw; }catch{}
-    const fresh = shuffle([...REQUESTS]); localStorage.setItem(K.pool, JSON.stringify(fresh)); return fresh;
+    const raw = toArrayJSON(safeGet(K.pool), []);
+    if(raw.length) return raw;
+    const fresh = shuffle([...REQUESTS]); safeSet(K.pool, JSON.stringify(fresh)); return fresh;
   }
-  function savePool(p){ localStorage.setItem(K.pool, JSON.stringify(p)); }
+  function savePool(p){ safeSet(K.pool, JSON.stringify(p)); }
   function nextRequest(){
     let pool = loadPool();
     const text = pool.shift();
@@ -470,19 +429,20 @@ window.addEventListener('DOMContentLoaded', () => {
     return `${tag} ${nextRequest()}`;
   }
 
-  /* ===== リマインド ===== */
+  /* ========== Remind ========== */
   function stopNextTimer(){ if(nextTimer){ clearTimeout(nextTimer); nextTimer=null; } }
+  function stopLabelTimer(){ if(labelTimer){ clearInterval(labelTimer); labelTimer=null; } }
   function hoursToMs(h){ return Math.round(h * 3600 * 1000); }
   function pickHours(){ return REMIND_MIN_H + Math.random()*(REMIND_MAX_H - REMIND_MIN_H); }
   function setNextDueAfterHours(h){
     const due = Date.now() + hoursToMs(h);
-    localStorage.setItem(K.next, String(due));
+    safeSet(K.next, String(due));
     updateDoneButtonState();
     startNextTimer();
     startLabelTimer();
   }
   function canDoneNow(){
-    const due = parseInt(localStorage.getItem(K.next) || '0', 10);
+    const due = toInt(safeGet(K.next), 0);
     return !due || due <= Date.now();
   }
   function msToCountdown(ms){
@@ -495,23 +455,23 @@ window.addEventListener('DOMContentLoaded', () => {
     return m ? `${h}時間${m}分` : `${h}時間`;
   }
   function updateDoneButtonLabel(){
-    const due = parseInt(localStorage.getItem(K.next) || '0', 10);
+    const due = toInt(safeGet(K.next), 0);
     if(!due || due <= Date.now()){
       btnDone.textContent = 'やったよ';
     }else{
-      const rest = due - Date.now();
+      const rest = Math.max(0, due - Date.now());
       btnDone.textContent = `あと${msToCountdown(rest)}`;
     }
   }
   function updateDoneButtonState(){
-    const due = parseInt(localStorage.getItem(K.next) || '0', 10);
+    const due = toInt(safeGet(K.next), 0);
     const disabled = due && due > Date.now();
-    btnDone.disabled = disabled;
+    btnDone.disabled = !!disabled;
     updateDoneButtonLabel();
   }
   function startNextTimer(){
     stopNextTimer();
-    const due = parseInt(localStorage.getItem(K.next) || '0', 10);
+    const due = toInt(safeGet(K.next), 0);
     if(!due){ btnDone.disabled = false; updateDoneButtonLabel(); return; }
     const wait = due - Date.now();
     if(wait <= 0){ triggerNext(); return; }
@@ -522,15 +482,14 @@ window.addEventListener('DOMContentLoaded', () => {
     stopLabelTimer();
     const tick = () => {
       updateDoneButtonLabel();
-      const due = parseInt(localStorage.getItem(K.next) || '0', 10);
+      const due = toInt(safeGet(K.next), 0);
       if(!due || due <= Date.now()){ stopLabelTimer(); }
     };
     labelTimer = setInterval(tick, 1000 * 30);
     tick();
   }
-  function stopLabelTimer(){ if(labelTimer){ clearInterval(labelTimer); labelTimer=null; } }
   function triggerNext(){
-    localStorage.removeItem(K.next);
+    try{ localStorage.removeItem(K.next); }catch{}
     btnDone.disabled = false;
     updateDoneButtonLabel();
     stopLabelTimer();
@@ -538,16 +497,16 @@ window.addEventListener('DOMContentLoaded', () => {
     push('ai', nextRequest());
   }
   function scheduleLater(){
-    const h = pickHours();
-    push('ai', `また後でね。約${Math.round(h*10)/10}時間後に次の提案を送るね。`);
+    const h = Math.round(pickHours()*10)/10;
+    push('ai', `また後でね。約${h}時間後に次の提案を送るね。`);
     setNextDueAfterHours(h);
   }
 
-  /* ===== 再会バナー ===== */
+  /* ========== Reunion Banner ========== */
   function showReunionBanner(messageHtml){
     const el = document.getElementById('reunionBanner');
     if(!el) return;
-    el.innerHTML = `<button class="closeBtn" aria-label="閉じる">OK</button>${messageHtml}<div class="small">（設定＞通知でOFFにできます）</div>`;
+    el.innerHTML = `<button class="closeBtn" aria-label="閉じる" type="button">OK</button>${messageHtml}<div class="small">（設定＞通知でOFFにできます）</div>`;
     el.style.display = 'block';
     el.querySelector('.closeBtn')?.addEventListener('click', ()=> el.style.display='none');
   }
@@ -558,13 +517,13 @@ window.addEventListener('DOMContentLoaded', () => {
     return (clean.length <= max) ? clean : (clean.slice(0, max) + "…");
   }
   function maybeShowReunion(){
-    const last = Number(localStorage.getItem(K.lastOpened) || 0);
+    const last = Number(safeGet(K.lastOpened) || 0);
     const gapH = last ? hoursSince(last) : Infinity;
     if (gapH >= 24) {
-      let lastText = localStorage.getItem(K.lastUserText) || "";
+      let lastText = safeGet(K.lastUserText) || "";
       if(!lastText){
-        const hist = JSON.parse(localStorage.getItem(K.userTextHistory) || "[]");
-        if(Array.isArray(hist) && hist.length) lastText = hist[hist.length-1].text || "";
+        const hist = toArrayJSON(safeGet(K.userTextHistory), []);
+        if(hist.length) lastText = hist[hist.length-1].text || "";
       }
       let lastDateStr = "";
       if(last && isFinite(last)){
@@ -583,18 +542,39 @@ window.addEventListener('DOMContentLoaded', () => {
       showReunionBanner(`<b>${tier}</b> ${quotePart}${timePart}`);
     }
   }
-  function markOpenedNow(){ localStorage.setItem(K.lastOpened, String(Date.now())); }
+  function markOpenedNow(){ safeSet(K.lastOpened, String(Date.now())); }
   function saveLastUserText(text){
     if(!text) return;
-    localStorage.setItem(K.lastUserText, text);
+    safeSet(K.lastUserText, text);
     const now = Date.now();
-    const arr = JSON.parse(localStorage.getItem(K.userTextHistory) || "[]");
+    const arr = toArrayJSON(safeGet(K.userTextHistory), []);
     arr.push({ ts: now, text });
     while(arr.length > 50) arr.shift();
-    localStorage.setItem(K.userTextHistory, JSON.stringify(arr));
+    safeSet(K.userTextHistory, JSON.stringify(arr));
   }
 
-  /* ===== ご褒美UI & ロジック ===== */
+  /* ========== Rewards ========== */
+  const STICKER_POOL = ["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"];
+  const MILESTONES = [
+    {n:1,  badge:"はじめの一歩", aura:"aura-star"},
+    {n:3,  badge:"コツコツ名人",  aura:null},
+    {n:5,  badge:"星くず集め",    aura:"aura-moon"},
+    {n:10, badge:"継続の達人",    aura:"aura-rainbow"},
+    {n:15, badge:"やさしさの泉",  aura:null},
+    {n:20, badge:"MeAI 友だち",   aura:"aura-star"}
+  ];
+
+  function loadRewards(){
+    const r = toObjectJSON(safeGet(K.rewards), {stamps:[], badges:[], aurasUnlocked:[], activeAura:""});
+    r.stamps ??= []; r.badges ??= []; r.aurasUnlocked ??= []; r.activeAura ??= "";
+    return r;
+  }
+  function saveRewards(r){ safeSet(K.rewards, JSON.stringify(r)); }
+  function getGrantedMilestones(){
+    return toArrayJSON(safeGet(K.milestones), []);
+  }
+  function setGrantedMilestones(arr){ safeSet(K.milestones, JSON.stringify(arr)); }
+
   function showToast(html){
     rewardToast.innerHTML = html;
     rewardToast.style.display = 'block';
@@ -614,12 +594,10 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /* 描画だけ（保存なし） */
   function setAuraClass(aura){
     pet.classList.remove('aura-star','aura-rainbow','aura-moon');
     if(aura) pet.classList.add(aura);
   }
-  /* 保存を伴う適用（描画呼ばない） */
   function applyAura(aura){
     setAuraClass(aura);
     const r = loadRewards();
@@ -632,7 +610,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const r = loadRewards();
     r.stamps.push({emo, ts: Date.now()});
     saveRewards(r);
-    renderRewardsUI();  // ← 保存後に描画
+    renderRewardsUI();
     showToast(`<span class="ttl">ご褒美をゲット！</span><br><span class="emo">${emo}</span>スタンプを手に入れたよ！`);
   }
 
@@ -648,7 +626,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if(ms.aura && !r.aurasUnlocked.includes(ms.aura)){
           r.aurasUnlocked.push(ms.aura);
           saveRewards(r);
-          applyAura(ms.aura);   // 保存（描画しない）→直後に描画更新
+          applyAura(ms.aura);
           renderRewardsUI();
           showToast(`<span class="ttl">マイルストーン ${ms.n}</span><br>称号「${ms.badge}」と新オーラを解放！`);
         }else{
@@ -732,8 +710,8 @@ window.addEventListener('DOMContentLoaded', () => {
       {key:'aura-moon', label:'月あかり'},
       {key:'aura-rainbow', label:'にじ'}
     ];
+    const rNow = loadRewards();
     auras.forEach(a=>{
-      const rNow = loadRewards();
       const btn = document.createElement('button');
       btn.className='btn secondary';
       btn.style.width='auto'; btn.style.display='inline-block'; btn.style.marginRight='8px';
@@ -746,26 +724,93 @@ window.addEventListener('DOMContentLoaded', () => {
 
     renderCatalog();
     renderHistory();
-    /* 保存は行わず、見た目だけ反映（無限ループ防止） */
     setAuraClass(loadRewards().activeAura);
   }
 
-  btnRewards.addEventListener('click', ()=>{
-    const r = loadRewards();
-    const nothingYet = (!r.stamps || r.stamps.length===0) && (!r.badges || r.badges.length===0);
-    renderRewardsUI();
-    rewardsModal.style.display='block';
-    if (nothingYet) {
-      showToast(`<span class="ttl">ご褒美の集め方</span><br>「<b>やったよ</b>」でハートが増えると、スタンプや称号が手に入るよ！`);
-    }
-  });
-  closeRewards.addEventListener('click', ()=>{ rewardsModal.style.display='none'; });
-  rewardsModal.addEventListener('click', e=>{ if(e.target===rewardsModal) rewardsModal.style.display='none'; });
-  window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && rewardsModal.style.display==='block') rewardsModal.style.display='none'; });
+  /* ========== Screens ========== */
+  function show(el){
+    [scrCover,scrTitle,scrChoose,scrMain].forEach(s=>s.classList.remove('show'));
+    el.classList.add('show');
+  }
 
-  /* ===== メイン起動 ===== */
+  function refreshTitle(){
+    const has = !!safeGet(K.char);
+    btnCont.disabled = !has;
+    saveState.textContent = has ? 'セーブデータがあります。「つづきから」で再開できます。' : 'セーブデータがありません。';
+    show(scrTitle);
+    pet.style.display = 'none';
+    stopNextTimer();
+    stopLabelTimer();
+  }
+
+  /* ========== Chat ========== */
+  function append(sender, text){
+    const div = document.createElement('div');
+    div.className = `bubble ${sender}`;
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function push(sender, text){
+    const item = {sender, text, ts:Date.now()};
+    log.push(item);
+    append(sender, text);
+  }
+
+  function aiReplyAfter(text, intent='chat'){
+    if(intent==='done'){
+      hearts++; heartCountEl.textContent = hearts;
+      push('ai','すばらしい！ハートが増えたよ💖');
+      saveAll();
+      onHeartIncreased();
+      scheduleLater();
+      pet.classList.add('pop'); setTimeout(()=>pet.classList.remove('pop'), 600);
+    }else{
+      push('ai','うん、なるほどね。');
+      saveAll();
+    }
+  }
+  function send(){
+    const t = input.value.trim();
+    if(!t) return;
+    push('user', t);
+    saveLastUserText(t);
+    input.value = '';
+    aiReplyAfter(t, 'chat');
+  }
+
+  /* ========== Pet ========== */
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+  function petRandomPos(){
+    const pad = 24, size = 120;
+    const W = window.innerWidth, H = window.innerHeight;
+    let x = pad + Math.random() * (W - size - pad*2);
+    let y = pad + Math.random() * (H - size - pad*2);
+    const r = document.getElementById('chat')?.getBoundingClientRect();
+    if (r) {
+      const overlap = (x < r.right && x+size > r.left && y < r.bottom && y+size > r.top);
+      if (overlap) { x = clamp(r.right + 40, pad, W - size - pad); y = clamp(y + 20, pad, H - size - pad); }
+    }
+    return { x: clamp(x, pad, W - size - pad), y: clamp(y, pad, H - size - pad) };
+  }
+  function petMoveLoop(){
+    const p = petRandomPos();
+    pet.style.left = p.x + 'px';
+    pet.style.top  = p.y + 'px';
+    const next = 8000 + Math.random()*6000;
+    clearTimeout(pet._timer);
+    pet._timer = setTimeout(petMoveLoop, next);
+  }
+
+  /* ========== Save ========== */
+  function saveAll(){
+    safeSet(K.hearts, String(hearts));
+    safeSet(K.log, JSON.stringify(log));
+  }
+
+  /* ========== Main Start ========== */
   function startMain(newSession){
-    character = character || localStorage.getItem(K.char);
+    character = character || safeGet(K.char);
     if(!character){ refreshTitle(); return; }
 
     const charPath = `public/char/${character}/calm.png`;
@@ -792,44 +837,38 @@ window.addEventListener('DOMContentLoaded', () => {
       chat.scrollTop = chat.scrollHeight;
     }
     show(scrMain);
-    setTimeout(()=>input.focus(), 10);
+    setTimeout(()=>input?.focus(), 10);
     updateDoneButtonState();
     startNextTimer();
     startLabelTimer();
     renderRewardsUI();
   }
 
-  /* ===== チャット ===== */
-  function append(sender, text){
-    const div = document.createElement('div');
-    div.className = `bubble ${sender}`;
-    div.textContent = text;
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-  }
-  function push(sender, text){ log.push({sender, text, ts:Date.now()}); append(sender, text); }
+  /* ========== Event Bindings ========== */
+  btnCoverStart.addEventListener('click', ()=>{
+    safeGet(K.char) ? startMain(false) : refreshTitle();
+  });
 
-  function aiReplyAfter(text, intent='chat'){
-    if(intent==='done'){
-      hearts++; heartCountEl.textContent = hearts;
-      push('ai','すばらしい！ハートが増えたよ💖');
-      saveAll();
-      onHeartIncreased();
-      scheduleLater();
-      pet.classList.add('pop'); setTimeout(()=>pet.classList.remove('pop'), 600);
-    }else{
-      push('ai','うん、なるほどね。');
-      saveAll();
-    }
-  }
-  function send(){
-    const t = input.value.trim();
-    if(!t) return;
-    push('user', t);
-    saveLastUserText(t);
-    input.value = '';
-    aiReplyAfter(t, 'chat');
-  }
+  btnStart.addEventListener('click', ()=> show(scrChoose));
+  btnCont.addEventListener('click', ()=>{
+    if(!safeGet(K.char)) { alert('セーブデータがありません。'); return; }
+    startMain(false);
+  });
+  btnAbout.addEventListener('click', ()=>{
+    alert('この試作はAIが監視するのではなく、ユーザーの自己申告（「やったよ」）で記録するだけの設計です。');
+  });
+
+  document.querySelectorAll('.char').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      character = el.dataset.char;
+      safeSet(K.char, character);
+      hearts = toInt(safeGet(K.hearts), 0);
+      if(!Array.isArray(log)) log=[];
+      startMain(true);
+    });
+  });
+  btnBackTitle.addEventListener('click', refreshTitle);
+
   btnSend.addEventListener('click', send);
   input.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); send(); }});
 
@@ -839,7 +878,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setTimeout(()=>{ doneReentrancyGuard = false; }, 600);
 
     if(!canDoneNow()){
-      const due = parseInt(localStorage.getItem(K.next) || '0', 10);
+      const due = toInt(safeGet(K.next), 0);
       const rest = Math.max(0, due - Date.now());
       const label = msToCountdown(rest);
       showToast(`<span class="ttl">もう少し休憩…</span><br>次は <b>${label}</b> 後に「やったよ」できるよ。`);
@@ -858,56 +897,46 @@ window.addEventListener('DOMContentLoaded', () => {
   btnToTitle.addEventListener('click', refreshTitle);
   btnReset.addEventListener('click', ()=>{
     if(confirm('セーブデータ（キャラ・ハート・ログ・ご褒美）を削除します。よろしいですか？')){
-      localStorage.removeItem(K.char); localStorage.removeItem(K.hearts); localStorage.removeItem(K.log);
-      localStorage.removeItem(K.pool); localStorage.removeItem(K.next);
-      localStorage.removeItem(K.lastOpened); localStorage.removeItem(K.lastUserText); localStorage.removeItem(K.userTextHistory);
-      localStorage.removeItem(K.rewards); localStorage.removeItem(K.milestones);
+      try{
+        localStorage.removeItem(K.char); localStorage.removeItem(K.hearts); localStorage.removeItem(K.log);
+        localStorage.removeItem(K.pool); localStorage.removeItem(K.next);
+        localStorage.removeItem(K.lastOpened); localStorage.removeItem(K.lastUserText); localStorage.removeItem(K.userTextHistory);
+        localStorage.removeItem(K.rewards); localStorage.removeItem(K.milestones);
+      }catch{}
       character=null; hearts=0; log=[];
-      show(scrCover);
       setAuraClass('');
       stopNextTimer(); stopLabelTimer();
+      clearTimeout(pet._timer);
+      pet.style.display='none';
+      show(scrCover);
     }
   });
   btnShowLog.addEventListener('click', ()=>{
-    const text = log.map(l=>`${new Date(l.ts).toLocaleString()} [${l.sender}] ${l.text}`).join('\n') || '（ログなし）';
+    const text = (log||[]).map(l=>`${new Date(l.ts).toLocaleString()} [${l.sender}] ${l.text}`).join('\n') || '（ログなし）';
     alert(text);
   });
-  function saveAll(){
-    localStorage.setItem(K.hearts, String(hearts));
-    localStorage.setItem(K.log, JSON.stringify(log));
-  }
 
-  /* ===== ペット移動 ===== */
-  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
-  function petRandomPos(){
-    const pad = 24, size = 120;
-    const W = window.innerWidth, H = window.innerHeight;
-    let x = pad + Math.random() * (W - size - pad*2);
-    let y = pad + Math.random() * (H - size - pad*2);
-    const r = document.getElementById('chat')?.getBoundingClientRect();
-    if (r) {
-      const overlap = (x < r.right && x+size > r.left && y < r.bottom && y+size > r.top);
-      if (overlap) { x = clamp(r.right + 40, pad, W - size - pad); y = clamp(y + 20, pad, H - size - pad); }
+  btnRewards.addEventListener('click', ()=>{
+    const r = loadRewards();
+    const nothingYet = (!r.stamps?.length) && (!r.badges?.length);
+    renderRewardsUI();
+    rewardsModal.style.display='block';
+    rewardsWrap.focus();
+    if (nothingYet) {
+      showToast(`<span class="ttl">ご褒美の集め方</span><br>「<b>やったよ</b>」でハートが増えると、スタンプや称号が手に入るよ！`);
     }
-    return { x: clamp(x, pad, W - size - pad), y: clamp(y, pad, H - size - pad) };
-  }
-  function petMoveLoop(){
-    const p = petRandomPos();
-    pet.style.left = p.x + 'px';
-    pet.style.top  = p.y + 'px';
-    const next = 8000 + Math.random()*6000;
-    clearTimeout(pet._timer);
-    pet._timer = setTimeout(petMoveLoop, next);
-  }
+  });
+  closeRewards.addEventListener('click', ()=>{ rewardsModal.style.display='none'; });
+  rewardsModal.addEventListener('click', e=>{ if(e.target===rewardsModal) rewardsModal.style.display='none'; });
+  window.addEventListener('keydown', (e)=>{ if(e.key === 'Escape' && rewardsModal.style.display==='block') rewardsModal.style.display='none'; });
+
   window.addEventListener('resize', ()=>{ clearTimeout(pet._timer); petMoveLoop(); });
 
-  /* ===== 起動 ===== */
-  function initRewardsUIOnce(){
+  /* ========== Boot ========== */
+  (function init(){
+    // UIがある程度揃ってから初期処理
     renderCatalog();
     renderRewardsUI();
-  }
-  (function init(){
-    initRewardsUIOnce();
     maybeShowReunion();
     markOpenedNow();
     updateDoneButtonState();
