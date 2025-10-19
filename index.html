@@ -101,15 +101,15 @@
   #header img{ width:30px; height:30px; }
   #heart{ font-size:18px; }
 
-  /* チャット枠（透け感＋内側の淡い光） */
+  /* チャット枠（よりクリアに） */
   #chat{
     width:min(92vw, 900px); height:min(64vh, 460px);
     margin:100px auto 10px; padding:18px; overflow-y:auto; z-index:11; position:relative;
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.04); /* さらに薄く */
+    border:1px solid rgba(255,255,255,.10);
     border-radius:18px;
-    backdrop-filter: blur(12px) brightness(1.05);
-    box-shadow:0 0 30px rgba(255,255,255,.08) inset, 0 20px 60px rgba(0,0,0,.35);
+    backdrop-filter: blur(10px) brightness(1.1) contrast(1.05);
+    box-shadow:0 0 30px rgba(255,255,255,.06) inset, 0 20px 60px rgba(0,0,0,.35);
   }
 
   /* バブル（透明グラデ） */
@@ -152,10 +152,10 @@
   #footerMenu .btn{ display:inline-block; width:auto; padding:8px 14px; background:rgba(255,255,255,.10); backdrop-filter:blur(6px); }
   #footerMenu .btn:hover{ background:rgba(255,255,255,.22); }
 
-  /* 漂うマスコット */
+  /* 漂うマスコット（最前面へ） */
   #pet{
     position: fixed; left: 50vw; top: 60vh;
-    width: 120px; height: 120px; pointer-events: none; z-index: 5;
+    width: 120px; height: 120px; pointer-events: none; z-index: 999; /* ← 最前面に */
     transition: left 12s ease-in-out, top 12s ease-in-out; display: none;
   }
   #pet img{ width:100%; height:100%; object-fit:contain;
@@ -172,7 +172,7 @@
     padding: 12px 14px; border-radius: 14px;
     box-shadow:0 8px 20px rgba(0,0,0,.25);
     font-size: 14px; line-height: 1.6;
-    z-index: 9999; backdrop-filter: blur(8px);
+    z-index: 1200; backdrop-filter: blur(8px);
     border:1px solid rgba(255,255,255,.16);
   }
   #reunionBanner b{ font-weight: 700; }
@@ -185,7 +185,7 @@
 
   /* ===== ご褒美トースト ===== */
   #rewardToast{
-    position:fixed; right:16px; bottom:80px; z-index:10000;
+    position:fixed; right:16px; bottom:80px; z-index:1300;
     background:rgba(30,30,40,.85); border:1px solid rgba(255,255,255,.18);
     padding:12px 14px; border-radius:14px; display:none; max-width:min(80vw,380px);
     box-shadow:0 10px 30px rgba(0,0,0,.4); backdrop-filter: blur(8px);
@@ -195,7 +195,7 @@
 
   /* 紙吹雪 */
   .confetti{
-    position: fixed; width:8px; height:14px; top:-20px; z-index:10001;
+    position: fixed; width:8px; height:14px; top:-20px; z-index:1400;
     opacity:.95; transform:rotate(0deg);
     animation: confetti-fall linear forwards;
   }
@@ -203,7 +203,7 @@
 
   /* ===== ご褒美モーダル ===== */
   #rewardsModal{
-    position:fixed; inset:0; display:none; z-index:12000;
+    position:fixed; inset:0; display:none; z-index:1500;
     background: rgba(0,0,0,.45);
     backdrop-filter: blur(3px);
   }
@@ -225,7 +225,7 @@
   .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;}
   .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);}
 
-  /* ===== ペットのオーラ（演出） ===== */
+  /* ===== ペットのオーラ ===== */
   #pet::after{
     content:""; position:absolute; inset:-8px; border-radius:24px; pointer-events:none; opacity:0; transition:.4s;
   }
@@ -327,10 +327,10 @@
     <div class="panel">
       <h2 style="margin:0 0 8px;">キャラクターを選んでね</h2>
       <div class="grid">
-        <div class="char" data-char="green"><img src="public/char/green/calm.png" alt="green"></div>
-        <div class="char" data-char="blue"><img src="public/char/blue/calm.png" alt="blue"></div>
-        <div class="char" data-char="pink"><img src="public/char/pink/calm.png" alt="pink"></div>
-        <div class="char" data-char="purple"><img src="public/char/purple/calm.png" alt="purple"></div>
+        <div class="char" data-char="green"><img src="public/char/green/calm.png" alt="green" onerror="this.src='public/char/blue/calm.png'"></div>
+        <div class="char" data-char="blue"><img src="public/char/blue/calm.png" alt="blue" onerror="this.src='public/char/green/calm.png'"></div>
+        <div class="char" data-char="pink"><img src="public/char/pink/calm.png" alt="pink" onerror="this.src='public/char/green/calm.png'"></div>
+        <div class="char" data-char="purple"><img src="public/char/purple/calm.png" alt="purple" onerror="this.src='public/char/green/calm.png'"></div>
       </div>
       <button id="backTitle" class="btn" type="button" style="margin-top:14px; width:auto;">← タイトルへ</button>
     </div>
@@ -364,7 +364,6 @@
   <div id="pet"><img id="petImg" src="" alt="pet"></div>
 
 <script>
-/* 既存ロジックそのまま（機能変更なし） */
 window.addEventListener('DOMContentLoaded', () => {
   const $ = s => document.querySelector(s);
 
@@ -381,10 +380,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const rewardToast = $('#rewardToast');
   const rewardsModal = $('#rewardsModal'), closeRewards = $('#closeRewards');
   const rewardSummary = $('#rewardSummary'), badgeList = $('#badgeList'), stampList = $('#stampList'), auraList = $('#auraList');
-
-  const catalogStamps = $('#catalogStamps');
-  const catalogBadges = $('#catalogBadges');
-  const rewardHistory = $('#rewardHistory');
+  const catalogStamps = $('#catalogStamps'), catalogBadges = $('#catalogBadges'), rewardHistory = $('#rewardHistory');
 
   const K = {
     char:'meai_character',
@@ -418,6 +414,7 @@ window.addEventListener('DOMContentLoaded', () => {
     {n:20, badge:"MeAI 友だち",   aura:"aura-star",    note:"光のゆらめき強化"}
   ];
 
+  /* ====== ご褒美データ ====== */
   function loadRewards(){
     let r;
     try{ r = JSON.parse(localStorage.getItem(K.rewards)||""); }catch{}
@@ -435,6 +432,7 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(K.milestones, JSON.stringify(arr));
   }
 
+  /* ====== 画面制御 ====== */
   function show(el){ [scrCover,scrTitle,scrChoose,scrMain].forEach(s=>s.classList.remove('show')); el.classList.add('show'); }
 
   btnCoverStart.addEventListener('click', ()=>{ localStorage.getItem(K.char) ? startMain(false) : refreshTitle(); });
@@ -464,6 +462,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   btnBackTitle.addEventListener('click', refreshTitle);
 
+  /* ====== リクエストプール ====== */
   const REQUESTS = [
     "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。","今日の空の色をひとことで教えて。",
     "窓を少し開けて、空気を入れ替えよう。","深呼吸を3回してみよう。","好きな音を5秒だけ聞かせて。（心の中でもOK）",
@@ -494,11 +493,12 @@ window.addEventListener('DOMContentLoaded', () => {
     return `${tag} ${nextRequest()}`;
   }
 
+  /* ====== リマインド制御 ====== */
   function stopNextTimer(){ if(nextTimer){ clearTimeout(nextTimer); nextTimer=null; } }
   function hoursToMs(h){ return Math.round(h * 3600 * 1000); }
-  function pickHours(){ return REMIND_MIN_H + Math.random()*(REMIND_MAX_H - REMIND_MAX_H + REMIND_MIN_H); } // keep original behavior
+  function pickHours(){ return REMIND_MIN_H + Math.random()*(REMIND_MAX_H - REMIND_MIN_H); } // ← 修正済み
   function setNextDueAfterHours(h){
-    const due = Date.now() + Math.round(h * 3600 * 1000);
+    const due = Date.now() + hoursToMs(h);
     localStorage.setItem(K.next, String(due));
     updateDoneButtonState();
     startNextTimer();
@@ -507,12 +507,6 @@ window.addEventListener('DOMContentLoaded', () => {
   function canDoneNow(){
     const due = parseInt(localStorage.getItem(K.next) || '0', 10);
     return !due || due <= Date.now();
-  }
-  function updateDoneButtonState(){
-    const due = parseInt(localStorage.getItem(K.next) || '0', 10);
-    const disabled = due && due > Date.now();
-    btnDone.disabled = disabled;
-    updateDoneButtonLabel();
   }
   function msToCountdown(ms){
     if(ms <= 0) return "";
@@ -532,6 +526,12 @@ window.addEventListener('DOMContentLoaded', () => {
       btnDone.textContent = `あと${msToCountdown(rest)}`;
     }
   }
+  function updateDoneButtonState(){
+    const due = parseInt(localStorage.getItem(K.next) || '0', 10);
+    const disabled = due && due > Date.now();
+    btnDone.disabled = disabled;
+    updateDoneButtonLabel();
+  }
   function startNextTimer(){
     stopNextTimer();
     const due = parseInt(localStorage.getItem(K.next) || '0', 10);
@@ -546,7 +546,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const tick = () => {
       updateDoneButtonLabel();
       const due = parseInt(localStorage.getItem(K.next) || '0', 10);
-      if(!due || due <= Date.now()){ stopLabelTimer(); return; }
+      if(!due || due <= Date.now()){ stopLabelTimer(); }
     };
     labelTimer = setInterval(tick, 1000 * 30);
     tick();
@@ -562,11 +562,12 @@ window.addEventListener('DOMContentLoaded', () => {
     push('ai', nextRequest());
   }
   function scheduleLater(){
-    const h = 1 + Math.random()*2;
+    const h = pickHours();
     push('ai', `また後でね。約${Math.round(h*10)/10}時間後に次の提案を送るね。`);
     setNextDueAfterHours(h);
   }
 
+  /* ====== 再会バナー ====== */
   function showReunionBanner(messageHtml){
     const el = document.getElementById('reunionBanner');
     if(!el) return;
@@ -585,12 +586,12 @@ window.addEventListener('DOMContentLoaded', () => {
     return (clean.length <= max) ? clean : (clean.slice(0, max) + "…");
   }
   function maybeShowReunion(){
-    const last = Number(localStorage.getItem('meai_last_opened_at') || 0);
+    const last = Number(localStorage.getItem(K.lastOpened) || 0);
     const gapH = last ? hoursSince(last) : Infinity;
     if (gapH >= 24) {
-      let lastText = localStorage.getItem('meai_last_user_text') || "";
+      let lastText = localStorage.getItem(K.lastUserText) || "";
       if(!lastText){
-        const hist = JSON.parse(localStorage.getItem('meai_user_text_history') || "[]");
+        const hist = JSON.parse(localStorage.getItem(K.userTextHistory) || "[]");
         if(Array.isArray(hist) && hist.length) lastText = hist[hist.length-1].text || "";
       }
       let lastDateStr = "";
@@ -610,17 +611,18 @@ window.addEventListener('DOMContentLoaded', () => {
       showReunionBanner(`<b>${tier}</b> ${quotePart}${timePart}`);
     }
   }
-  function markOpenedNow(){ localStorage.setItem('meai_last_opened_at', String(Date.now())); }
+  function markOpenedNow(){ localStorage.setItem(K.lastOpened, String(Date.now())); }
   function saveLastUserText(text){
     if(!text) return;
-    localStorage.setItem('meai_last_user_text', text);
+    localStorage.setItem(K.lastUserText, text);
     const now = Date.now();
-    const arr = JSON.parse(localStorage.getItem('meai_user_text_history') || "[]");
+    const arr = JSON.parse(localStorage.getItem(K.userTextHistory) || "[]");
     arr.push({ ts: now, text });
     while(arr.length > 50) arr.shift();
-    localStorage.setItem('meai_user_text_history', JSON.stringify(arr));
+    localStorage.setItem(K.userTextHistory, JSON.stringify(arr));
   }
 
+  /* ====== ご褒美UI ====== */
   function showToast(html){
     rewardToast.innerHTML = html;
     rewardToast.style.display = 'block';
@@ -745,20 +747,21 @@ window.addEventListener('DOMContentLoaded', () => {
       {key:'aura-moon', label:'月あかり'},
       {key:'aura-rainbow', label:'にじ'}
     ];
+    const rNow = loadRewards();
     auras.forEach(a=>{
       const btn = document.createElement('button');
       btn.className='btn secondary';
       btn.style.width='auto'; btn.style.display='inline-block'; btn.style.marginRight='8px';
-      const owned = a.key === '' || loadRewards().aurasUnlocked.includes(a.key);
+      const owned = a.key === '' || rNow.aurasUnlocked.includes(a.key);
       btn.disabled = !owned;
-      btn.textContent = owned ? (loadRewards().activeAura===a.key ? `★ ${a.label}` : a.label) : `🔒 ${a.label}`;
+      btn.textContent = owned ? (rNow.activeAura===a.key ? `★ ${a.label}` : a.label) : `🔒 ${a.label}`;
       btn.addEventListener('click', ()=>{ if(owned){ applyAura(a.key); renderRewardsUI(); }});
       auraList.appendChild(btn);
     });
 
     renderCatalog();
     renderHistory();
-    applyAura(loadRewards().activeAura);
+    applyAura(rNow.activeAura);
   }
 
   /* ご褒美はいつでも閲覧可 */
@@ -774,21 +777,29 @@ window.addEventListener('DOMContentLoaded', () => {
   closeRewards.addEventListener('click', ()=>{ rewardsModal.style.display='none'; });
   rewardsModal.addEventListener('click', e=>{ if(e.target===rewardsModal) rewardsModal.style.display='none'; });
 
+  /* ====== メイン起動 ====== */
   function startMain(newSession){
     character = character || localStorage.getItem(K.char);
     if(!character){ refreshTitle(); return; }
 
-    charIcon.src = `public/char/${character}/calm.png`;
+    const charPath = `public/char/${character}/calm.png`;
+    charIcon.src = charPath;
+    charIcon.onerror = () => { charIcon.src = 'public/char/green/calm.png'; };
+
     heartCountEl.textContent = hearts;
     sessionInfo.textContent = newSession ? '新しいセッション' : 'つづきから';
 
-    petImg.src = `public/char/${character}/calm.png`;
+    petImg.src = charPath;
+    petImg.onerror = () => { petImg.src = 'public/char/green/calm.png'; };
     pet.style.display = 'block';
     clearTimeout(pet._timer);
     petMoveLoop();
 
+    // チャットを“クリアに”＝履歴可視のままでもOKだが、今回は初期化して見やすく
     chat.innerHTML='';
+
     if(newSession || log.length===0){
+      log = [];
       push('ai', firstRequest(character));
       saveAll();
     }else{
@@ -800,9 +811,10 @@ window.addEventListener('DOMContentLoaded', () => {
     updateDoneButtonState();
     startNextTimer();
     startLabelTimer();
-    applyAura(loadRewards().activeAura);
+    renderRewardsUI(); // ← 起動時にも更新
   }
 
+  /* ====== チャット ====== */
   function append(sender, text){
     const div = document.createElement('div');
     div.className = `bubble ${sender}`;
@@ -811,6 +823,7 @@ window.addEventListener('DOMContentLoaded', () => {
     chat.scrollTop = chat.scrollHeight;
   }
   function push(sender, text){ log.push({sender, text, ts:Date.now()}); append(sender, text); }
+
   function aiReplyAfter(text, intent='chat'){
     if(intent==='done'){
       hearts++; heartCountEl.textContent = hearts;
@@ -862,9 +875,10 @@ window.addEventListener('DOMContentLoaded', () => {
     if(confirm('セーブデータ（キャラ・ハート・ログ・ご褒美）を削除します。よろしいですか？')){
       localStorage.removeItem(K.char); localStorage.removeItem(K.hearts); localStorage.removeItem(K.log);
       localStorage.removeItem(K.pool); localStorage.removeItem(K.next);
-      localStorage.removeItem('meai_last_opened_at'); localStorage.removeItem('meai_last_user_text'); localStorage.removeItem('meai_user_text_history');
+      localStorage.removeItem(K.lastOpened); localStorage.removeItem(K.lastUserText); localStorage.removeItem(K.userTextHistory);
       localStorage.removeItem(K.rewards); localStorage.removeItem(K.milestones);
-      character=null; hearts=0; log=[]; show(scrCover);
+      character=null; hearts=0; log=[];
+      show(scrCover);
       applyAura('');
       stopNextTimer(); stopLabelTimer();
     }
@@ -878,6 +892,7 @@ window.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem(K.log, JSON.stringify(log));
   }
 
+  /* ====== ペット移動 ====== */
   function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
   function petRandomPos(){
     const pad = 24, size = 120;
@@ -901,14 +916,14 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   window.addEventListener('resize', ()=>{ clearTimeout(pet._timer); petMoveLoop(); });
 
-  function stopLabelTimer(){ if(labelTimer){ clearInterval(labelTimer); labelTimer=null; } }
-  function startLabelTimer(){ /* already defined above (kept) */ }
+  /* ====== 起動処理 ====== */
+  function initRewardsUIOnce(){
+    renderCatalog();
+    renderRewardsUI();
+  }
 
-  function maybeShowReunionWrapped(){ maybeShowReunion(); }
-  function maybeShowReunion(){ /* replaced above; keeping original behavior */ }
-
-  /* 起動 */
   (function init(){
+    initRewardsUIOnce();
     maybeShowReunion();
     markOpenedNow();
     updateDoneButtonState();
