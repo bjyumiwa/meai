@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MeAI Prototype (rewards + safe start)</title>
+<title>MeAI Prototype (multilang + rewards + safe start)</title>
 <link rel="icon" href="data:,">
 <style>
   html, body { height:100%; }
@@ -91,6 +91,13 @@
   .confetti{ position: fixed; width:8px; height:14px; top:-20px; z-index:1400;
     opacity:.95; transform:rotate(0deg); animation: confetti-fall linear forwards; }
   @keyframes confetti-fall{ to { transform: translateY(120vh) rotate(360deg); opacity:1; } }
+
+  /* 言語スイッチ */
+  .langbox{ display:flex; gap:8px; align-items:center; justify-content:center; margin-top:12px; }
+  .langbox select{
+    background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25);
+    border-radius:10px; padding:6px 10px; font-size:14px;
+  }
 </style>
 </head>
 <body>
@@ -102,27 +109,27 @@
 <div id="rewardsModal" aria-modal="true" role="dialog">
   <div class="wrap" tabindex="-1">
     <button class="btn" id="closeRewards" type="button" style="float:right;background:#fff;color:#111;border-radius:10px;">閉じる</button>
-    <h3>ご褒美コレクション</h3>
+    <h3 id="lblRewardsTitle">ご褒美コレクション</h3>
     <div id="rewardSummary" class="mono" style="margin:4px 0 10px;opacity:.9;"></div>
 
-    <h4>称号（マイルストーン）</h4>
+    <h4 id="lblMilestones">称号（マイルストーン）</h4>
     <div id="badgeList"></div>
 
-    <h4 style="margin-top:12px;">スタンプ</h4>
+    <h4 id="lblStamps" style="margin-top:12px;">スタンプ</h4>
     <div class="stamps" id="stampList"></div>
 
-    <h4 style="margin-top:12px;">見た目（オーラ）</h4>
+    <h4 id="lblAura" style="margin-top:12px;">見た目（オーラ）</h4>
     <div id="auraList"></div>
-    <p class="mono" style="margin-top:6px;opacity:.8;">※ オーラは最新を自動装備。クリックで変更できます。</p>
+    <p class="mono" style="margin-top:6px;opacity:.8;" id="lblAuraNote">※ オーラは最新を自動装備。クリックで変更できます。</p>
 
     <hr style="border:none; border-top:1px solid rgba(255,255,255,.12); margin:16px 0;">
-    <h3>ご褒美カタログ</h3>
+    <h3 id="lblCatalog">ご褒美カタログ</h3>
     <div id="catalogStamps" class="stamps"></div>
     <div id="catalogBadges"></div>
 
     <hr style="border:none; border-top:1px solid rgba(255,255,255,.12); margin:16px 0;">
-    <h3>獲得履歴</h3>
-    <p class="mono" style="opacity:.8;">最近の獲得（最大20件）</p>
+    <h3 id="lblHistory">獲得履歴</h3>
+    <p class="mono" style="opacity:.8;" id="lblHistoryNote">最近の獲得（最大20件）</p>
     <div id="rewardHistory"></div>
   </div>
 </div>
@@ -132,9 +139,18 @@
   <div class="container">
     <div class="glass cover-card">
       <img class="cover-illust" src="public/miwacchi_open.png" alt="MeAI cover" onerror="this.src='public/cover.png'">
-      <div class="cover-title">MeAI</div>
-      <p class="cover-sub">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
+      <div class="cover-title" id="titleApp">MeAI</div>
+      <p class="cover-sub" id="titleLead">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
       <button id="coverStart" class="btn primary" type="button">▶︎ スタート</button>
+      <div class="langbox">
+        <label for="langSelect">🌏</label>
+        <select id="langSelect">
+          <option value="ja">日本語</option>
+          <option value="en">English</option>
+          <option value="zh">中文</option>
+          <option value="ko">한국어</option>
+        </select>
+      </div>
     </div>
   </div>
 </section>
@@ -145,8 +161,8 @@
     <div class="title-grid">
       <div class="brand"><img src="public/char/green/calm.png" alt=""></div>
       <div>
-        <h1 style="margin:.2em 0 .1em;">MeAI</h1>
-        <p class="lead">“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で自己申告して記録するミニアプリです。<br>※ 監視はしません。ボタン/文字入力で記録するだけ。</p>
+        <h1 style="margin:.2em 0 .1em;" id="lblMenuTitle">MeAI</h1>
+        <p class="lead" id="lblLead">“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で自己申告して記録するミニアプリです。<br>※ 監視はしません。ボタン/文字入力で記録するだけ。</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
           <button id="start" class="btn" type="button">はじめから</button>
           <button id="cont"  class="btn" type="button">つづきから</button>
@@ -154,6 +170,15 @@
           <button id="rewardsBtn" class="btn" type="button">ご褒美</button>
         </div>
         <p id="savestate" style="opacity:.9;margin-top:8px;"></p>
+        <div class="langbox">
+          <label for="langSelect2">🌏</label>
+          <select id="langSelect2">
+            <option value="ja">日本語</option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="ko">한국어</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
@@ -162,7 +187,7 @@
 <!-- ===== キャラ選択 ===== -->
 <section id="choose" class="screen hidden">
   <div class="container glass" style="padding:18px;">
-    <h2 style="margin:6px 0 12px;">キャラクターを選んでね</h2>
+    <h2 style="margin:6px 0 12px;" id="lblChoose">キャラクターを選んでね</h2>
     <div class="grid" id="charGrid">
       <button class="char" data-char="green" type="button" aria-label="green" id="charGreen"><img src="public/char/green/calm.png" alt=""></button>
       <button class="char" data-char="blue"  type="button" aria-label="blue"  id="charBlue"><img  src="public/char/blue/calm.png"  alt=""></button>
@@ -201,23 +226,160 @@
 
 <script>
 (function(){
-  // ===== 安全ヘルパー =====
-  const $ = (s,root=document)=>root.querySelector(s);
-  const on = (el,ev,fn,opt)=>{ if(el) el.addEventListener(ev,fn,opt||false); };
+  // ===== i18n =====
+  const I18N = {
+    ja: {
+      app:"MeAI",
+      lead:"“生活に寄り添うお願い”を受け取り、<br>「はい、やったよ」で自己申告して記録するミニアプリです。<br>※ 監視はしません。ボタン/文字入力で記録するだけ。",
+      coverLead:"小さな“やってみる”を、やさしく提案してくれる相棒。",
+      start:"はじめから", cont:"つづきから", about:"このプロトタイプについて", rewards:"ご褒美",
+      choose:"キャラクターを選んでね",
+      toTitle:"メニューへ", showLog:"ログを確認", reset:"データ初期化", send:"送信", done:"やったよ",
+      noSave:"セーブデータがありません。", hasSave:"セーブデータがあります。「つづきから」で再開できます。",
+      newSession:"新しいセッション", fromSave:"つづきから",
+      aboutText:"この試作はAIが監視するのではなく、ユーザーの自己申告（「やったよ」）で記録するだけの設計です。",
+      rewardsTitle:"ご褒美コレクション", milestones:"称号（マイルストーン）", stamps:"スタンプ", aura:"見た目（オーラ）",
+      auraNote:"※ オーラは最新を自動装備。クリックで変更できます。", catalog:"ご褒美カタログ",
+      history:"獲得履歴", historyNote:"最近の獲得（最大20件）", noHistory:"（まだ獲得履歴がありません）",
+      laterMsg:(h)=>`また後でね。約${h}時間後に次の提案を送るね。`,
+      aiAck:"うん、なるほどね。",
+      great:"すばらしい！ハートが増えたよ💖",
+      requests: [
+        "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。",
+        "今日の空の色をひとことで教えて。","窓を少し開けて、空気を入れ替えよう。","深呼吸を3回してみよう。",
+        "好きな音を5秒だけ聞かせて。（心の中でもOK）","花や植物をひとつ思い浮かべて、名前を教えて。",
+        "今いる部屋で、やさしい色を探して教えて。","姿勢をすこし伸ばして、肩を回してみよう。",
+        "カーテンを少し開けて、明るさを感じてみて。","おやつか飲み物をひと口、味わってみよう。",
+        "机の上を10秒だけ整えてみよう。","目の前の“丸い形”をひとつ見つけて教えて。",
+        "耳をすませて、いちばん小さな音を探してみよう。","手を温めたり、冷たいものに触れたりして、感触を教えて。",
+        "「ありがとう」を心の中で1回言ってみよう。","外の風や空気の温度を感じて、ひと言で教えて。",
+        "時計の音、ある？ない？","今の気分を天気で言うと？（晴れ/曇り/雨/雪/風）",
+        "好きな言葉をひとつ思い出して、教えて。","部屋の中で“やわらかいもの”を触ってみよう。",
+        "窓の外を10秒見て、気づいたことをひと言。","スマホを裏向きにして10秒置いてみよう。",
+        "ゆっくり首を左右に回して、こり具合を教えて。","今日の色をひとつ選んで、教えて。",
+        "今の音量（静か/ふつう/にぎやか）を教えて。","好きな匂いをひとつ思い出して、教えて。",
+        "“おかえり”って言ってみて。","“おやすみ”って言ってくれる？"
+      ],
+      tone:{green:"（やさしく）",blue:"（ていねいに）",pink:"（わくわく）",purple:"（おちついて）"}
+    },
+    en: {
+      app:"MeAI",
+      lead:'A tiny companion that suggests gentle “doable” actions. <br>You log them yourself with “Done”, there is no monitoring.',
+      coverLead:"A gentle buddy that nudges small try-outs.",
+      start:"Start", cont:"Continue", about:"About this prototype", rewards:"Rewards",
+      choose:"Pick your character",
+      toTitle:"Menu", showLog:"Show Log", reset:"Reset Data", send:"Send", done:"Done",
+      noSave:"No save data.", hasSave:'Save data found. Use "Continue".',
+      newSession:"New session", fromSave:"From save",
+      aboutText:"This prototype does not monitor activity. You self-report with the Done button or text.",
+      rewardsTitle:"Rewards Collection", milestones:"Milestones", stamps:"Stamps", aura:"Auras",
+      auraNote:"The latest aura auto-equips. Click to change.", catalog:"Rewards Catalog",
+      history:"History", historyNote:"Recent (max 20)", noHistory:"(No history yet)",
+      laterMsg:(h)=>`See you later! I’ll nudge you again in about ${h} hours.`,
+      aiAck:"Got it.",
+      great:"Great! You earned a heart 💖",
+      requests:[
+        "Say good morning to someone.","Drink a glass of water.","Close your eyes for 5 seconds.",
+        "Describe today’s sky color in one word.","Open the window a little for fresh air.","Take 3 deep breaths.",
+        "Listen to a favorite sound for 5 seconds (in your mind is OK).","Think of a plant and tell me its name.",
+        "Find a gentle color in your room.","Stretch your posture and roll your shoulders.",
+        "Open the curtain a bit and feel the light.","Sip a snack or drink mindfully.",
+        "Tidy your desk for 10 seconds.","Find a round shape in front of you.",
+        "Listen for the tiniest sound.","Touch something warm or cool and tell the feel.",
+        "Say “thank you” once in your mind.","Feel the outdoor air/temperature and report in a word.",
+        "Is there a clock sound?","If your mood were weather, what is it?",
+        "Recall a favorite word and share it.","Touch something soft in the room.",
+        "Look out the window for 10 seconds and share one notice.","Put your phone face-down for 10 seconds.",
+        "Gently rotate your neck; how stiff is it?","Pick today’s color and tell me.",
+        "What’s the noise level (quiet/normal/busy)?","Recall a favorite smell and share it.",
+        "Say “welcome back.”","Say “good night,” please."
+      ],
+      tone:{green:"(gentle)",blue:"(polite)",pink:"(excited)",purple:"(calm)"}
+    },
+    zh: {
+      app:"MeAI",
+      lead:"这是一个温柔的伙伴，给出小而可行的建议。<br>只需自己点击“完成”记录，没有监控。",
+      coverLead:"温柔的小伙伴，轻轻推动你尝试小事。",
+      start:"开始", cont:"继续", about:"关于本原型", rewards:"奖励",
+      choose:"请选择角色",
+      toTitle:"菜单", showLog:"查看日志", reset:"重置数据", send:"发送", done:"完成",
+      noSave:"没有存档。", hasSave:"发现存档，可点击“继续”。",
+      newSession:"新会话", fromSave:"继续会话",
+      aboutText:"此原型不进行监控，只靠你自己点击“完成”或输入文字来记录。",
+      rewardsTitle:"奖励收藏", milestones:"里程碑", stamps:"贴纸", aura:"光环",
+      auraNote:"最新光环会自动装备，点击可切换。", catalog:"奖励目录",
+      history:"获取记录", historyNote:"最近（最多20条）", noHistory:"（暂无记录）",
+      laterMsg:(h)=>`稍后见！大约 ${h} 小时后再给你新的建议。`,
+      aiAck:"明白了。",
+      great:"太棒了！获得了一颗爱心 💖",
+      requests:[
+        "跟某人说声早安。","喝一杯水。","闭眼 5 秒钟。",
+        "用一个词描述今天的天空颜色。","稍微开下窗通风。","深呼吸 3 次。",
+        "听 5 秒喜欢的声音（心里想也可）。","想一个植物并告诉我名字。",
+        "找找房间里温柔的颜色。","伸展姿势，转动肩膀。",
+        "拉开一点窗帘感受光线。","细细品一口零食或饮料。",
+        "整理桌面 10 秒。","找一个“圆形”。",
+        "留心最微小的声音。","摸摸温热或冰凉的东西，说说触感。",
+        "在心里说一句“谢谢”。","感受室外空气/温度，用一句话说说。",
+        "能听到钟声吗？","如果心情是天气，会是哪种？",
+        "想起一个喜欢的词并分享。","摸摸房间里“柔软的东西”。",
+        "向窗外看 10 秒，说一个发现。","把手机反放 10 秒。",
+        "轻轻转动脖子，僵硬度如何？","选一个今天的颜色并告诉我。",
+        "当前噪声等级（安静/正常/嘈杂）？","回想一种喜欢的气味并分享。",
+        "说一句“欢迎回来”。","请说“晚安”。"
+      ],
+      tone:{green:"（温柔）",blue:"（礼貌）",pink:"（兴奋）",purple:"（平静）"}
+    },
+    ko: {
+      app:"MeAI",
+      lead:"작게 시도해볼 일을 다정하게 제안해주는 동반자입니다.<br>‘완료’로 직접 기록하며, 감시는 없습니다.",
+      coverLead:"작은 시도를 살짝 밀어주는 다정한 친구.",
+      start:"처음부터", cont:"이어하기", about:"프로토타입 정보", rewards:"보상",
+      choose:"캐릭터를 선택하세요",
+      toTitle:"메뉴", showLog:"로그 보기", reset:"데이터 초기화", send:"보내기", done:"했어요",
+      noSave:"저장 데이터가 없습니다.", hasSave:"저장 데이터를 찾았어요. ‘이어하기’를 누르세요.",
+      newSession:"새 세션", fromSave:"이어하기",
+      aboutText:"이 프로토타입은 활동을 감시하지 않습니다. 사용자가 ‘했어요’ 버튼이나 텍스트로 직접 기록합니다.",
+      rewardsTitle:"보상 컬렉션", milestones:"마일스톤", stamps:"스탬프", aura:"오라",
+      auraNote:"가장 최근 오라는 자동 장착됩니다. 클릭해서 변경하세요.", catalog:"보상 카탈로그",
+      history:"획득 기록", historyNote:"최근 (최대 20개)", noHistory:"(아직 기록이 없습니다)",
+      laterMsg:(h)=>`${h}시간 후에 다시 제안할게요!`,
+      aiAck:"알겠어.",
+      great:"멋져요! 하트가 늘었어요 💖",
+      requests:[
+        "누군가에게 ‘좋은 아침’이라고 말해요.","물 한 잔 마셔요.","눈을 5초간 감아봐요.",
+        "오늘 하늘 색을 한 단어로 말해요.","창문을 조금 열어 공기를 바꿔요.","심호흡 3번.",
+        "좋아하는 소리를 5초 듣기(마음속도 OK).","식물 하나를 떠올리고 이름을 말해요.",
+        "방에서 은은한 색을 찾아요.","자세를 펴고 어깨를 돌려요.",
+        "커튼을 조금 열고 밝음을 느껴요.","간식이나 음료를 한 모금 음미해요.",
+        "책상을 10초 정리해요.","눈앞의 ‘둥근 모양’을 찾아요.",
+        "가장 작은 소리를 들어봐요.","따뜻하거나 차가운 것을 만지고 감촉을 말해요.",
+        "마음속으로 ‘고마워’라고 말해요.","밖의 공기/온도를 느끼고 한마디로 말해요.",
+        "시계 소리 들려요?","기분을 날씨로 표현하면?",
+        "좋아하는 단어 하나를 떠올려 말해요.","방 안의 ‘부드러운 것’을 만져봐요.",
+        "창밖을 10초 보고 하나만 말해요.","휴대를 뒤집어 10초 내려놓아요.",
+        "목을 좌우로 천천히 돌리고 뻐근함을 말해요.","오늘의 색 하나를 정해 말해요.",
+        "지금 소음 수준(조용/보통/북적)?","좋아하는 냄새를 떠올려 말해요.",
+        "‘다녀왔어’라고 말해요.","‘잘 자’라고 말해줄래요?"
+      ],
+      tone:{green:"(다정하게)",blue:"(정중하게)",pink:"(설레게)",purple:"(차분하게)"}
+    }
+  };
+  const LS_LANG = "meai_lang";
+  const getLang = () => localStorage.getItem(LS_LANG) || "ja";
+  const setLang = (v) => { localStorage.setItem(LS_LANG, v); applyLang(v); };
+
+  function $(s,root=document){ return root.querySelector(s); }
+  function on(el,ev,fn,opt){ if(el) el.addEventListener(ev,fn,opt||false); }
 
   // 画面
-  const scr = {
-    cover: $('#cover'),
-    title: $('#title'),
-    choose: $('#choose'),
-    main:  $('#main')
-  };
-  function show(id){
-    Object.values(scr).forEach(el=>el && el.classList.add('hidden'));
-    scr[id]?.classList.remove('hidden');
-  }
+  const scr = { cover:$('#cover'), title:$('#title'), choose:$('#choose'), main:$('#main') };
+  function show(id){ Object.values(scr).forEach(el=>el && el.classList.add('hidden')); scr[id]?.classList.remove('hidden'); }
 
   // DOM
+  const langSelect  = $('#langSelect');
+  const langSelect2 = $('#langSelect2');
+
   const btnCoverStart = $('#coverStart');
   const btnStart = $('#start'), btnCont = $('#cont'), btnAbout = $('#about'), saveState = $('#savestate');
   const btnBackTitle = $('#backTitle'), btnToTitle = $('#toTitle'), btnReset = $('#reset'), btnShowLog = $('#showLog');
@@ -230,15 +392,16 @@
   const chat = $('#chat'), input = $('#input'), btnSend = $('#send'), btnDone = $('#done');
   const heartCountEl = $('#heartCount'), charIcon = $('#charIcon'), sessionInfo = $('#sessionInfo');
 
+  // ラベル要素
+  const titleApp = $('#titleApp'), titleLead = $('#titleLead');
+  const lblMenuTitle = $('#lblMenuTitle'), lblLead = $('#lblLead');
+  const lblChoose = $('#lblChoose');
+  const lblRewardsTitle = $('#lblRewardsTitle'), lblMilestones = $('#lblMilestones'),
+        lblStamps = $('#lblStamps'), lblAura = $('#lblAura'), lblAuraNote = $('#lblAuraNote'),
+        lblCatalog = $('#lblCatalog'), lblHistory = $('#lblHistory'), lblHistoryNote = $('#lblHistoryNote');
+
   // 保存キー
-  const K = {
-    char:'meai_character',
-    hearts:'meai_heart',
-    log:'meai_log',
-    next:'meai_next_due',
-    rewards:'meai_rewards',
-    milestones:'meai_milestones'
-  };
+  const K = { char:'meai_character', hearts:'meai_heart', log:'meai_log', next:'meai_next_due', rewards:'meai_rewards', milestones:'meai_milestones' };
 
   // 状態
   let character = get(K.char);
@@ -253,6 +416,45 @@
   function del(k){ try{localStorage.removeItem(k)}catch{} }
   function toInt(v,d=0){ const n=parseInt(v,10); return Number.isFinite(n)?n:d; }
   function toArray(raw,f=[]){ try{ const v=typeof raw==='string'?JSON.parse(raw):raw; return Array.isArray(v)?v:f }catch{ return f } }
+
+  // 言語適用
+  function applyLang(lang){
+    const T = I18N[lang] || I18N.ja;
+    document.documentElement.lang = lang;
+    titleApp.textContent = T.app;
+    titleLead.innerHTML = T.coverLead;
+    lblMenuTitle.textContent = T.app;
+    lblLead.innerHTML = T.lead;
+
+    btnStart.textContent = T.start;
+    btnCont.textContent = T.cont;
+    btnAbout.textContent = T.about;
+    btnRewardsTitle.textContent = T.rewards;
+
+    lblChoose.textContent = T.choose;
+
+    btnToTitle.textContent = T.toTitle;
+    btnShowLog.textContent = T.showLog;
+    btnReset.textContent   = T.reset;
+    btnSend.textContent    = T.send;
+    updateDoneLabel(); // doneボタンは後で状態合わせ
+
+    lblRewardsTitle.textContent = T.rewardsTitle;
+    lblMilestones.textContent   = T.milestones;
+    lblStamps.textContent       = T.stamps;
+    lblAura.textContent         = T.aura;
+    lblAuraNote.textContent     = T.auraNote;
+    lblCatalog.textContent      = T.catalog;
+    lblHistory.textContent      = T.history;
+    lblHistoryNote.textContent  = T.historyNote;
+
+    // セーブ表示
+    if(saveState){
+      const has = !!get(K.char);
+      saveState.textContent = has ? T.hasSave : T.noSave;
+      btnCont.disabled = !has;
+    }
+  }
 
   // チャット
   function append(sender,text){
@@ -272,31 +474,17 @@
     set(K.log,JSON.stringify(log));
   }
 
-  // リクエスト
-  const REQUESTS=[
-    // リクエスト（30項目）
-const REQUESTS = [
-  "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。",
-  "今日の空の色をひとことで教えて。","窓を少し開けて、空気を入れ替えよう。","深呼吸を3回してみよう。",
-  "好きな音を5秒だけ聞かせて。（心の中でもOK）","花や植物をひとつ思い浮かべて、名前を教えて。",
-  "今いる部屋で、やさしい色を探して教えて。","姿勢をすこし伸ばして、肩を回してみよう。",
-  "カーテンを少し開けて、明るさを感じてみて。","おやつか飲み物をひと口、味わってみよう。",
-  "机の上を10秒だけ整えてみよう。","目の前の“丸い形”をひとつ見つけて教えて。",
-  "耳をすませて、いちばん小さな音を探してみよう。","手を温めたり、冷たいものに触れたりして、感触を教えて。",
-  "「ありがとう」を心の中で1回言ってみよう。","外の風や空気の温度を感じて、ひと言で教えて。",
-  "時計の音、ある？ない？","今の気分を天気で言うと？（晴れ/曇り/雨/雪/風）",
-  "好きな言葉をひとつ思い出して、教えて。","部屋の中で“やわらかいもの”を触ってみよう。",
-  "窓の外を10秒見て、気づいたことをひと言。","スマホを裏向きにして10秒置いてみよう。",
-  "ゆっくり首を左右に回して、こり具合を教えて。","今日の色をひとつ選んで、教えて。",
-  "今の音量（静か/ふつう/にぎやか）を教えて。","好きな匂いをひとつ思い出して、教えて。",
-  "“おかえり”って言ってみて。","“おやすみ”って言ってくれる？"
-];
-
-  ];
-  function pick(){ return REQUESTS[Math.floor(Math.random()*REQUESTS.length)] }
+  // リクエスト（言語別）
+  function pickRequest(){
+    const lang = getLang();
+    const T = I18N[lang] || I18N.ja;
+    const arr = T.requests || I18N.ja.requests;
+    return arr[Math.floor(Math.random()*arr.length)];
+  }
   function firstRequest(c){
-    const tag={green:"（やさしく）",blue:"（ていねいに）",pink:"（わくわく）",purple:"（おちついて）"}[c]||"";
-    return `${tag} ${pick()}`;
+    const lang = getLang();
+    const tone = (I18N[lang]?.tone||I18N.ja.tone)[c] || "";
+    return `${tone} ${pickRequest()}`;
   }
 
   // ===== ご褒美 =====
@@ -340,7 +528,6 @@ const REQUESTS = [
   }
 
   function setAuraClass(aura){
-    // 本版はオーラの見た目エフェクトは省略し、保存とUI反映のみ
     document.body.dataset.aura = aura || '';
   }
   function applyAura(aura){
@@ -356,7 +543,7 @@ const REQUESTS = [
     r.stamps.push({emo, ts: Date.now()});
     saveRewards(r);
     renderRewardsUI();
-    showToast(`<span class="ttl">ご褒美をゲット！</span><br><span class="emo">${emo}</span>スタンプを手に入れたよ！`);
+    showToast(`<span class="ttl">🎁</span> <span class="emo">${emo}</span>Get!`);
   }
 
   function grantMilestoneIfAny(newHearts){
@@ -373,11 +560,11 @@ const REQUESTS = [
           saveRewards(r);
           applyAura(ms.aura);
           renderRewardsUI();
-          showToast(`<span class="ttl">マイルストーン ${ms.n}</span><br>称号「${ms.badge}」と新オーラを解放！`);
+          showToast(`<span class="ttl">#${ms.n}</span> ${ms.badge} + Aura`);
         }else{
           saveRewards(r);
           renderRewardsUI();
-          showToast(`<span class="ttl">マイルストーン ${ms.n}</span><br>称号「${ms.badge}」を手に入れたよ！`);
+          showToast(`<span class="ttl">#${ms.n}</span> ${ms.badge}`);
         }
         grantedSomething = true;
       }
@@ -405,13 +592,14 @@ const REQUESTS = [
     MILESTONES.forEach(ms=>{
       const row = document.createElement('div');
       row.className = 'list-row';
-      const aura = ms.aura ? `<span class="pill mono">${ms.aura.replace('aura-','')}</span>` : '<span style="opacity:.8">（オーラなし）</span>';
-      row.innerHTML = `<b>#${ms.n} ${ms.badge}</b><span style="opacity:.8">条件：ハート${ms.n}個</span> ${aura}`;
+      const aura = ms.aura ? `<span class="pill mono">${ms.aura.replace('aura-','')}</span>` : '<span style="opacity:.8">（no aura）</span>';
+      row.innerHTML = `<b>#${ms.n} ${ms.badge}</b><span style="opacity:.8">ハート${ms.n}個</span> ${aura}`;
       catalogBadges.appendChild(row);
     });
   }
 
   function renderHistory(){
+    const T = I18N[getLang()];
     const r = loadRewards();
     const events = [];
     r.stamps.forEach(s => events.push({type:'stamp', label:`スタンプ ${s.emo}`, ts:s.ts}));
@@ -419,7 +607,7 @@ const REQUESTS = [
     events.sort((a,b)=>b.ts-a.ts);
     const latest = events.slice(0, 20);
 
-    rewardHistory.innerHTML = latest.length ? '' : '<div style="opacity:.8">（まだ獲得履歴がありません）</div>';
+    rewardHistory.innerHTML = latest.length ? '' : `<div style="opacity:.8">${T.noHistory}</div>`;
     latest.forEach(ev=>{
       const d = new Date(ev.ts||Date.now());
       const time = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
@@ -473,10 +661,7 @@ const REQUESTS = [
   }
 
   // 「やったよ」クールタイム
-  function canDoneNow(){
-    const due = toInt(get(K.next),0);
-    return !due || due<=Date.now();
-  }
+  function canDoneNow(){ const due = toInt(get(K.next),0); return !due || due<=Date.now(); }
   function setNextAfterHours(h){
     const due = Date.now() + Math.round(h*3600*1000);
     set(K.next,String(due));
@@ -484,15 +669,25 @@ const REQUESTS = [
     startNextTimer();
     startLabelTimer();
   }
+  function updateDoneLabel(){
+    const lang = getLang(); const T = I18N[lang];
+    if(!btnDone) return;
+    if(btnDone.disabled){
+      // テキストは updateDoneState で上書きされる
+    }else{
+      btnDone.textContent = T.done;
+    }
+  }
   function updateDoneState(){
+    const lang = getLang(); const T = I18N[lang];
     const due = toInt(get(K.next),0);
     const disabled = due && due>Date.now();
     btnDone.disabled = !!disabled;
     if(disabled){
       const left = due-Date.now();
-      btnDone.textContent = "あと" + countdown(left);
+      btnDone.textContent = T.done + "（あと" + countdown(left) + "）";
     }else{
-      btnDone.textContent = "やったよ";
+      btnDone.textContent = T.done;
     }
   }
   function countdown(ms){
@@ -509,8 +704,8 @@ const REQUESTS = [
     const due = toInt(get(K.next),0);
     if(!due) return;
     const wait = due - Date.now();
-    if(wait<=0){ push('ai', pick()); del(K.next); updateDoneState(); return; }
-    nextTimer = setTimeout(()=>{ del(K.next); updateDoneState(); push('ai', pick()); }, wait);
+    if(wait<=0){ push('ai', pickRequest()); del(K.next); updateDoneState(); return; }
+    nextTimer = setTimeout(()=>{ del(K.next); updateDoneState(); push('ai', pickRequest()); }, wait);
   }
   function startLabelTimer(){
     if(labelTimer) clearInterval(labelTimer);
@@ -523,13 +718,14 @@ const REQUESTS = [
 
   // メイン開始
   function startMain(newSession){
+    const lang = getLang(); const T = I18N[lang];
     character = character || get(K.char);
     if(!character){ return showTitle(); }
     const charPath=`public/char/${character}/calm.png`;
     charIcon.src = charPath;
     charIcon.onerror = ()=>{ charIcon.src='public/char/green/calm.png'; };
     heartCountEl.textContent = hearts;
-    sessionInfo.textContent = newSession ? '新しいセッション' : 'つづきから';
+    sessionInfo.textContent = newSession ? T.newSession : T.fromSave;
 
     chat.innerHTML='';
     if(newSession || log.length===0){
@@ -550,9 +746,10 @@ const REQUESTS = [
 
   // 画面表示
   function showTitle(){
+    const lang = getLang(); const T = I18N[lang];
     const has = !!get(K.char);
     if(saveState){
-      saveState.textContent = has ? 'セーブデータがあります。「つづきから」で再開できます。' : 'セーブデータがありません。';
+      saveState.textContent = has ? T.hasSave : T.noSave;
     }
     if(btnCont) btnCont.disabled = !has;
     show('title');
@@ -564,29 +761,27 @@ const REQUESTS = [
     if(!t) return;
     push('user',t);
     input.value='';
-    push('ai','うん、なるほどね。');
+    push('ai', I18N[getLang()].aiAck);
     saveAll();
   }
 
   // ====== バインド ======
+  on(langSelect,'change', ()=> setLang(langSelect.value));
+  on(langSelect2,'change', ()=> setLang(langSelect2.value));
+
   on(btnCoverStart,'click',()=>{
     try{
-      if(get(K.char)){
-        startMain(false);            // セーブあり → 直でメイン
-      }else{
-        show('choose');              // セーブなし → キャラ選択へ
-      }
-    }catch(e){ console.error(e); show('title'); }
+      if(get(K.char)){ startMain(false); } else { show('choose'); }
+    }catch(e){ console.error(e); showTitle(); }
   });
 
-  on(btnStart,'click', ()=> { show('choose'); }); // ★ 初期化しない、必ず選択へ
+  on(btnStart,'click', ()=> { show('choose'); });
   on(btnCont,'click', ()=>{
-    if(!get(K.char)){ alert('セーブデータがありません。'); return; }
+    if(!get(K.char)){ alert(I18N[getLang()].noSave); return; }
     startMain(false);
   });
-  on(btnAbout,'click', ()=> alert('この試作はAIが監視するのではなく、ユーザーの自己申告（「やったよ」）で記録するだけの設計です。'));
+  on(btnAbout,'click', ()=> alert(I18N[getLang()].aboutText));
 
-  // ★ キャラ選択：デリゲーション＋個別バインド（確実に拾う）
   const chooseEl = $('#charGrid');
   on(chooseEl,'click',(e)=>{
     const el = e.target.closest('.char');
@@ -610,22 +805,21 @@ const REQUESTS = [
 
   on(btnDone,'click', ()=>{
     if(guard) return; guard=true; setTimeout(()=>guard=false, 500);
-
+    const T = I18N[getLang()];
     if(!canDoneNow()){
       const due=toInt(get(K.next),0);
       const rest=Math.max(0,due-Date.now());
-      alert(`もう少し休憩… 次は ${countdown(rest)} 後に「やったよ」できます。`);
+      alert(`もう少し休憩… 次は ${countdown(rest)} 後に「${T.done}」できます。`);
       return;
     }
     btnDone.disabled=true; updateDoneState();
-    const t='やったよ';
-    push('user',t);
+    push('user', T.done);
     hearts++; heartCountEl.textContent=hearts;
-    push('ai','すばらしい！ハートが増えたよ💖');
+    push('ai', T.great);
     saveAll();
-    onHeartIncreased();                // ★ ご褒美付与
+    onHeartIncreased();
     const h = Math.round((1 + Math.random()*2)*10)/10; // 1.0〜3.0h
-    push('ai', `また後でね。約${h}時間後に次の提案を送るね。`);
+    push('ai', T.laterMsg(h));
     setNextAfterHours(h);
   });
 
@@ -634,7 +828,6 @@ const REQUESTS = [
     alert(text);
   });
 
-  // ご褒美モーダル
   function openRewards(){
     renderRewardsUI();
     rewardsModal.style.display='block';
@@ -648,6 +841,10 @@ const REQUESTS = [
 
   // 初期
   try{
+    const lang = getLang();
+    if(langSelect)  langSelect.value = lang;
+    if(langSelect2) langSelect2.value = lang;
+    applyLang(lang);
     show('cover');
   }catch(e){
     console.error(e);
