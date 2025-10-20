@@ -274,10 +274,7 @@
     poolZh:'meai_suggest_pool_zh', poolKo:'meai_suggest_pool_ko'
   };
 
-  // ======= 座ったまま提案（略：元のまま） =======
-  const SUGGEST_GEN = {/* 省略せず定義（元コードのまま） */};
-  // --- 既存の SUGGEST_GEN 本文は長いので、元のまま貼ってください ---
-  // ↑ この行から下に、ユーザーの元投稿にある SUGGEST_GEN / buildSuggestionPool / getPool / nextSuggestion をそのまま残しています
+  // ======= 座ったまま提案（簡略版プール生成：元のまま移植） =======
   const SUGGEST_GEN_COPY = {
     ja: { templates:[
         "{when}{action}してみよう。","{when}{action}を{duration}やってみて。","{place}で{action}して、{report}。",
@@ -346,7 +343,7 @@
 
   const nameModal=$('#nameModal'), nameInput=$('#nameInput'), nameSave=$('#nameSave'), nameSkip=$('#nameSkip'), closeName=$('#closeName');
 
-  const hubModal=$('#hubModal'), closeHub=$('#closeHub'), hubAppearance=$('#hubAppearance'), hubRecords=$('#hubRecords'), hubContinue=$('#hubContinue');
+  const hubModal=$('#hubModal'), closeHub=$('#closeHub'), hubAppearance=$('#hubAppearance'), hubRecords=$('#hubRecords'), hubContinue=$('#hubContinue']);
 
   // 新規: スタート選択
   const startModal=$('#startModal'), closeStart=$('#closeStart'), btnContinueStart=$('#btnContinueStart'), btnResetStart=$('#btnResetStart'), continueHint=$('#continueHint');
@@ -562,7 +559,8 @@
   on(nameSave,'click', ()=>{ const v=(nameInput.value||"").trim(); if(!v) return; set(KEY.charName, v); updateCharNameUI(); push('ai', `これからは「${v}」って呼ぶね。よろしく！`); nameModal.style.display='none'; });
   on(nameSkip,'click', ()=> nameModal.style.display='none');
   on(closeName,'click', ()=> nameModal.style.display='none');
-  on(nameModal,'click', e=>{ if(e.target===nameModal) nameModal.style.display='none'); });
+  // ★バグ修正済み: 余計な ) を削除
+  on(nameModal,'click', e=>{ if(e.target===nameModal) nameModal.style.display='none'; });
 
   // ハブ
   on($('#toHub'),'click', ()=> $('#hubModal').style.display='block');
