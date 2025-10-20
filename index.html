@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MeAI Prototype (name-first + personalized + name-reward)</title>
+<title>MeAI Prototype (name-first + personalized + name-reward + sitting-suggest)</title>
 <link rel="icon" href="data:,">
 <style>
   html, body { height:100%; }
@@ -139,7 +139,7 @@
   </div>
 </section>
 
-<!-- ご褒美モーダル（略） -->
+<!-- ご褒美モーダル（簡略） -->
 <div id="rewardsModal" aria-modal="true" role="dialog">
   <div class="modal-wrap" tabindex="-1">
     <button class="btn" id="closeRewards" type="button" style="float:right;background:#fff;color:#111;border-radius:10px;">×</button>
@@ -193,13 +193,9 @@
       rewardsTitle:"ご褒美コレクション",
       nameTitle:"キャラクターの名前", nameLead:"ご褒美だよ。キャラに名前をつけてみる？（あとで変更OK）",
       hubTitle:"どこから再開する？",
-      // フォーマット
       formatSuggest:(userName, req, charName)=> {
-        if(charName){
-          return `${userName ? userName + "さん、" : ""}${req}\n— ${charName}より`;
-        }else{
-          return `${userName ? userName + "さん、" : ""}${req}`;
-        }
+        if(charName){ return `${userName ? userName + "さん、" : ""}${req}\n— ${charName}より`; }
+        return `${userName ? userName + "さん、" : ""}${req}`;
       },
       aiAck:"うん、なるほどね。",
       doneLabel:"やったよ",
@@ -224,7 +220,10 @@
       formatSuggest:(userName, req, charName)=> charName ? `${userName?userName+", ":""}${req}\n— from ${charName}` : `${userName?userName+", ":""}${req}`,
       aiAck:"Got it.", doneLabel:"Done",
       laterMsg:(h)=>`See you later in about ${h} hours.`,
-      requests:[ "Say good morning to someone.","Drink a glass of water.","Close your eyes for 5 seconds.","Describe today’s sky color.","Open the window a little.","Take 3 deep breaths." ]
+      requests:[
+        "Say good morning to someone.","Drink a glass of water.","Close your eyes for 5 seconds.",
+        "Describe today’s sky color.","Open the window a little.","Take 3 deep breaths."
+      ]
     },
     zh:{
       app:"MeAI",
@@ -266,8 +265,133 @@
     rewards:'meai_rewards',
     milestones:'meai_milestones',
     name:'meai_char_name',      // キャラ名
-    user:'meai_user_name'       // ユーザー名（★新規）
+    user:'meai_user_name'       // ユーザー名
   };
+
+  // ======= 多言語対応・座ったまま提案つき 生成器（★ここが新規・重要） =======
+  const SUGGEST_GEN = {
+    ja: {
+      templates: [
+        "{when}{action}してみよう。","{when}{action}を{duration}やってみて。","{place}で{action}して、{report}。",
+        "{count}回だけ{action}してみよう。","{sense}に集中して{duration}、感じたことを{oneword}で。",
+        "{pose}して{duration}、そのまま呼吸を{breath}。","今日の{theme}をひとつ見つけて、{oneword}で教えて。",
+        // 座ったまま系
+        "座ったままで{action}してみよう。","椅子に座ったまま、{sense}に集中してみて。",
+        "手だけ動かして{action}を{count}回してみよう。","音を立てずに{action}してみよう。",
+        "静かにできる{action}を{duration}やってみて。","座ったままでできる{smallTask}をひとつやってみよう。"
+      ],
+      lexicon: {
+        when:["いま","このあと","ひと息ついたら","休憩の前に","立ち上がったついでに"],
+        action:["深呼吸","背伸び","目を閉じる","手のひらを温める","肩を回す","指をゆっくり開く","手首をまわす","コップの水を飲む","小さく首を回す","肩を上げてストンと下ろす","姿勢を正す"],
+        duration:["5秒","10秒","15秒","30秒"],
+        place:["窓の近く","椅子の上","デスクの前","いつもの席","パソコンの前"],
+        report:["ひと言で教えて","色で教えて","天気に例えて教えて","絵文字ひとつで教えて"],
+        count:["3","5","7"],
+        sense:["音","光","手触り","温度","匂い"],
+        oneword:["ひと言","一語","一文字"],
+        pose:["姿勢を正しく","肩を後ろに引いて","首をゆっくり回して","目線を遠くへ"],
+        breath:["3回","4回","5回"],
+        theme:["やさしい色","まるい形","心地よい音","落ち着くもの","好きな香り"],
+        smallTask:["深呼吸","首のストレッチ","手を組んで伸ばす","肩を軽くまわす","目を閉じて3秒休む","両手をこすって温める","手をグーパーしてみる","一度だけ伸びをする"]
+      }
+    },
+    en: {
+      templates: [
+        "{when} try {action}.","For {duration}, {action} and then share {report}.",
+        "At {place}, {action} and describe it in {oneword}.","Do {action} {count} times.",
+        "Focus on {sense} for {duration} and summarize in {oneword}.",
+        // Sitting / Quiet variants
+        "While sitting, try {action}.","Stay seated and focus on your {sense} for {duration}.",
+        "Move only your hands and {action} {count} times.","Quietly {action} for {duration}.",
+        "Pick one thing you can do while sitting and {smallTask}."
+      ],
+      lexicon: {
+        when:["Now","After this","Before a break","While seated","During a short pause"],
+        action:["take a deep breath","stretch your shoulders","close your eyes","rub your hands together","roll your wrists","drink some water","relax your neck","sit up straight"],
+        duration:["5s","10s","15s","30s"],
+        place:["by the window","at your desk","while sitting","in your chair"],
+        report:["in one word","as a color","as weather","with one emoji"],
+        count:["3","5","7"],
+        sense:["sound","light","touch","temperature","smell"],
+        oneword:["one word","a word","one letter"],
+        smallTask:["take a deep breath","open and close your hands","roll your shoulders","rub your palms together","stretch your fingers"]
+      }
+    },
+    zh: {
+      templates: [
+        "{when}{action}，坚持{duration}。","在{place}{action}，并用{oneword}{report}。",
+        "{count}次{action}试试。","专注{sense}{duration}，最后用{oneword}{report}。",
+        // 坐着就能做
+        "坐着也能{action}。","保持坐姿，{duration}{action}。",
+        "只动手，{action}{count}次。","安静地{action}{duration}。",
+        "挑一件坐着能做的小事：{smallTask}。"
+      ],
+      lexicon: {
+        when:["现在","稍后","休息前","顺便","坐好时"],
+        action:["深呼吸","伸展一下","闭眼","喝一口水","转动肩膀","搓搓手","转动手腕","整理桌面10秒"],
+        duration:["5秒","10秒","15秒","30秒"],
+        place:["窗边","座位","桌前","椅子上"],
+        report:["描述","表达","分享"],
+        count:["3","5","7"],
+        sense:["声音","光线","触感","温度","气味"],
+        oneword:["一词","一个词","一个字"],
+        smallTask:["深呼吸","伸伸手","搓手取暖","坐直身体","轻轻转动脖子","闭眼休息3秒"]
+      }
+    },
+    ko: {
+      templates: [
+        "{when}{action} 해봐요.","{duration} 동안 {action} 하고 {report}.",
+        "{place}에서 {action} 하고 {oneword}로 표현해요.","{count}번만 {action} 해봐요.",
+        "{sense}에 {duration} 집중하고 {oneword}로 정리해요.",
+        // 앉은 채로
+        "앉은 채로 {action} 해봐요.","의자에 앉아서 {sense}에 집중해봐요.",
+        "손만 움직여서 {action} {count}번 해봐요.","조용히 {action} 해봐요.",
+        "앉은 채로 할 수 있는 {smallTask} 하나 골라서 해봐요."
+      ],
+      lexicon: {
+        when:["지금","이따가","쉬기 전에","잠깐","앉은 김에"],
+        action:["심호흡","스트레칭","눈 감기","물 한 모금","어깨 돌리기","손 비비기","손목 돌리기","자세 바로잡기"],
+        duration:["5초","10초","15초","30초"],
+        place:["창가","자리에서","의자에 앉아서","책상 앞에서"],
+        report:["한마디로 알려줘요","색으로 말해요","날씨로 비유해요","이모지 하나로"],
+        count:["3","5","7"],
+        sense:["소리","빛","촉감","온도","향"],
+        oneword:["한마디","한 단어","한 글자"],
+        smallTask:["심호흡","손가락 펴기","손목 돌리기","어깨 으쓱","손바닥 비비기","눈 감고 3초 쉬기"]
+      }
+    }
+  };
+
+  function buildSuggestionPool(lang, max = 240){
+    const base = (I18N[lang]?.requests || I18N.ja.requests || []).slice();
+    const conf = SUGGEST_GEN[lang] || SUGGEST_GEN.ja;
+    const makeOne = ()=> conf.templates[Math.floor(Math.random()*conf.templates.length)]
+      .replace(/\{(\w+)\}/g, (_,k)=> {
+        const bag = conf.lexicon[k] || [];
+        return bag.length ? bag[Math.floor(Math.random()*bag.length)] : "";
+      });
+    const set = new Set(base);
+    while(set.size < Math.max(base.length + 60, max)){
+      set.add(makeOne());
+      if(set.size>2000) break;
+    }
+    return Array.from(set);
+  }
+  const SUGGEST_POOL_KEY="meai_suggest_pool";
+  function getPool(lang){
+    try{ const raw=localStorage.getItem(SUGGEST_POOL_KEY+"_"+lang); if(raw) return JSON.parse(raw); }catch{}
+    const pool = buildSuggestionPool(lang);
+    try{ localStorage.setItem(SUGGEST_POOL_KEY+"_"+lang, JSON.stringify(pool)); }catch{}
+    return pool;
+  }
+  function nextSuggestion(lang){
+    const pool=getPool(lang);
+    if(!pool.length) return (I18N[lang]?.requests || I18N.ja.requests)[0] || "深呼吸してみよう。";
+    const s=pool.shift(); pool.push(s);
+    try{ localStorage.setItem(SUGGEST_POOL_KEY+"_"+lang, JSON.stringify(pool)); }catch{}
+    return s;
+  }
+  // ======= 生成器ここまで =======
 
   // ===== DOM util
   const $=(s,root=document)=>root.querySelector(s);
@@ -327,15 +451,20 @@
   function append(sender,text){ const d=document.createElement('div'); d.className='bubble '+sender; d.textContent=text; chat.appendChild(d); chat.scrollTop=chat.scrollHeight; }
   function push(sender,text){ const item={sender,text,ts:Date.now()}; log.push(item); append(sender,text); saveAll(); }
   function saveAll(){ set(K.hearts,String(hearts)); set(K.log,JSON.stringify(log)); }
-  function pickRequest(){ const arr=t().requests; return arr[Math.floor(Math.random()*arr.length)]; }
-  function formatSuggest(){ // ユーザー名入り／キャラ署名入り
+
+  // ★ pickRequest を 自動生成プール版に差し替え
+  function pickRequest(){
+    const lang = localStorage.getItem(LS_LANG) || "ja";
+    return nextSuggestion(lang);
+  }
+  function formatSuggest(){
     const userName = get(K.user)||"";
     const charName = get(K.name)||"";
     const req = pickRequest();
     return t().formatSuggest(userName, req, charName);
   }
 
-  // ===== rewards (最小セット：スタンプのみ表示)
+  // ===== rewards (スタンプのみ)
   const STICKER_POOL=["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"];
   function grantSticker(){
     const emo = STICKER_POOL[Math.floor(Math.random()*STICKER_POOL.length)];
@@ -364,13 +493,11 @@
 
   // ===== flow
   function startMain(newSession){
-    // アイコン
     const char = get(K.char);
     if(!char){ show('choose'); return; }
     charIcon.src=`public/char/${char}/calm.png`; charIcon.onerror=()=>{ charIcon.src='public/char/green/calm.png'; };
     heartCountEl.textContent=hearts; updateCharNameUI();
 
-    // 初回提案
     chat.innerHTML='';
     if(newSession || log.length===0){ log=[]; push('ai', formatSuggest()); }
     else{ log.forEach(m=>append(m.sender,m.text)); chat.scrollTop=chat.scrollHeight; }
@@ -380,16 +507,15 @@
   }
 
   // ===== bindings
-  on($('#coverStart'),'click', ()=> show('askname')); // ★ まず名前入力へ
+  on($('#coverStart'),'click', ()=> show('askname')); // 最初は名前入力へ
   on(langSelect,'change', ()=>{ localStorage.setItem(LS_LANG, langSelect.value); applyLang(); });
 
   on(userNameSave,'click', ()=>{
     const v=(userNameInput.value||"").trim();
     if(v) set(K.user, v);
-    // 次へ：キャラが未選択なら選択へ、あればハブ
-    if(get(K.char)) show('choose'); else show('choose');
+    show('choose');
   });
-  on(userNameSkip,'click', ()=>{ if(get(K.char)) show('choose'); else show('choose'); });
+  on(userNameSkip,'click', ()=> show('choose'));
 
   on(chooseGrid,'click', (e)=>{
     const b=e.target.closest('.char'); if(!b) return;
