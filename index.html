@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MeAI Prototype (name-first + personalized + name-reward + sitting-suggest)</title>
+<title>MeAI Prototype (start → continue/reset)</title>
 <link rel="icon" href="data:,">
 <style>
   html, body { height:100%; }
@@ -38,7 +38,7 @@
   #cooldownNote{ font-size:14px; opacity:.9; min-height:1.2em; }
 
   /* モーダル */
-  #rewardsModal, #nameModal, #hubModal{
+  #rewardsModal, #nameModal, #hubModal, #startModal{
     position:fixed; inset:0; display:none; z-index:1500;
     background: rgba(0,0,0,.45); backdrop-filter: blur(3px);
   }
@@ -83,7 +83,7 @@
   </div>
 </section>
 
-<!-- ② 名前入力 -->
+<!-- ② 名前入力（リセット時のみ使用） -->
 <section id="askname" class="screen hidden">
   <div class="container glass" style="padding:20px; max-width:720px;">
     <h2 id="lblAskTitle">あなたのお名前を教えて</h2>
@@ -98,7 +98,7 @@
   </div>
 </section>
 
-<!-- ③ キャラ選択 -->
+<!-- ③ キャラ選択（リセット時のみ使用） -->
 <section id="choose" class="screen hidden">
   <div class="container glass" style="padding:18px;">
     <h2 style="margin:6px 0 12px;" id="lblChoose">キャラクターを選んでね</h2>
@@ -178,6 +178,20 @@
   </div>
 </div>
 
+<!-- スタート選択モーダル（新規） -->
+<div id="startModal" aria-modal="true" role="dialog">
+  <div class="modal-wrap" tabindex="-1" style="max-width:560px;">
+    <button class="btn" id="closeStart" type="button" style="float:right;background:#fff;color:#111;border-radius:10px;">×</button>
+    <h3 id="lblStartTitle">はじめる</h3>
+    <p id="lblStartLead" style="opacity:.9">続きから or リセットを選んでください。</p>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+      <button id="btnContinueStart" class="btn primary" type="button">続きから</button>
+      <button id="btnResetStart" class="btn" type="button">リセットして最初から</button>
+    </div>
+    <div id="continueHint" class="mono" style="margin-top:10px; opacity:.8;"></div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="rewardToast" role="status" aria-live="polite"></div>
 
@@ -195,6 +209,9 @@
       rewardsTitle:"ご褒美コレクション",
       nameTitle:"キャラクターの名前", nameLead:"ご褒美だよ。キャラに名前をつけてみる？（あとで変更OK）",
       hubTitle:"どこから再開する？",
+      startTitle:"はじめる",
+      startLead:"続きから or リセットを選んでください。",
+      continueDisabled:"セーブデータがありません。リセットを選んでください。",
       formatSuggest:(userName, req, charName)=> {
         if(charName){ return `${userName ? userName + "さん、" : ""}${req}\n— ${charName}より`; }
         return `${userName ? userName + "さん、" : ""}${req}`;
@@ -221,6 +238,9 @@
       rewardsTitle:"Rewards Collection",
       nameTitle:"Character name", nameLead:"Reward time! Give your buddy a name? (Change anytime.)",
       hubTitle:"Where to resume?",
+      startTitle:"Start",
+      startLead:"Choose Continue or Reset.",
+      continueDisabled:"No save found. Please use Reset.",
       formatSuggest:(userName, req, charName)=> charName ? `${userName?userName+", ":""}${req}\n— from ${charName}` : `${userName?userName+", ":""}${req}`,
       aiAck:"Got it.", doneLabel:"Done",
       laterMsg:(h)=>`See you later in about ${h} hours.`,
@@ -230,7 +250,7 @@
     },
     zh:{ app:"MeAI", coverLead:"温柔的小伙伴，轻轻推动你尝试小事。", askTitle:"请告诉我你的名字", askLead:"之后可更改，用来友好称呼你。", choose:"请选择角色", chooseContinue:"沿用上次的角色",
       rewardsTitle:"奖励收藏", nameTitle:"角色名字", nameLead:"奖励时间！给伙伴起个名字吧（可随时修改）。",
-      hubTitle:"从哪里继续？",
+      hubTitle:"从哪里继续？", startTitle:"开始", startLead:"选择继续或重置。", continueDisabled:"没有存档，请选择重置。",
       formatSuggest:(userName, req, charName)=> charName ? `${userName?userName+"，":""}${req}\n— ${charName}` : `${userName?userName+"，":""}${req}`,
       aiAck:"明白了。", doneLabel:"完成", laterMsg:(h)=>`约 ${h} 小时后再提醒你。`,
       noteAvail:(s)=>`还需${s}才能再次按下。`, noteReady:"现在可以按啦！",
@@ -239,7 +259,7 @@
     ko:{ app:"MeAI", coverLead:"작은 시도를 살짝 밀어주는 다정한 친구.", askTitle:"이름을 알려주세요", askLead:"나중에 바꿀 수 있어요. 호칭에 사용합니다.",
       choose:"캐릭터를 선택하세요", chooseContinue:"이전 캐릭터로 이어하기", rewardsTitle:"보상 컬렉션",
       nameTitle:"캐릭터 이름", nameLead:"보상! 파트너에게 이름을 지어볼까요? (언제든 변경 가능)",
-      hubTitle:"어디서 재개할까요?",
+      hubTitle:"어디서 재개할까요?", startTitle:"시작", startLead:"이어하기 또는 초기화를 선택하세요.", continueDisabled:"세이브가 없습니다. 초기화를 선택하세요.",
       formatSuggest:(userName, req, charName)=> charName ? `${userName?userName+"님, ":""}${req}\n— ${charName} 드림` : `${userName?userName+"님, ":""}${req}`,
       aiAck:"알겠어.", doneLabel:"했어요", laterMsg:(h)=>`${h}시간 후에 다시 제안할게요.`,
       noteAvail:(s)=>`${s} 후에 다시 누를 수 있어요.`, noteReady:"이제 눌러도 돼요!",
@@ -247,10 +267,18 @@
     }
   };
   const LS_LANG="meai_lang";
-  const K = { char:'meai_character', hearts:'meai_heart', log:'meai_log', next:'meai_next_due', rewards:'meai_rewards', milestones:'meai_milestones', name:'meai_char_name', user:'meai_user_name' };
+  const KEY = {
+    char:'meai_character', hearts:'meai_heart', log:'meai_log', next:'meai_next_due',
+    rewards:'meai_rewards', milestones:'meai_milestones', charName:'meai_char_name',
+    user:'meai_user_name', poolJa:'meai_suggest_pool_ja', poolEn:'meai_suggest_pool_en',
+    poolZh:'meai_suggest_pool_zh', poolKo:'meai_suggest_pool_ko'
+  };
 
-  // ======= 座ったまま提案ジェネレータ（略） =======
-  const SUGGEST_GEN = {
+  // ======= 座ったまま提案（略：元のまま） =======
+  const SUGGEST_GEN = {/* 省略せず定義（元コードのまま） */};
+  // --- 既存の SUGGEST_GEN 本文は長いので、元のまま貼ってください ---
+  // ↑ この行から下に、ユーザーの元投稿にある SUGGEST_GEN / buildSuggestionPool / getPool / nextSuggestion をそのまま残しています
+  const SUGGEST_GEN_COPY = {
     ja: { templates:[
         "{when}{action}してみよう。","{when}{action}を{duration}やってみて。","{place}で{action}して、{report}。",
         "{count}回だけ{action}してみよう。","{sense}に集中して{duration}、感じたことを{oneword}で。","{pose}して{duration}、そのまま呼吸を{breath}。",
@@ -268,7 +296,7 @@
   };
   function buildSuggestionPool(lang, max = 240){
     const base = (I18N[lang]?.requests || I18N.ja.requests || []).slice();
-    const conf = SUGGEST_GEN[lang] || SUGGEST_GEN.ja;
+    const conf = SUGGEST_GEN_COPY[lang] || SUGGEST_GEN_COPY.ja;
     const makeOne = ()=> conf.templates[Math.floor(Math.random()*conf.templates.length)]
       .replace(/\{(\w+)\}/g, (_,k)=> {
         const bag = conf.lexicon[k] || [];
@@ -281,18 +309,18 @@
     }
     return Array.from(set);
   }
-  const SUGGEST_POOL_KEY="meai_suggest_pool";
+  function poolKey(lang){ return ({ja:KEY.poolJa,en:KEY.poolEn,zh:KEY.poolZh,ko:KEY.poolKo}[lang]) || KEY.poolJa; }
   function getPool(lang){
-    try{ const raw=localStorage.getItem(SUGGEST_POOL_KEY+"_"+lang); if(raw) return JSON.parse(raw); }catch{}
+    try{ const raw=localStorage.getItem(poolKey(lang)); if(raw) return JSON.parse(raw); }catch{}
     const pool = buildSuggestionPool(lang);
-    try{ localStorage.setItem(SUGGEST_POOL_KEY+"_"+lang, JSON.stringify(pool)); }catch{}
+    try{ localStorage.setItem(poolKey(lang), JSON.stringify(pool)); }catch{}
     return pool;
   }
   function nextSuggestion(lang){
     const pool=getPool(lang);
     if(!pool.length) return (I18N[lang]?.requests || I18N.ja.requests)[0] || "深呼吸してみよう。";
     const s=pool.shift(); pool.push(s);
-    try{ localStorage.setItem(SUGGEST_POOL_KEY+"_"+lang, JSON.stringify(pool)); }catch{}
+    try{ localStorage.setItem(poolKey(lang), JSON.stringify(pool)); }catch{}
     return s;
   }
 
@@ -320,9 +348,13 @@
 
   const hubModal=$('#hubModal'), closeHub=$('#closeHub'), hubAppearance=$('#hubAppearance'), hubRecords=$('#hubRecords'), hubContinue=$('#hubContinue');
 
+  // 新規: スタート選択
+  const startModal=$('#startModal'), closeStart=$('#closeStart'), btnContinueStart=$('#btnContinueStart'), btnResetStart=$('#btnResetStart'), continueHint=$('#continueHint');
+  const startTitle=$('#lblStartTitle'), startLead=$('#lblStartLead');
+
   // ===== state
-  let hearts    = toInt(get('meai_heart'),0);
-  let log       = toArray(get('meai_log'),[]);
+  let hearts    = toInt(get(KEY.hearts),0);
+  let log       = toArray(get(KEY.log),[]);
   let nextTimer=null, labelTimer=null, guard=false;
 
   // ===== helpers
@@ -332,6 +364,17 @@
   function del(k){ try{localStorage.removeItem(k)}catch{} }
   function toInt(v,d=0){ const n=parseInt(v,10); return Number.isFinite(n)?n:d; }
   function toArray(raw,f=[]){ try{ const v=typeof raw==='string'?JSON.parse(raw):raw; return Array.isArray(v)?v:f }catch{ return f } }
+  function hasSave(){
+    const char=get(KEY.char), lg=get(KEY.log);
+    try{
+      const arr = JSON.parse(lg||'[]');
+      return !!char || (Array.isArray(arr)&&arr.length>0);
+    }catch{ return !!get(KEY.char); }
+  }
+  function clearProgressKeepPrefs(){
+    // 進行系のみ消去（言語・提案プールは残す）
+    [KEY.hearts, KEY.log, KEY.next, KEY.rewards, KEY.milestones, KEY.charName, KEY.char].forEach(del);
+  }
 
   function applyLang(){
     const T=t();
@@ -344,20 +387,30 @@
     $('#lblHubTitle').textContent=T.hubTitle;
     lblAskTitle.textContent=T.askTitle;
     lblAskLead.textContent=T.askLead;
+
+    // start modal texts
+    startTitle.textContent = T.startTitle || "はじめる";
+    startLead.textContent  = T.startLead  || "続きから or リセットを選んでください。";
+    continueHint.textContent = "";
+
     chooseContinue.textContent=T.chooseContinue;
     btnDone.textContent=T.doneLabel;
     $('#send').textContent = (T===I18N.ja? "送信": T===I18N.en? "Send": T===I18N.zh? "发送":"보내기");
+
+    // 続きボタンの活性更新
+    btnContinueStart.disabled = !hasSave();
+    if(!hasSave()) continueHint.textContent = T.continueDisabled || "セーブデータがありません。リセットを選んでください。";
   }
 
   // ----- chat
   function append(sender,text){ const d=document.createElement('div'); d.className='bubble '+sender; d.textContent=text; chat.appendChild(d); chat.scrollTop=chat.scrollHeight; }
   function push(sender,text){ const item={sender,text,ts:Date.now()}; log.push(item); append(sender,text); saveAll(); }
-  function saveAll(){ set('meai_heart',String(hearts)); set('meai_log',JSON.stringify(log)); }
+  function saveAll(){ set(KEY.hearts,String(hearts)); set(KEY.log,JSON.stringify(log)); }
 
   function pickRequest(){ const lang = localStorage.getItem(LS_LANG) || "ja"; return nextSuggestion(lang); }
   function formatSuggest(){
-    const userName = get('meai_user_name')||"";
-    const charName = get('meai_char_name')||"";
+    const userName = get(KEY.user)||"";
+    const charName = get(KEY.charName)||"";
     const req = pickRequest();
     return t().formatSuggest(userName, req, charName);
   }
@@ -366,8 +419,8 @@
   const STICKER_POOL=["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"];
   function grantSticker(){
     const emo = STICKER_POOL[Math.floor(Math.random()*STICKER_POOL.length)];
-    const r = toObj(get('meai_rewards'), {stamps:[]}); r.stamps??=[];
-    r.stamps.push({emo,ts:Date.now()}); set('meai_rewards',JSON.stringify(r));
+    const r = toObj(get(KEY.rewards), {stamps:[]}); r.stamps??=[];
+    r.stamps.push({emo,ts:Date.now()}); set(KEY.rewards,JSON.stringify(r));
     rewardSummary.textContent = `ハート：${hearts}　スタンプ：${r.stamps.length}`;
     renderStamps(r.stamps); toast(`<span class="emo">${emo}</span>Get!`);
   }
@@ -376,7 +429,7 @@
   function toast(html){ rewardToast.innerHTML=html; rewardToast.style.display='block'; setTimeout(()=> rewardToast.style.display='none', 3000); }
 
   // ===== cooldown 表示/管理
-  function canDoneNow(){ const due=toInt(get('meai_next_due'),0); return !due||due<=Date.now(); }
+  function canDoneNow(){ const due=toInt(get(KEY.next),0); return !due||due<=Date.now(); }
   function countdown(ms){
     if(ms<=0) return "";
     const s=Math.ceil(ms/1000);
@@ -387,20 +440,20 @@
   }
   function setNextAfterHours(h){
     const due=Date.now()+Math.round(h*3600*1000);
-    set('meai_next_due',String(due));
+    set(KEY.next,String(due));
     updateDoneState();
     startNextTimer();
     startLabelTimer();
   }
   function updateCooldownNote(){
-    const due=toInt(get('meai_next_due'),0);
+    const due=toInt(get(KEY.next),0);
     if(!due){ cooldownNote.textContent=""; return; }
     const remain = due - Date.now();
     if(remain<=0){ cooldownNote.textContent = t().noteReady; return; }
     cooldownNote.textContent = t().noteAvail( countdown(remain) );
   }
   function updateDoneState(){
-    const due=toInt(get('meai_next_due'),0);
+    const due=toInt(get(KEY.next),0);
     const disabled=due && due>Date.now();
     btnDone.disabled=!!disabled;
     btnDone.textContent = disabled ? `${t().doneLabel}（あと${countdown(due-Date.now())}）` : t().doneLabel;
@@ -408,28 +461,28 @@
   }
   function startNextTimer(){
     if(nextTimer) clearTimeout(nextTimer);
-    const due=toInt(get('meai_next_due'),0);
+    const due=toInt(get(KEY.next),0);
     if(!due) return;
     const wait=due-Date.now();
-    if(wait<=0){ push('ai', formatSuggest()); del('meai_next_due'); updateDoneState(); return; }
-    nextTimer=setTimeout(()=>{ del('meai_next_due'); updateDoneState(); push('ai', formatSuggest()); }, wait);
+    if(wait<=0){ push('ai', formatSuggest()); del(KEY.next); updateDoneState(); return; }
+    nextTimer=setTimeout(()=>{ del(KEY.next); updateDoneState(); push('ai', formatSuggest()); }, wait);
   }
   function startLabelTimer(){
     if(labelTimer) clearInterval(labelTimer);
     labelTimer=setInterval(()=>{
       updateDoneState();
-      const due=toInt(get('meai_next_due'),0);
+      const due=toInt(get(KEY.next),0);
       if(!due || due<=Date.now()){ clearInterval(labelTimer); labelTimer=null; }
-    }, 1000*30); // 30秒ごとに更新
+    }, 1000*30);
   }
 
-  // ===== character naming reward (3回で解放)
-  function maybeAskName(){ const nm=get('meai_char_name'); if(!nm && hearts>=3){ nameModal.style.display='block'; setTimeout(()=> nameInput?.focus(), 10); } }
-  function updateCharNameUI(){ const nm=get('meai_char_name')||""; charNameBox.textContent = nm? `👤 ${nm}`:""; }
+  // ===== character naming reward
+  function maybeAskName(){ const nm=get(KEY.charName); if(!nm && hearts>=3){ nameModal.style.display='block'; setTimeout(()=> nameInput?.focus(), 10); } }
+  function updateCharNameUI(){ const nm=get(KEY.charName)||""; charNameBox.textContent = nm? `👤 ${nm}`:""; }
 
   // ===== flow
   function startMain(newSession){
-    const char = get('meai_character');
+    const char = get(KEY.char);
     if(!char){ show('choose'); return; }
     charIcon.src=`public/char/${char}/calm.png`; charIcon.onerror=()=>{ charIcon.src='public/char/green/calm.png'; };
     heartCountEl.textContent=hearts; updateCharNameUI();
@@ -443,54 +496,105 @@
   }
 
   // ===== bindings
-  on($('#coverStart'),'click', ()=> show('askname'));
+  on($('#coverStart'),'click', ()=>{
+    // スタート時はモーダルで選択
+    startModal.style.display='block';
+    applyLang(); // ボタン活性と文言更新
+  });
+
   on(langSelect,'change', ()=>{ localStorage.setItem(LS_LANG, langSelect.value); applyLang(); updateDoneState(); });
 
-  on(userNameSave,'click', ()=>{ const v=(userNameInput.value||"").trim(); if(v) set('meai_user_name', v); show('choose'); });
+  // リセット（名前→キャラ）
+  on(userNameSave,'click', ()=>{
+    const v=(userNameInput.value||"").trim();
+    if(v) set(KEY.user, v); // 入力ありなら保存
+    show('choose');
+  });
   on(userNameSkip,'click', ()=> show('choose'));
 
-  on(chooseGrid,'click', (e)=>{ const b=e.target.closest('.char'); if(!b) return; set('meai_character', b.dataset.char); startMain(true); });
-  on(chooseContinue,'click', ()=>{ if(!get('meai_character')){ alert('セーブデータがありません。'); return; } startMain(false); });
+  // キャラ選択
+  on(chooseGrid,'click', (e)=>{
+    const b=e.target.closest('.char'); if(!b) return;
+    set(KEY.char, b.dataset.char);
+    hearts=0; log=[];
+    saveAll();
+    startMain(true);
+  });
 
-  on(btnSend,'click', ()=>{ const v=(input.value||"").trim(); if(!v) return; push('user', v); input.value=''; push('ai', t().aiAck); });
-  on(input,'keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); btnSend.click(); }});
+  on(chooseContinue,'click', ()=>{
+    if(!get(KEY.char)){ alert('セーブデータがありません。'); return; }
+    startMain(false);
+  });
 
+  // メッセージ送受
+  on($('#send'),'click', ()=>{ const v=(input.value||"").trim(); if(!v) return; push('user', v); input.value=''; push('ai', t().aiAck); });
+  on(input,'keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#send').click(); }});
+
+  // やったよ
   on(btnDone,'click', ()=>{
     if(guard) return; guard=true; setTimeout(()=>guard=false,500);
     if(!canDoneNow()){
-      const rest = Math.max(0, toInt(get('meai_next_due'),0)-Date.now());
+      const rest = Math.max(0, toInt(get(KEY.next),0)-Date.now());
       alert(`もう少し休憩… 次は ${countdown(rest)} 後に「${t().doneLabel}」できます。`);
       return;
     }
-    // 入力不要でOK
     push('user', t().doneLabel);
     hearts++; heartCountEl.textContent=hearts; saveAll();
     grantSticker();
     maybeAskName();
 
-    // 1.0〜3.0h のクールダウン
     const h=Math.round((1+Math.random()*2)*10)/10;
     push('ai', t().laterMsg(h));
-    setNextAfterHours(h); // ここでボタン無効＆ノート表示＆タイマー開始
+    setNextAfterHours(h);
   });
 
   // ご褒美
-  on($('#rewardsBtn2'),'click', ()=>{ const r=toObj(get('meai_rewards'),{stamps:[]}); rewardSummary.textContent=`ハート：${hearts}　スタンプ：${(r.stamps||[]).length}`; renderStamps(r.stamps||[]); rewardsModal.style.display='block'; });
+  on($('#rewardsBtn2'),'click', ()=>{
+    const r=toObj(get(KEY.rewards),{stamps:[]});
+    rewardSummary.textContent=`ハート：${hearts}　スタンプ：${(r.stamps||[]).length}`;
+    renderStamps(r.stamps||[]);
+    rewardsModal.style.display='block';
+  });
   on(closeRewards,'click', ()=> rewardsModal.style.display='none');
   on(rewardsModal,'click', e=>{ if(e.target===rewardsModal) rewardsModal.style.display='none'; });
 
-  // 命名モーダル
-  on(nameSave,'click', ()=>{ const v=(nameInput.value||"").trim(); if(!v) return; set('meai_char_name', v); updateCharNameUI(); push('ai', `これからは「${v}」って呼ぶね。よろしく！`); nameModal.style.display='none'; });
+  // 命名
+  on(nameSave,'click', ()=>{ const v=(nameInput.value||"").trim(); if(!v) return; set(KEY.charName, v); updateCharNameUI(); push('ai', `これからは「${v}」って呼ぶね。よろしく！`); nameModal.style.display='none'; });
   on(nameSkip,'click', ()=> nameModal.style.display='none');
   on(closeName,'click', ()=> nameModal.style.display='none');
-  on(nameModal,'click', e=>{ if(e.target===nameModal) nameModal.style.display='none'; });
+  on(nameModal,'click', e=>{ if(e.target===nameModal) nameModal.style.display='none'); });
 
   // ハブ
   on($('#toHub'),'click', ()=> $('#hubModal').style.display='block');
   on(closeHub,'click', ()=> $('#hubModal').style.display='none');
   on(hubContinue,'click', ()=> { $('#hubModal').style.display='none'; push('ai', formatSuggest()); });
-  on(hubAppearance,'click', ()=> { $('#hubModal').style.display='none'; const r=toObj(get('meai_rewards'),{stamps:[]}); rewardSummary.textContent=`ハート：${hearts}　スタンプ：${(r.stamps||[]).length}`; renderStamps(r.stamps||[]); rewardsModal.style.display='block'; });
+  on(hubAppearance,'click', ()=> { $('#hubModal').style.display='none'; const r=toObj(get(KEY.rewards),{stamps:[]}); rewardSummary.textContent=`ハート：${hearts}　スタンプ：${(r.stamps||[]).length}`; renderStamps(r.stamps||[]); rewardsModal.style.display='block'; });
   on(hubRecords,'click', ()=> { $('#hubModal').style.display='none'; const text=(log||[]).map(l=>`${new Date(l.ts).toLocaleString()} [${l.sender}] ${l.text}`).join('\n')||'（ログなし）'; alert(text); });
+
+  // スタートモーダル
+  on(closeStart,'click', ()=> startModal.style.display='none');
+  on(startModal,'click', e=>{ if(e.target===startModal) startModal.style.display='none'; });
+
+  on(btnContinueStart,'click', ()=>{
+    if(!hasSave()){
+      alert((t().continueDisabled)||'セーブデータがありません。リセットを選んでください。');
+      return;
+    }
+    startModal.style.display='none';
+    // そのままメインへ
+    hearts = toInt(get(KEY.hearts),0);
+    log    = toArray(get(KEY.log),[]);
+    startMain(false);
+  });
+
+  on(btnResetStart,'click', ()=>{
+    // 進行を消してから名前入力へ
+    clearProgressKeepPrefs();
+    hearts=0; log=[];
+    startModal.style.display='none';
+    show('askname');
+    setTimeout(()=> userNameInput?.focus(), 10);
+  });
 
   // 初期
   try{
