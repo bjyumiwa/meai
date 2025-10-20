@@ -343,7 +343,7 @@
 
   const nameModal=$('#nameModal'), nameInput=$('#nameInput'), nameSave=$('#nameSave'), nameSkip=$('#nameSkip'), closeName=$('#closeName');
 
-  const hubModal=$('#hubModal'), closeHub=$('#closeHub'), hubAppearance=$('#hubAppearance'), hubRecords=$('#hubRecords'), hubContinue=$('#hubContinue']);
+  const hubModal=$('#hubModal'), closeHub=$('#closeHub'), hubAppearance=$('#hubAppearance'), hubRecords=$('#hubRecords'), hubContinue=$('#hubContinue');
 
   // 新規: スタート選択
   const startModal=$('#startModal'), closeStart=$('#closeStart'), btnContinueStart=$('#btnContinueStart'), btnResetStart=$('#btnResetStart'), continueHint=$('#continueHint');
@@ -398,7 +398,24 @@
     btnContinueStart.disabled = !hasSave();
     if(!hasSave()) continueHint.textContent = T.continueDisabled || "セーブデータがありません。リセットを選んでください。";
   }
+ (function initLang(){
+    let lang = localStorage.getItem(LS_LANG);
+    if (!lang) {
+      const cand = (navigator.language || 'ja').slice(0,2);
+      lang = (cand in I18N) ? cand : 'ja';
+      localStorage.setItem(LS_LANG, lang);
+    }
+    if (langSelect) langSelect.value = lang;
+    applyLang(); // 初回反映
+  })();
 
+  on(langSelect, 'change', (e)=>{
+    const v = e.target.value;
+    if (I18N[v]) {
+      localStorage.setItem(LS_LANG, v);
+      applyLang(); // UI文言を即反映
+    }
+  });
   // ----- chat
   function append(sender,text){ const d=document.createElement('div'); d.className='bubble '+sender; d.textContent=text; chat.appendChild(d); chat.scrollTop=chat.scrollHeight; }
   function push(sender,text){ const item={sender,text,ts:Date.now()}; log.push(item); append(sender,text); saveAll(); }
