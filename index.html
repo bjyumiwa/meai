@@ -537,7 +537,7 @@
 
   // ===== character naming reward
   function maybeAskName(){ const nm=get(KEY.charName); if(!nm && hearts>=3){ nameModal.style.display='block'; setTimeout(()=> nameInput?.focus(), 10); } }
-  function updateCharNameUI(){ const nm=get(KEY.charName)||""; charNameBox.textContent = nm? `👤 ${nm}`:""; }
+  function updateCharNameUI(){ const nm=get(KEY.charName)||""; charNameBox.textContent = nm? `キャラの名前 ${nm}`:""; }
 
   // === 追加：キャラスプライトの見た目・リアクション制御 ===
   function currentCharPath(kind="calm"){
