@@ -61,9 +61,43 @@
 
   .langbox{ display:flex; gap:8px; align-items:center; justify-content:center; margin-top:12px; }
   .langbox select{ background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); border-radius:10px; padding:6px 10px; font-size:14px; }
+
+  /* === 追加: ぷかぷかキャラスプライト === */
+  #charSprite{
+    position:fixed;
+    right:6%;
+    bottom:10%;
+    width:min(22vw, 220px);
+    max-width:38vmin;
+    height:auto;
+    z-index:1200;
+    pointer-events:none; /* クリックを透過 */
+    filter: drop-shadow(0 8px 28px rgba(0,0,0,.55));
+    animation: floatY 7s ease-in-out infinite;
+    transition: transform .6s ease, filter .6s ease, opacity .35s ease;
+    opacity:0; /* 画面がmainのときに表示 */
+  }
+  #charSprite.show{ opacity:1; }
+  #charSprite.react{
+    animation: spinPop .9s ease-out 1, floatY 7s ease-in-out infinite .9s;
+    transform: scale(1.06);
+    filter: drop-shadow(0 12px 34px rgba(255,200,255,.55));
+  }
+  @keyframes floatY{
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(-12px); }
+  }
+  @keyframes spinPop{
+    0%{ transform: scale(.92) rotate(0deg); }
+    60%{ transform: scale(1.12) rotate(360deg); }
+    100%{ transform: scale(1.00) rotate(360deg); }
+  }
 </style>
 </head>
 <body>
+
+<!-- === 追加: ぷかぷかキャラ（全画面共通オーバーレイ） === -->
+<img id="charSprite" src="public/char/green/calm.png" alt="character">
 
 <!-- ① 表紙 -->
 <section id="cover" class="screen">
@@ -349,13 +383,25 @@
   const startModal=$('#startModal'), closeStart=$('#closeStart'), btnContinueStart=$('#btnContinueStart'), btnResetStart=$('#btnResetStart'), continueHint=$('#continueHint');
   const startTitle=$('#lblStartTitle'), startLead=$('#lblStartLead');
 
+  // === 追加要素: キャラスプライト ===
+  const charSprite = $('#charSprite');
+
   // ===== state
   let hearts    = toInt(get(KEY.hearts),0);
   let log       = toArray(get(KEY.log),[]);
   let nextTimer=null, labelTimer=null, guard=false;
 
   // ===== helpers
-  function show(id){ Object.values(scr).forEach(el=>el&&el.classList.add('hidden')); scr[id]?.classList.remove('hidden'); }
+  function show(id){
+    Object.values(scr).forEach(el=>el&&el.classList.add('hidden'));
+    scr[id]?.classList.remove('hidden');
+    // 追加：メイン画面以外ではキャラ非表示
+    if(id==='main' && get(KEY.char)){
+      charSprite.classList.add('show');
+    }else{
+      charSprite.classList.remove('show');
+    }
+  }
   function get(k){ try{return localStorage.getItem(k)}catch{return null} }
   function set(k,v){ try{localStorage.setItem(k,v)}catch{} }
   function del(k){ try{localStorage.removeItem(k)}catch{} }
@@ -369,7 +415,6 @@
     }catch{ return !!get(KEY.char); }
   }
   function clearProgressKeepPrefs(){
-    // 進行系のみ消去（言語・提案プールは残す）
     [KEY.hearts, KEY.log, KEY.next, KEY.rewards, KEY.milestones, KEY.charName, KEY.char].forEach(del);
   }
 
@@ -394,7 +439,6 @@
     btnDone.textContent=T.doneLabel;
     $('#send').textContent = (T===I18N.ja? "送信": T===I18N.en? "Send": T===I18N.zh? "发送":"보내기");
 
-    // 続きボタンの活性更新
     btnContinueStart.disabled = !hasSave();
     if(!hasSave()) continueHint.textContent = T.continueDisabled || "セーブデータがありません。リセットを選んでください。";
   }
@@ -406,16 +450,17 @@
       localStorage.setItem(LS_LANG, lang);
     }
     if (langSelect) langSelect.value = lang;
-    applyLang(); // 初回反映
+    applyLang();
   })();
 
   on(langSelect, 'change', (e)=>{
     const v = e.target.value;
     if (I18N[v]) {
       localStorage.setItem(LS_LANG, v);
-      applyLang(); // UI文言を即反映
+      applyLang();
     }
   });
+
   // ----- chat
   function append(sender,text){ const d=document.createElement('div'); d.className='bubble '+sender; d.textContent=text; chat.appendChild(d); chat.scrollTop=chat.scrollHeight; }
   function push(sender,text){ const item={sender,text,ts:Date.now()}; log.push(item); append(sender,text); saveAll(); }
@@ -494,11 +539,30 @@
   function maybeAskName(){ const nm=get(KEY.charName); if(!nm && hearts>=3){ nameModal.style.display='block'; setTimeout(()=> nameInput?.focus(), 10); } }
   function updateCharNameUI(){ const nm=get(KEY.charName)||""; charNameBox.textContent = nm? `👤 ${nm}`:""; }
 
+  // === 追加：キャラスプライトの見た目・リアクション制御 ===
+  function currentCharPath(kind="calm"){
+    const c = get(KEY.char) || "green";
+    return `public/char/${c}/${kind}.png`;
+  }
+  function setSprite(kind="calm"){
+    charSprite.src = currentCharPath(kind);
+    charSprite.onerror = ()=>{ charSprite.src = 'public/char/green/calm.png'; };
+  }
+  function reactSprite(){
+    // joy に差し替えて回転、終わったら calm に戻す
+    setSprite("joy");
+    charSprite.classList.remove('react'); // 再生リセット
+    void charSprite.offsetWidth; // reflow for restart
+    charSprite.classList.add('react');
+    setTimeout(()=> setSprite("calm"), 900);
+  }
+
   // ===== flow
   function startMain(newSession){
     const char = get(KEY.char);
     if(!char){ show('choose'); return; }
     charIcon.src=`public/char/${char}/calm.png`; charIcon.onerror=()=>{ charIcon.src='public/char/green/calm.png'; };
+    setSprite("calm");
     heartCountEl.textContent=hearts; updateCharNameUI();
 
     chat.innerHTML='';
@@ -511,9 +575,8 @@
 
   // ===== bindings
   on($('#coverStart'),'click', ()=>{
-    // スタート時はモーダルで選択
     startModal.style.display='block';
-    applyLang(); // ボタン活性と文言更新
+    applyLang();
   });
 
   on(langSelect,'change', ()=>{ localStorage.setItem(LS_LANG, langSelect.value); applyLang(); updateDoneState(); });
@@ -521,7 +584,7 @@
   // リセット（名前→キャラ）
   on(userNameSave,'click', ()=>{
     const v=(userNameInput.value||"").trim();
-    if(v) set(KEY.user, v); // 入力ありなら保存
+    if(v) set(KEY.user, v);
     show('choose');
   });
   on(userNameSkip,'click', ()=> show('choose'));
@@ -557,6 +620,9 @@
     grantSticker();
     maybeAskName();
 
+    // ★ 追加：リアクション
+    reactSprite();
+
     const h=Math.round((1+Math.random()*2)*10)/10;
     push('ai', t().laterMsg(h));
     setNextAfterHours(h);
@@ -576,7 +642,6 @@
   on(nameSave,'click', ()=>{ const v=(nameInput.value||"").trim(); if(!v) return; set(KEY.charName, v); updateCharNameUI(); push('ai', `これからは「${v}」って呼ぶね。よろしく！`); nameModal.style.display='none'; });
   on(nameSkip,'click', ()=> nameModal.style.display='none');
   on(closeName,'click', ()=> nameModal.style.display='none');
-  // ★バグ修正済み: 余計な ) を削除
   on(nameModal,'click', e=>{ if(e.target===nameModal) nameModal.style.display='none'; });
 
   // ハブ
@@ -596,14 +661,22 @@
       return;
     }
     startModal.style.display='none';
-    // そのままメインへ
     hearts = toInt(get(KEY.hearts),0);
     log    = toArray(get(KEY.log),[]);
-    startMain(false);
+    // 追加：スプライトも復元
+    setSprite("calm");
+    show('main');
+    // 既存ログ再描画
+    chat.innerHTML = '';
+    log.forEach(m=>append(m.sender,m.text));
+    chat.scrollTop=chat.scrollHeight;
+    updateCharNameUI();
+    charIcon.src = currentCharPath("calm");
+    updateDoneState(); startNextTimer(); startLabelTimer();
+    charSprite.classList.add('show');
   });
 
   on(btnResetStart,'click', ()=>{
-    // 進行を消してから名前入力へ
     clearProgressKeepPrefs();
     hearts=0; log=[];
     startModal.style.display='none';
@@ -617,6 +690,8 @@
     $('#langSelect').value = lang;
     applyLang();
     show('cover');
+    // 初期は calm
+    if(get(KEY.char)){ setSprite("calm"); }
   }catch(e){
     console.error(e);
     show('cover');
