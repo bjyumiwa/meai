@@ -1,476 +1,153 @@
-<!-- FILE: /WHOAI2/index.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MeAI | お世話×提案ゲーム</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Ctext y='.85em' font-size='80'%3E🌙%3C/text%3E%3C/svg%3E" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MeAI Prototype | Start</title>
+<link rel="icon" href="data:,">
 <style>
-  :root{
-    --glass: rgba(255,255,255,.08);
-    --bd: rgba(255,255,255,.18);
-    --text:#fff;
-    --accent:#f7b0bf; --ink:#222;
-    --ok:#7CFFB2; --ng:#FF8A8A; --muted:#cfd3d6;
+  html, body {
+    height:100%;
+    margin:0;
+    font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    background:#000 url("public/space_background.png") center/cover fixed no-repeat;
+    color:#fff;
+    overflow:hidden;
   }
-  *{box-sizing:border-box}
-  html,body{height:100%;margin:0}
-  body{
-    font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Noto Color Emoji","Segoe UI Emoji",sans-serif;
-    color:var(--text);
-    background:#000 center/cover fixed no-repeat;
-    background-image:url("public/space_background.png");
+  .hidden{ display:none!important; }
+  .glass{
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.16);
+    border-radius:20px;
+    backdrop-filter:blur(8px);
+    padding:20px;
   }
-  .wrap{min-height:100%;display:grid;place-items:center;padding:20px}
-  .card{width:min(960px,94vw);background:linear-gradient(transparent, rgba(0,0,0,.28));
-        border:1px solid var(--bd); border-radius:20px; padding:20px; backdrop-filter:blur(6px)}
-  .hero{ text-align:center; padding:10px 10px 0 }
-  .hero img{ width:min(42vw,260px); filter: drop-shadow(0 6px 18px rgba(0,0,0,.35)); }
-  h1{margin:10px 0 6px; font-size:clamp(26px,5vw,40px)}
-  .lead{opacity:.95; line-height:1.9; margin:0 auto 16px; max-width:740px}
-  .cta{ display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:14px 0 6px}
-  .btn{border:0; border-radius:14px; padding:.9rem 1.3rem; cursor:pointer; font-weight:800; box-shadow:0 6px 18px rgba(0,0,0,.35)}
-  .btn.primary{ background:var(--accent); color:var(--ink) }
-  .btn.ghost{ background:var(--glass); color:#fff; border:1px solid var(--bd)}
-  .row{display:grid; grid-template-columns: 1.1fr .9fr; gap:16px; margin-top:16px}
-  .panel{ background:var(--glass); border:1px solid var(--bd); border-radius:16px; padding:14px }
-  .panel h2{margin:0 0 10px; font-size:18px}
-  .flex{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
-  .meter{height:14px; background:rgba(255,255,255,.12); border:1px solid var(--bd); border-radius:999px; overflow:hidden}
-  .meter>i{display:block; height:100%; background:linear-gradient(90deg,#ffd1dc,#ffe8a3,#c7ffd6)}
-  .stat{display:flex; gap:12px; align-items:center; flex-wrap:wrap}
-  .badge{display:inline-flex; align-items:center; gap:6px; border:1px solid var(--bd); padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.06)}
-  .dot{width:8px; height:8px; border-radius:50%}
-  .ok{background:var(--ok)} .ng{background:var(--ng)}
-  .muted{color:var(--muted)}
-  .list{display:grid; gap:10px; margin-top:6px}
-  .tile{background:rgba(255,255,255,.06); border:1px solid var(--bd); border-radius:12px; padding:10px}
-  .tile h3{margin:0 0 6px; font-size:16px}
-  .tile .small{font-size:12px; opacity:.9}
-  .tile .row2{display:flex; gap:10px; align-items:center; justify-content:space-between; margin-top:8px}
-  .tile .row2 .btn{padding:.5rem .8rem; border-radius:10px; font-weight:700}
-  .tile .row2 .next{font-size:12px; opacity:.9}
-  .grid3{display:grid; grid-template-columns: repeat(3,1fr); gap:10px}
-  .grid3 .btn{width:100%; padding:10px}
-  .char{display:flex; gap:12px; align-items:center}
-  .char img{width:72px; height:auto}
-  .hide{display:none !important}
-  @media (max-width:800px){ .row{grid-template-columns:1fr} }
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:.5em;
+    border:none;
+    border-radius:999px;
+    padding:12px 22px;
+    cursor:pointer;
+    color:#fff;
+    font-weight:bold;
+    background:linear-gradient(135deg,#4db6ff,#8e7cff);
+    box-shadow:0 0 10px rgba(0,0,0,.3);
+    transition:transform .2s;
+  }
+  .btn:hover{ transform:scale(1.05); }
+  .center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.2em; text-align:center; }
+  img.char{ width:160px; height:auto; border-radius:50%; box-shadow:0 0 20px rgba(255,255,255,.3); }
+  #gameArea{ display:none; }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="card">
-    <!-- ===== スタート画面 ===== -->
-    <section id="screen-start" class="hero">
-      <img src="public/ako.png" alt="キャラクター" />
-      <h1>MeAIへようこそ</h1>
-      <p class="lead">「はじめる」を押すと、<b>日常のちいさな提案</b>と<b>お世話</b>が始まります。ハートを集めると<b>HAPPY BIRTHDAY</b>を奏でて進化します。</p>
-      <div class="cta">
-        <button class="btn primary" id="btnStart">はじめる</button>
-        <button class="btn ghost" id="btnLang">日本語</button>
-      </div>
-      <p class="muted" style="margin:8px 0 16px">※ 状態はブラウザに保存されます（localStorage）。</p>
-    </section>
 
-    <!-- ===== ゲーム画面 ===== -->
-    <section id="screen-game" class="hide">
-      <div class="stat">
-        <span class="badge"><span>❤️</span><b id="heartCount">0</b></span>
-        <span class="badge"><span class="dot ok" id="evolveDot"></span><b id="evolveText">進化まで</b></span>
-        <span class="badge" id="apiBadge"><span class="dot ng" id="apiDot"></span>API</span>
-      </div>
+<div id="cover" class="center">
+  <h1>MeAI</h1>
+  <p>小さな“やってみる”をやさしく提案してくれる相棒。</p>
+  <img src="public/ako.png" alt="キャラ" class="char" id="charImg">
+  <button class="btn" id="startBtn">はじめる</button>
 
-      <div class="meter" style="margin:10px 0 6px;">
-        <i id="progBar" style="width:0%"></i>
-      </div>
-
-      <div class="row">
-        <!-- 左：提案 -->
-        <div class="panel">
-          <h2>今日の提案</h2>
-          <div class="list" id="suggestList"></div>
-          <div class="tile">
-            <div class="row2">
-              <div class="small" id="nextSuggestMsg">次の提案を準備中…</div>
-              <button class="btn ghost" id="btnSkip">スキップ</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 右：お世話 -->
-        <div class="panel">
-          <h2>お世話</h2>
-          <div class="char">
-            <img src="public/ako.png" alt="キャラ" />
-            <div>
-              <div class="small">キャラ名：<b id="charName">アコ</b></div>
-              <div class="small">あなた：<b id="userName">あなた</b></div>
-            </div>
-          </div>
-          <div class="grid3" style="margin-top:10px">
-            <button class="btn primary" data-action="feed">🍎 ごはん</button>
-            <button class="btn primary" data-action="water">💧 おみず</button>
-            <button class="btn primary" data-action="play">🎲 あそぶ</button>
-          </div>
-          <div class="list" style="margin-top:10px" id="careList"></div>
-        </div>
-      </div>
-    </section>
+  <div style="margin-top:10px;">
+    <label for="langSelect">Language:</label>
+    <select id="langSelect">
+      <option value="ja">日本語</option>
+      <option value="en">English</option>
+      <option value="zh">中文</option>
+      <option value="ko">한국어</option>
+    </select>
   </div>
 </div>
 
+<div id="gameArea" class="center glass">
+  <h2 id="welcomeText">こんにちは！</h2>
+  <p id="guideText">あなたのMeAI生活をはじめましょう。</p>
+  <button class="btn" id="backBtn">もどる</button>
+</div>
+
 <script>
-/* =========================
-   設定とキー
-========================= */
-const LS = {
-  HEARTS: 'MEAI_HEARTS',
-  PROGRESS: 'MEAI_PROGRESS',  // 'seed'|'care'|'talk'|'evolved'
-  EVOLVED: 'MEAI_EVOLVED',
-  USER: 'MEAI_USER_NAME',
-  CHAR: 'MEAI_CHAR_NAME',
-  LAST: 'MEAI_LAST', // JSON {suggest:{[id]:ts}, care:{feed:ts,...}}
-  NEXT_SUG: 'MEAI_NEXT_SUG_AT',
-  LANG: 'MEAI_LANG',
-  API_BASE: 'MEAI_API_BASE'
-};
-
-// デモモード（本番は false に）
-const DEMO_MODE = true;
-// 提案の出現間隔（分）
-const SUGGEST_MIN_MIN = 45, SUGGEST_MAX_MIN = 120;
-// デモ換算（秒）
-const DEMO_MIN_SEC = 30, DEMO_MAX_SEC = 90;
-
-// 進化閾値
-const EVOLVE_HEARTS = 30;
-
-// お世話クールダウン（分）
-const CARE_COOL_MIN = { feed: 45, water: 30, play: 60 };
-// デモ換算（秒）
-const CARE_COOL_SEC = { feed: 30, water: 20, play: 40 };
-
-// 提案
-const SUGGESTS = [
-  {id:'hello', text:'おはようって言ってみよう', hearts:2, coolMin:60},
-  {id:'water', text:'コップ一杯のお水を飲もう', hearts:2, coolMin:60},
-  {id:'breath', text:'5秒だけ目を閉じて深呼吸', hearts:2, coolMin:45},
-  {id:'stand', text:'1分だけ席を立って伸び', hearts:2, coolMin:45},
-  {id:'clean', text:'机の上を30秒だけ片付け', hearts:3, coolMin:120},
-  {id:'walk', text:'部屋を1周あるいてこよう', hearts:2, coolMin:60},
-];
-
-/* =========================
-   DOM
-========================= */
-const $ = sel => document.querySelector(sel);
-const screenStart = $('#screen-start'), screenGame = $('#screen-game');
-const btnStart = $('#btnStart'), btnLang = $('#btnLang');
-const heartCountEl = $('#heartCount'), progBar = $('#progBar');
-const evolveDot = $('#evolveDot'), evolveText = $('#evolveText');
-const suggestList = $('#suggestList'), nextSuggestMsg = $('#nextSuggestMsg'), btnSkip = $('#btnSkip');
-const careList = $('#careList');
-const apiDot = $('#apiDot'), apiBadge = $('#apiBadge');
-const userNameEl = $('#userName'), charNameEl = $('#charName');
-
-/* =========================
-   状態
-========================= */
-let state = {
-  hearts: parseInt(localStorage.getItem(LS.HEARTS)||'0',10),
-  last: JSON.parse(localStorage.getItem(LS.LAST)||'{}'),
-  nextSuggestAt: parseInt(localStorage.getItem(LS.NEXT_SUG)||'0',10),
-  evolved: localStorage.getItem(LS.EVOLVED)==='1',
-  user: localStorage.getItem(LS.USER)||'あなた',
-  char: localStorage.getItem(LS.CHAR)||'アコ'
-};
-if(!state.last.suggest) state.last.suggest = {};
-if(!state.last.care) state.last.care = {};
-
-/* =========================
-   ユーティリティ
-========================= */
-const now = () => Date.now();
-const minMs = m => m*60*1000;
-const secMs = s => s*1000;
-function coolMsFrom(min){ return DEMO_MODE ? secMs(randInt(DEMO_MIN_SEC, DEMO_MAX_SEC)) : minMs(min); }
-function careCoolMs(key){
-  return DEMO_MODE ? secMs(CARE_COOL_SEC[key]) : minMs(CARE_COOL_MIN[key]||60);
-}
-function randInt(a,b){ return Math.floor(a + Math.random()*(b-a+1)); }
-function fmtClock(ts){
-  const d = new Date(ts);
-  const pad = n => String(n).padStart(2,'0');
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-/* =========================
-   画面切替・初期化
-========================= */
-btnStart.onclick = () => {
-  screenStart.classList.add('hide');
-  screenGame.classList.remove('hide');
-  initGame();
-};
-
-// 簡易言語トグル（日本語/English）
-btnLang.onclick = () => {
-  const cur = localStorage.getItem(LS.LANG) || 'ja';
-  const next = (cur==='ja') ? 'en' : 'ja';
-  localStorage.setItem(LS.LANG, next);
-  btnLang.textContent = (next==='ja' ? '日本語' : 'English');
-  // 文字列だけ簡易変更
-  if(next==='en'){
-    $('#btnStart')?.textContent = 'Start';
-    $('#evolveText').textContent = state.evolved ? 'Evolved!' : 'To Evolve';
-    $('h2')?.textContent;
-  }else{
-    $('#btnStart')?.textContent = 'はじめる';
-    $('#evolveText').textContent = state.evolved ? '進化したよ！' : '進化まで';
+// ===== 多言語定義 =====
+const I18N = {
+  ja:{
+    app:"MeAI",
+    coverLead:"小さな“やってみる”をやさしく提案してくれる相棒。",
+    start:"はじめる",
+    welcome:"こんにちは！",
+    guide:"あなたのMeAI生活をはじめましょう。",
+    back:"もどる"
+  },
+  en:{
+    app:"MeAI",
+    coverLead:"Your gentle buddy suggesting small actions.",
+    start:"Start",
+    welcome:"Hello!",
+    guide:"Let's begin your MeAI journey.",
+    back:"Back"
+  },
+  zh:{
+    app:"MeAI",
+    coverLead:"温柔地给你提小建议的伙伴。",
+    start:"开始",
+    welcome:"你好！",
+    guide:"让我们开始你的MeAI生活吧。",
+    back:"返回"
+  },
+  ko:{
+    app:"MeAI",
+    coverLead:"작은 시도를 부드럽게 제안하는 친구.",
+    start:"시작하기",
+    welcome:"안녕하세요!",
+    guide:"MeAI 생활을 시작해요.",
+    back:"뒤로가기"
   }
 };
 
-function initGame(){
-  userNameEl.textContent = state.user;
-  charNameEl.textContent = state.char;
-  renderHearts();
-  renderCareTiles();
-  bootAPIProbe();
-  scheduleOrResumeSuggest();
+// ===== 言語設定 =====
+const LS_LANG = 'MEAI_LANG';
+const $ = (s)=>document.querySelector(s);
+
+function applyLang(){
+  const lang = localStorage.getItem(LS_LANG) || 'ja';
+  const t = I18N[lang];
+  document.title = t.app;
+  $('#startBtn').textContent = t.start;
+  $('#welcomeText').textContent = t.welcome;
+  $('#guideText').textContent = t.guide;
+  $('#backBtn').textContent = t.back;
 }
 
-/* =========================
-   ハート＆進化＆HBD演奏
-========================= */
-function addHearts(n){
-  state.hearts += n;
-  localStorage.setItem(LS.HEARTS, state.hearts);
-  renderHearts();
-  checkEvolve();
-}
-function renderHearts(){
-  heartCountEl.textContent = state.hearts;
-  const p = Math.min(100, Math.floor((state.hearts/EVOLVE_HEARTS)*100));
-  progBar.style.width = p + '%';
-  evolveText.textContent = state.evolved ? '進化したよ！' : `進化まで：あと ${Math.max(0, EVOLVE_HEARTS-state.hearts)} ❤️`;
-  evolveDot.classList.toggle('ok', state.evolved);
-}
-function checkEvolve(){
-  if(!state.evolved && state.hearts >= EVOLVE_HEARTS){
-    state.evolved = true;
-    localStorage.setItem(LS.EVOLVED,'1');
-    renderHearts();
-    playHappyBirthday();
+(function initLang(){
+  let lang = localStorage.getItem(LS_LANG);
+  if (!lang) {
+    const cand = (navigator.language || 'ja').slice(0,2);
+    lang = (I18N[cand]) ? cand : 'ja';
+    localStorage.setItem(LS_LANG, lang);
   }
-}
-
-// シンプルなHBDメロディ（WebAudio）
-function playHappyBirthday(){
-  const ctx = new (window.AudioContext||window.webkitAudioContext)();
-  const bpm = 140, beat = 60/bpm;
-  const seq = [
-    // [freq(Hz), beats]
-    [264,1], [264,1], [297,2], [264,2], [352,2], [330,4],
-    [264,1], [264,1], [297,2], [264,2], [396,2], [352,4],
-    [264,1], [264,1], [528,2], [440,2], [352,2], [330,2], [297,4],
-    [466,1], [466,1], [440,2], [352,2], [396,2], [352,4]
-  ];
-  let t = ctx.currentTime + .05;
-  seq.forEach(([f,beats],i)=>{
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type='sine'; o.frequency.value=f;
-    g.gain.setValueAtTime(.0001,t);
-    g.gain.linearRampToValueAtTime(.2,t+.02);
-    g.gain.setValueAtTime(.2, t + beat*beats - .06);
-    g.gain.linearRampToValueAtTime(.0001, t + beat*beats);
-    o.connect(g).connect(ctx.destination);
-    o.start(t); o.stop(t + beat*beats);
-    t += beat*beats + 0.02;
-  });
-}
-
-/* =========================
-   提案：生成・表示・クールダウン
-========================= */
-let suggestTimer = null;
-function scheduleOrResumeSuggest(){
-  // 既に予約があれば復元、無ければ新規スケジュール
-  const nowTs = now();
-  let due = state.nextSuggestAt;
-  if(!due || due < nowTs){
-    due = nowTs + (DEMO_MODE ? secMs(randInt(DEMO_MIN_SEC, DEMO_MAX_SEC))
-                             : minMs(randInt(SUGGEST_MIN_MIN, SUGGEST_MAX_MIN)));
-    state.nextSuggestAt = due;
-    localStorage.setItem(LS.NEXT_SUG, String(due));
-  }
-  showNextMsg();
-  if(suggestTimer) clearTimeout(suggestTimer);
-  suggestTimer = setTimeout(pushNewSuggest, Math.max(0, due - nowTs));
-}
-
-function showNextMsg(){
-  const ms = Math.max(0, state.nextSuggestAt - now());
-  const sec = Math.ceil(ms/1000);
-  nextSuggestMsg.textContent = `次の提案まで 約 ${sec} 秒`;
-  // 軽いカウントダウン
-  const int = setInterval(()=>{
-    const left = Math.max(0, state.nextSuggestAt - now());
-    const s = Math.ceil(left/1000);
-    nextSuggestMsg.textContent = `次の提案まで 約 ${s} 秒`;
-    if(left<=0){ clearInterval(int); nextSuggestMsg.textContent = 'まもなく新しい提案が届きます…'; }
-  },1000);
-}
-
-function pushNewSuggest(){
-  // クール中でない候補からランダム
-  const candidates = SUGGESTS.filter(s=>{
-    const last = state.last.suggest[s.id] || 0;
-    const cool = DEMO_MODE ? secMs(Math.max(20, Math.floor(s.coolMin/2))) : minMs(s.coolMin);
-    return (now() - last) >= cool;
-  });
-  const s = (candidates.length ? candidates[randInt(0, candidates.length-1)] : SUGGESTS[randInt(0,SUGGESTS.length-1)]);
-  createSuggestTile(s);
-  // 次回を予約
-  state.nextSuggestAt = now() + (DEMO_MODE ? secMs(randInt(DEMO_MIN_SEC, DEMO_MAX_SEC))
-                                           : minMs(randInt(SUGGEST_MIN_MIN, SUGGEST_MAX_MIN)));
-  localStorage.setItem(LS.NEXT_SUG, String(state.nextSuggestAt));
-  showNextMsg();
-}
-
-function createSuggestTile(s){
-  const wrap = document.createElement('div');
-  wrap.className = 'tile';
-  wrap.innerHTML = `
-    <h3>${s.text}</h3>
-    <div class="small">+${s.hearts} ❤️ / 再実行クールダウン ${DEMO_MODE? '数十秒' : (s.coolMin+'分')}</div>
-    <div class="row2">
-      <button class="btn primary">やったよ</button>
-      <div class="next muted"></div>
-    </div>
-  `;
-  const btn = wrap.querySelector('button');
-  const next = wrap.querySelector('.next');
-
-  const refresh = ()=>{
-    const last = state.last.suggest[s.id] || 0;
-    const cool = DEMO_MODE ? secMs(Math.max(20, Math.floor(s.coolMin/2))) : minMs(s.coolMin);
-    const remain = (last + cool) - now();
-    if(remain>0){
-      btn.disabled = true; btn.textContent = 'クール中…';
-      next.textContent = `再開 ${fmtClock(last + cool)} 頃`;
-    }else{
-      btn.disabled = false; btn.textContent = 'やったよ';
-      next.textContent = '';
-    }
-  };
-  btn.onclick = ()=>{
-    const last = state.last.suggest[s.id] || 0;
-    const cool = DEMO_MODE ? secMs(Math.max(20, Math.floor(s.coolMin/2))) : minMs(s.coolMin);
-    if(now() - last < cool) return; // 念のため
-    state.last.suggest[s.id] = now();
-    persistLast();
-    addHearts(s.hearts);
-    refresh();
-  };
-  refresh();
-  suggestList.prepend(wrap);
-}
-
-/* =========================
-   お世話：ボタン＆ログ
-========================= */
-const CARES = {
-  feed: { label:'ごはん', icon:'🍎', hearts:2 },
-  water:{ label:'おみず', icon:'💧', hearts:1 },
-  play: { label:'あそぶ', icon:'🎲', hearts:3 }
-};
-
-function renderCareTiles(){
-  careList.innerHTML = '';
-  Object.keys(CARES).forEach(key=>{
-    const c = CARES[key];
-    const tile = document.createElement('div');
-    tile.className = 'tile';
-    tile.innerHTML = `
-      <h3>${c.icon} ${c.label}</h3>
-      <div class="small">+${c.hearts} ❤️ / クールダウン ${DEMO_MODE? '数十秒' : Math.round((CARE_COOL_MIN[key]||60))+'分'}</div>
-      <div class="row2">
-        <button class="btn ghost">お世話する</button>
-        <div class="next muted"></div>
-      </div>
-    `;
-    const btn = tile.querySelector('button');
-    const next = tile.querySelector('.next');
-
-    const refresh = ()=>{
-      const last = state.last.care[key] || 0;
-      const cool = careCoolMs(key);
-      const remain = (last + cool) - now();
-      if(remain>0){
-        btn.disabled = true; btn.textContent = 'クール中…';
-        next.textContent = `再開 ${fmtClock(last + cool)} 頃`;
-      }else{
-        btn.disabled = false; btn.textContent = 'お世話する';
-        next.textContent = '';
-      }
-    };
-
-    btn.onclick = ()=>{
-      const last = state.last.care[key] || 0;
-      if(now() - last < careCoolMs(key)) return;
-      state.last.care[key] = now();
-      persistLast();
-      addHearts(c.hearts);
-      refresh();
-    };
-
-    // 起動時に即反映＆1秒ごとに残り時間を更新
-    refresh();
-    setInterval(refresh, 1000);
-    careList.appendChild(tile);
-  });
-
-  // グリッド上のショートカットボタン
-  document.querySelectorAll('[data-action]').forEach(b=>{
-    const key = b.dataset.action;
-    b.onclick = ()=>{
-      const last = state.last.care[key] || 0;
-      if(now() - last < careCoolMs(key)) return;
-      state.last.care[key] = now();
-      persistLast();
-      addHearts(CARES[key].hearts);
-    };
-  });
-}
-
-function persistLast(){
-  localStorage.setItem(LS.LAST, JSON.stringify(state.last));
-}
-
-/* =========================
-   API起動チェック（任意）
-========================= */
-const TALK_ENDPOINT = localStorage.getItem(LS.API_BASE) || (typeof window.TALK_ENDPOINT === 'string' ? window.TALK_ENDPOINT : '') || 'api/talk';
-async function bootAPIProbe(){
-  try{
-    const r = await fetch(TALK_ENDPOINT, {method:'HEAD', mode:'cors'});
-    if(r.ok || (r.status>=200 && r.status<500)){
-      apiDot.classList.remove('ng'); apiDot.classList.add('ok');
-      return;
-    }
-  }catch(_){}
-  apiDot.classList.remove('ok'); apiDot.classList.add('ng');
-}
-
-/* =========================
-   自動スタート（前回の続き対策）
-========================= */
-(function autostart(){
-  // 直アクセスでも見せやすいよう、特に自動開始はしない
+  $('#langSelect').value = lang;
+  applyLang();
 })();
+
+$('#langSelect').addEventListener('change',(e)=>{
+  const v = e.target.value;
+  if (I18N[v]) {
+    localStorage.setItem(LS_LANG, v);
+    applyLang();
+  }
+});
+
+// ===== 画面切替 =====
+$('#startBtn').addEventListener('click',()=>{
+  $('#cover').style.display='none';
+  $('#gameArea').style.display='flex';
+});
+
+$('#backBtn').addEventListener('click',()=>{
+  $('#gameArea').style.display='none';
+  $('#cover').style.display='flex';
+});
 </script>
 </body>
 </html>
