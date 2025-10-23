@@ -6,7 +6,10 @@
 <title>MeAI</title>
 <link rel="icon" href="data:,">
 <style>
-  :root{ --fg:#fff; --dim:#cfd8dc; --accent:#8e7cff; --glass:rgba(255,255,255,.08); --bd:rgba(255,255,255,.18); }
+  :root{
+    --fg:#fff; --dim:#cfd8dc; --accent:#8e7cff; --accent2:#4db6ff;
+    --glass:rgba(255,255,255,.08); --bd:rgba(255,255,255,.18);
+  }
   html,body{height:100%}
   body{
     margin:0; color:var(--fg);
@@ -16,31 +19,56 @@
   .hidden{display:none!important;}
   .center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:20px; text-align:center;}
   .row{display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap;}
-  .panel{ background:var(--glass); border:1px solid var(--bd); border-radius:18px; padding:16px 18px; max-width:860px; width:min(92vw,860px); }
-  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5em; border:none; border-radius:999px; padding:12px 22px; cursor:pointer; color:#fff; font-weight:700; background:linear-gradient(135deg,#4db6ff,var(--accent)); }
+  .panel{ background:var(--glass); border:1px solid var(--bd); border-radius:18px; padding:16px 18px; max-width:980px; width:min(94vw,980px); }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5em; border:none; border-radius:999px; padding:12px 22px; cursor:pointer; color:#fff; font-weight:700; background:linear-gradient(135deg,var(--accent2),var(--accent)); }
   .btn.secondary{ background:linear-gradient(135deg,#607d8b,#90a4ae);}
   .btn.ghost{ background:transparent; border:1px solid rgba(255,255,255,.4);}
+  .btn:disabled{ opacity:.5; cursor:not-allowed; }
   img.char{ width:min(34vw,220px); height:auto; border-radius:18px; box-shadow:0 8px 24px rgba(0,0,0,.35); background:rgba(255,255,255,.06); }
-  #cover h1{font-size:40px; margin:0;}  #cover p{color:var(--dim); margin:.2em 0 0 0;}
-  #game{ display:none; align-items:flex-start; justify-content:flex-start; text-align:left; }
-  #game .layout{ display:grid; gap:16px; width:min(96vw,980px); grid-template-columns:240px 1fr; }
-  #charBox{ display:flex; flex-direction:column; align-items:center; gap:10px; }
-  #heart{ font-weight:700; padding:.35em .8em; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid var(--bd); }
-  #suggestBox .title{font-weight:700; opacity:.9; margin-bottom:6px;}
-  #suggest{font-size:18px; line-height:1.6;}
-  #log{max-height:180px; overflow:auto; font-size:13px; opacity:.9;} #log li{margin:.2em 0;}
   .spacer{height:10px;}
-  #langWrap{ position:fixed; right:12px; bottom:12px; display:flex; gap:6px; align-items:center; font-size:13px; color:#e0e0e0;}
-  #langSelect{ background:rgba(0,0,0,.4); color:#fff; border:1px solid rgba(255,255,255,.3); border-radius:8px; padding:6px 8px; }
+
+  /* COVER */
+  #cover h1{font-size:40px; margin:0;}  #cover p{color:var(--dim); margin:.2em 0 0 0;}
+
+  /* GAME */
+  #game{ display:none; text-align:left; }
+  #layout{ display:grid; gap:16px; grid-template-columns:260px 1fr; }
+  #charBox{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  #stats{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+  .chip{ font-weight:700; padding:.35em .8em; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid var(--bd); }
+  #greet{ font-size:18px; }
+  #suggest{ font-size:18px; line-height:1.6; }
+  #log{max-height:220px; overflow:auto; font-size:13px; opacity:.95; }
+  #log li{margin:.2em 0;}
+  .title{font-weight:700; opacity:.9; margin-bottom:6px;}
+
+  /* Modal */
+  .modalWrap{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(0,0,0,.5); }
+  .modal{ background:rgba(22,22,33,.9); border:1px solid var(--bd); border-radius:14px; padding:18px; width:min(92vw,520px); }
+  .gridChars{ display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; }
+  .stamp{ display:inline-block; padding:6px 10px; border:1px dashed rgba(255,255,255,.35); border-radius:10px; margin:4px; }
+  input[type="text"]{ width:100%; padding:10px 12px; border-radius:10px; border:1px solid #777; background:#111; color:#fff; }
+  small{color:#cfd8dc}
 </style>
 </head>
 <body>
 
-<!-- COVER -->
+<!-- ===== COVER ===== -->
 <section id="cover" class="center" aria-label="cover">
   <div class="panel">
-    <h1 id="appTitle">MeAI</h1>
-    <p id="lead">小さな“やってみる”をやさしく提案してくれる相棒。</p>
+    <h1>MeAI</h1>
+    <p>小さな“やってみる”をやさしく提案してくれる相棒。</p>
+    <div class="spacer"></div>
+
+    <!-- 名前入力 -->
+    <div class="panel" style="background:rgba(255,255,255,.05);">
+      <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+        <input id="userNameInput" type="text" placeholder="あなたの名前" aria-label="あなたの名前">
+        <button class="btn" id="saveNameBtn" type="button">名前を保存</button>
+      </div>
+      <small id="nameHint">※あとで変更できます</small>
+    </div>
+
     <div class="spacer"></div>
     <img id="coverChar" class="char" src="public/char/ako2.png" alt="キャラ">
     <div class="spacer"></div>
@@ -50,165 +78,299 @@
   </div>
 </section>
 
-<!-- GAME -->
+<!-- ===== GAME ===== -->
 <section id="game" class="center" aria-label="game">
-  <div class="panel layout">
-    <div id="charBox">
-      <img id="gameChar" class="char" src="public/char/ako2.png" alt="キャラ">
-      <div id="heart">♡ <span id="heartNum">0</span></div>
-      <div class="row">
-        <button class="btn" id="doneBtn" type="button">やったよ♡</button>
-        <button class="btn ghost" id="backBtn" type="button">もどる</button>
-      </div>
-    </div>
+  <div class="panel">
+    <div id="greet">こんにちは！</div>
+    <div class="spacer"></div>
 
-    <div id="rightCol">
-      <div id="suggestBox">
-        <div class="title" id="todayTitle">今日の提案</div>
-        <div id="suggest">ボタンを押すと、いまのあなたに合いそうな小さな行動を出します。</div>
-        <div class="spacer"></div>
+    <div id="layout">
+      <!-- 左：キャラ＆お世話 -->
+      <div id="charBox">
+        <img id="gameChar" class="char" src="public/char/ako2.png" alt="キャラ">
+        <div id="charNameView" class="chip">キャラ名：<span id="charNick">（未設定）</span></div>
+
+        <div id="stats">
+          <div class="chip">♡ ハート <span id="heartNum">0</span></div>
+          <div class="chip">🎯 今日の提案 <span id="todayCount">0</span>/3</div>
+          <div class="chip">🏅 スタンプ <span id="stampNum">0</span></div>
+        </div>
+
         <div class="row">
-          <button class="btn" id="nextSuggestBtn" type="button">提案を出す</button>
-          <button class="btn secondary" id="anotherBtn" type="button">別の案</button>
+          <button class="btn" id="doneBtn" type="button">やったよ♡</button>
+          <button class="btn ghost" id="backBtn" type="button">カバーへ</button>
+        </div>
+
+        <div class="spacer"></div>
+
+        <div class="panel" style="background:rgba(255,255,255,.05);">
+          <div class="title">お世話（いつでもOK）</div>
+          <div class="row">
+            <button class="btn secondary" id="careMeal">ごはん</button>
+            <button class="btn secondary" id="careToilet">トイレ</button>
+            <button class="btn secondary" id="carePet">なでる</button>
+          </div>
         </div>
       </div>
 
-      <div class="spacer"></div>
+      <!-- 右：提案＆ログ -->
+      <div id="rightCol">
+        <div id="suggestBox" class="panel" style="background:rgba(255,255,255,.05);">
+          <div class="title">今日の提案</div>
+          <div id="suggest">ボタンを押すと、いまのあなたに合いそうな小さな行動を出します。</div>
+          <div class="spacer"></div>
+          <div class="row">
+            <button class="btn" id="nextSuggestBtn" type="button">提案を出す</button>
+            <button class="btn secondary" id="anotherBtn" type="button">別の案</button>
+            <button class="btn" id="clearSuggestBtn" type="button" disabled>クリア！</button>
+          </div>
+          <small>※提案は1日に最大3回までクリアできます</small>
+        </div>
 
-      <div class="panel" style="background:rgba(255,255,255,.05);">
-        <div class="title" id="logTitle">きろく</div>
-        <ul id="log"></ul>
+        <div class="spacer"></div>
+
+        <div class="panel" style="background:rgba(255,255,255,.05);">
+          <div class="title">きろく</div>
+          <ul id="log"></ul>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- LANG -->
-<div id="langWrap">
-  <label for="langSelect">Language</label>
-  <select id="langSelect">
-    <option value="ja">日本語</option>
-    <option value="en">English</option>
-    <option value="zh">中文</option>
-    <option value="ko">한국어</option>
-  </select>
+<!-- ===== モーダル：キャラ選択 ===== -->
+<div id="modalSelect" class="modalWrap" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3 style="margin:0 0 8px">キャラをえらぼう！</h3>
+    <small>※合計3回クリアで解放</small>
+    <div class="spacer"></div>
+    <div id="charOptions" class="gridChars"></div>
+    <div class="spacer"></div>
+    <div class="row"><button class="btn ghost" id="closeSelect">とじる</button></div>
+  </div>
+</div>
+
+<!-- ===== モーダル：キャラ命名 ===== -->
+<div id="modalName" class="modalWrap" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h3 style="margin:0 0 8px">キャラに名前をつけよう！</h3>
+    <small>※合計5回クリアで解放</small>
+    <div class="spacer"></div>
+    <input id="charNameInput" type="text" placeholder="キャラの名前">
+    <div class="spacer"></div>
+    <div class="row">
+      <button class="btn" id="saveCharName">保存</button>
+      <button class="btn ghost" id="closeName">とじる</button>
+    </div>
+  </div>
 </div>
 
 <script>
-/* ===== ユーティリティ ===== */
-const LS_LANG='MEAI_LANG', LS_HEARTS='MEAI_HEARTS', LS_LOG='MEAI_LOG';
-const $=(s)=>document.querySelector(s);
-const safe = (el, fn) => { if (el) fn(el); };     // あれば実行
-const setText = (el, txt) => safe(el, e=>e.textContent = txt);
-
-/* ===== I18N ===== */
-const I18N={
-  ja:{app:"MeAI",lead:"小さな“やってみる”をやさしく提案してくれる相棒。",
-      start:"はじめる",back:"もどる",done:"やったよ♡",next:"提案を出す",another:"別の案",
-      today:"今日の提案",log:"きろく",help:"ボタンを押すと、いまのあなたに合いそうな小さな行動を出します。"},
-  en:{app:"MeAI",lead:"Your gentle buddy suggesting small actions.",
-      start:"Start",back:"Back",done:"I did it ♡",next:"Get a suggestion",another:"Another idea",
-      today:"Today's Suggestion",log:"Log",help:"Press the button to get a small action that may fit you now."},
-  zh:{app:"MeAI",lead:"温柔地给你提小建议的伙伴。",
-      start:"开始",back:"返回",done:"完成了♡",next:"给我建议",another:"换一个",
-      today:"今日建议",log:"记录",help:"点按钮获取现在适合你的一小步。"},
-  ko:{app:"MeAI",lead:"작은 시도를 부드럽게 제안하는 친구.",
-      start:"시작하기",back:"뒤로가기",done:"했어요 ♡",next:"제안 받기",another:"다른 제안",
-      today:"오늘의 제안",log:"기록",help:"버튼을 눌러 지금 당신에게 맞는 작은 행동을 받아보세요."}
+/* ================== 定数・ユーティリティ ================== */
+const LS = {
+  NAME:'MEAI_USER_NAME',
+  HEART:'MEAI_HEART',
+  STAMP:'MEAI_STAMP',
+  CLEAR_TOTAL:'MEAI_CLEAR_TOTAL',
+  TODAY_DATE:'MEAI_TODAY_DATE',
+  TODAY_COUNT:'MEAI_TODAY_COUNT',
+  CHAR_SRC:'MEAI_CHAR_SRC',
+  CHAR_NAME:'MEAI_CHAR_NAME'
 };
+const $ = (s)=>document.querySelector(s);
+const on = (el,ev,fn)=>el&&el.addEventListener(ev,fn);
+const nowDateStr = ()=> new Date().toISOString().slice(0,10); // YYYY-MM-DD
 
-function applyLang(){
-  const lang = localStorage.getItem(LS_LANG) || 'ja';
-  const t = I18N[lang];
-  document.title = t.app;
-  setText($('#appTitle'), t.app);
-  setText($('#lead'), t.lead);
-  setText($('#startBtn'), t.start);
-  setText($('#backBtn'), t.back);
-  setText($('#doneBtn'), t.done);
-  setText($('#nextSuggestBtn'), t.next);
-  setText($('#anotherBtn'), t.another);
-  setText($('#todayTitle'), t.today);
-  setText($('#logTitle'), t.log);
-  if (!suggestPicked) setText($('#suggest'), t.help);
+// 画像候補（存在チェックして出す）
+const CHAR_POOL = [
+  "public/char/ako1.png",
+  "public/char/ako2.png",
+  "public/char/ako3.png"
+];
+
+/* ================== 状態 ================== */
+let hearts = Number(localStorage.getItem(LS.HEART) || 0);
+let stamps = Number(localStorage.getItem(LS.STAMP) || 0);
+let clearTotal = Number(localStorage.getItem(LS.CLEAR_TOTAL) || 0);
+let todayDate = localStorage.getItem(LS.TODAY_DATE) || nowDateStr();
+let todayCount = Number(localStorage.getItem(LS.TODAY_COUNT) || 0);
+let currentSuggest = null;
+
+// 日付が変わっていたら日次回数リセット
+if (todayDate !== nowDateStr()) {
+  todayDate = nowDateStr();
+  todayCount = 0;
+  localStorage.setItem(LS.TODAY_DATE, todayDate);
+  localStorage.setItem(LS.TODAY_COUNT, todayCount);
 }
 
-/* ===== データ ===== */
-const SUGGESTS=[
+/* ================== 提案 ================== */
+const SUGGESTS = [
   "水を一杯飲む","立ち上がって30秒ストレッチ","5分だけ机を片づける",
   "今日の良かったことを1つ書く","10回深呼吸","歯磨きの仕上げ30秒",
   "外の空気を吸う","タイマー3分で集中","人に一言ありがとうを伝える",
   "目を閉じて休む30秒","使わないタブを3つ閉じる","背すじを伸ばす",
   "短いメモを1行だけ書く","散歩を1分","水やりをする","ゴミを1つ捨てる"
 ];
-let hearts = Number(localStorage.getItem(LS_HEARTS)||0);
-let suggestPicked = null;
-
-function updateHearts(){ setText($('#heartNum'), String(hearts)); }
-function pushLog(text){
-  const now=new Date(), line=`${now.toLocaleString()}｜${text}`;
-  const arr=JSON.parse(localStorage.getItem(LS_LOG)||"[]");
-  arr.unshift(line);
-  localStorage.setItem(LS_LOG, JSON.stringify(arr.slice(0,100)));
-  const list = $('#log'); if (list) list.innerHTML = arr.map(s=>`<li>${s}</li>`).join('');
+function pickSuggest(){
+  const i = Math.floor(Math.random()*SUGGESTS.length);
+  currentSuggest = SUGGESTS[i];
+  $('#suggest').textContent = currentSuggest;
+  $('#clearSuggestBtn').disabled = false;
 }
-function pick(){ const i=Math.floor(Math.random()*SUGGESTS.length); suggestPicked=SUGGESTS[i]; setText($('#suggest'), suggestPicked); }
+function pushLog(msg){
+  const li = document.createElement('li');
+  li.textContent = `${new Date().toLocaleString()}｜${msg}`;
+  $('#log').prepend(li);
+}
 
-/* ===== 起動（DOMContentLoadedで安全登録） ===== */
-document.addEventListener('DOMContentLoaded', ()=>{
-  // 言語初期化
-  let lang=localStorage.getItem(LS_LANG);
-  if(!lang){ const c=(navigator.language||'ja').slice(0,2); lang = I18N[c]?c:'ja'; localStorage.setItem(LS_LANG, lang); }
-  const langSel = $('#langSelect'); if (langSel) langSel.value = lang;
-  applyLang();
+/* ================== UI 初期化 ================== */
+function renderHUD(){
+  $('#heartNum').textContent = String(hearts);
+  $('#stampNum').textContent = String(stamps);
+  $('#todayCount').textContent = `${todayCount}`;
+  const name = localStorage.getItem(LS.NAME) || "";
+  const charNick = localStorage.getItem(LS.CHAR_NAME) || "（未設定）";
+  const charCall = name ? `${name}さん、` : "";
+  $('#greet').textContent = `${charCall}こんにちは！ 今日はあと ${Math.max(0,3-todayCount)} 回クリアできます。`;
+  $('#charNick').textContent = charNick;
+  // 3回/5回到達でモーダル自動案内（1回だけ）
+  if (clearTotal === 3) { openSelectModal(); }
+  if (clearTotal === 5 && !localStorage.getItem(LS.CHAR_NAME)) { openNameModal(); }
+}
 
-  updateHearts(); pushLog("ロード完了");
+// カバーの「はじめる」を有効化（名前が空でもOK）
+function updateStartEnabled(){
+  $('#startBtn').disabled = false;
+}
 
-  // クリック系（要素が無ければ何もしない→エラーにならない）
-  safe($('#startBtn'), btn=>{
-    btn.addEventListener('click', ()=>{
-      $('#cover')?.classList.add('hidden');
-      const g = $('#game'); if (g) g.style.display='flex';
-      pushLog("スタート");
-    });
+/* ================== キャラ画像ロード ================== */
+async function buildCharOptions(){
+  const wrap = $('#charOptions'); wrap.innerHTML = "";
+  const exists = await Promise.all(CHAR_POOL.map(src => imgExists(src)));
+  exists.forEach((ok,idx)=>{
+    if(!ok) return;
+    const src = CHAR_POOL[idx];
+    const b = document.createElement('button');
+    b.className = 'btn ghost';
+    b.style.flexDirection='column';
+    b.innerHTML = `<img class="char" src="${src}" alt="char" style="width:140px"><div style="margin-top:6px">${src.split('/').pop()}</div>`;
+    b.addEventListener('click', ()=>selectChar(src));
+    wrap.appendChild(b);
   });
+  if (!wrap.children.length) {
+    const p=document.createElement('p');
+    p.textContent="利用できるキャラ画像が見つかりません。public/char/ に画像を置いてください。";
+    wrap.appendChild(p);
+  }
+}
+function selectChar(src){
+  localStorage.setItem(LS.CHAR_SRC, src);
+  $('#coverChar').src = src;
+  $('#gameChar').src = src;
+  pushLog(`キャラ変更：${src}`);
+  closeSelectModal();
+}
+function imgExists(src){
+  return new Promise(res=>{
+    const i=new Image();
+    i.onload=()=>res(true);
+    i.onerror=()=>res(false);
+    i.src=src;
+  });
+}
 
-  safe($('#backBtn'), btn=>{
-    btn.addEventListener('click', ()=>{
-      const g = $('#game'); if (g) g.style.display='none';
-      $('#cover')?.classList.remove('hidden');
-    });
-  });
+/* ================== モーダル操作 ================== */
+function openSelectModal(){ $('#modalSelect').style.display='flex'; buildCharOptions(); }
+function closeSelectModal(){ $('#modalSelect').style.display='none'; }
+function openNameModal(){ $('#modalName').style.display='flex'; }
+function closeNameModal(){ $('#modalName').style.display='none'; }
 
-  safe($('#doneBtn'), btn=>{
-    btn.addEventListener('click', ()=>{
-      hearts++; localStorage.setItem(LS_HEARTS, hearts); updateHearts();
-      pushLog("やったよ♡ 1ハート獲得");
-    });
-  });
-
-  safe($('#nextSuggestBtn'), btn=>{
-    btn.addEventListener('click', ()=>{ pick(); pushLog(`提案表示：${suggestPicked}`); });
-  });
-  safe($('#anotherBtn'), btn=>{
-    btn.addEventListener('click', ()=> pick());
-  });
-
-  safe($('#langSelect'), sel=>{
-    sel.addEventListener('change', (e)=>{
-      const v = e.target.value;
-      if (I18N[v]){ localStorage.setItem(LS_LANG, v); applyLang(); }
-    });
-  });
-
-  // 画像存在チェック（ログだけ出す・処理は止めない）
-  ['#coverChar','#gameChar'].forEach(sel=>{
-    const el=$(sel); if(!el) return;
-    const test=new Image();
-    test.onerror=()=>pushLog(`画像が見つかりません：${el.getAttribute('src')}`);
-    test.src=el.getAttribute('src');
-  });
+/* ================== イベント ================== */
+// 名前保存
+on($('#saveNameBtn'),'click', ()=>{
+  const v = ($('#userNameInput').value || "").trim();
+  localStorage.setItem(LS.NAME, v);
+  pushLog(`名前を保存：${v||"(未設定)"}`);
+  updateStartEnabled();
 });
+
+// スタート
+on($('#startBtn'),'click', ()=>{
+  // 画像反映
+  const savedSrc = localStorage.getItem(LS.CHAR_SRC);
+  if (savedSrc) { $('#coverChar').src = savedSrc; $('#gameChar').src = savedSrc; }
+  $('#cover').classList.add('hidden');
+  $('#game').style.display='flex';
+  renderHUD();
+  pushLog("スタート");
+});
+
+// カバーへ戻る
+on($('#backBtn'),'click', ()=>{
+  $('#game').style.display='none';
+  $('#cover').classList.remove('hidden');
+});
+
+// お世話
+on($('#careMeal'),'click', ()=>{ hearts++; saveHearts(); pushLog("ごはん：満足そう！♡+1"); renderHUD(); });
+on($('#careToilet'),'click', ()=>{ pushLog("トイレ：スッキリ！"); });
+on($('#carePet'),'click', ()=>{ hearts++; saveHearts(); pushLog("なでなで：うれしい！♡+1"); renderHUD(); });
+
+// 提案
+on($('#nextSuggestBtn'),'click', ()=>{ pickSuggest(); pushLog("提案を表示"); });
+on($('#anotherBtn'),'click', ()=>{ pickSuggest(); });
+on($('#clearSuggestBtn'),'click', ()=>{
+  if (todayCount >= 3) { $('#clearSuggestBtn').disabled = true; return; }
+  todayCount++; localStorage.setItem(LS.TODAY_COUNT, todayCount);
+  localStorage.setItem(LS.TODAY_DATE, nowDateStr());
+  clearTotal++; localStorage.setItem(LS.CLEAR_TOTAL, clearTotal);
+  stamps++; localStorage.setItem(LS.STAMP, stamps);
+  pushLog(`提案クリア！「${currentSuggest||"（不明）"}」｜スタンプ+1`);
+  $('#clearSuggestBtn').disabled = true; // 同じ提案の連打防止
+  renderHUD();
+});
+
+// ハート保存
+function saveHearts(){ localStorage.setItem(LS.HEART, hearts); }
+
+// モーダル
+on($('#closeSelect'),'click', closeSelectModal);
+on($('#closeName'),'click', closeNameModal);
+on($('#saveCharName'),'click', ()=>{
+  const v = ($('#charNameInput').value||"").trim();
+  localStorage.setItem(LS.CHAR_NAME, v);
+  pushLog(`キャラ命名：「${v||"(未設定)"}」`);
+  closeNameModal();
+  renderHUD();
+});
+
+// 右クリック等でいつでも試せるように（任意）
+document.addEventListener('keydown', (e)=>{
+  if (e.key==='c' && (e.ctrlKey||e.metaKey)) openSelectModal();   // Ctrl/Cmd + C：キャラ選択
+  if (e.key==='n' && (e.ctrlKey||e.metaKey)) openNameModal();     // Ctrl/Cmd + N：命名
+});
+
+/* ================== 初期ロード ================== */
+(function boot(){
+  // 既存保存の反映
+  const savedName = localStorage.getItem(LS.NAME)||"";
+  $('#userNameInput').value = savedName;
+  const savedSrc = localStorage.getItem(LS.CHAR_SRC) || "public/char/ako2.png";
+  $('#coverChar').src = savedSrc; $('#gameChar').src = savedSrc;
+  const charNick = localStorage.getItem(LS.CHAR_NAME);
+  if (charNick) $('#charNick').textContent = charNick;
+
+  updateStartEnabled();
+  renderHUD();
+
+  // しきい値に応じてヒントログ
+  if (clearTotal < 3){
+    pushLog("ヒント：提案を合計3回クリアすると、キャラ選択が解放されます。");
+  } else if (clearTotal < 5){
+    pushLog("ヒント：合計5回クリアで、キャラに名前をつけられます。");
+  }
+})();
 </script>
 </body>
 </html>
