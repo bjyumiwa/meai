@@ -3,120 +3,187 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MeAI Prototype | Start</title>
+<title>MeAI</title>
 <link rel="icon" href="data:,">
 <style>
-  html, body {
-    height:100%;
+  :root{
+    --fg:#fff; --dim:#cfd8dc; --accent:#8e7cff;
+    --glass-bg: rgba(255,255,255,.08);
+    --glass-bd: rgba(255,255,255,.18);
+  }
+  html, body { height:100%; }
+  body{
     margin:0;
     font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    color:var(--fg);
     background:#000 url("public/space_background.png") center/cover fixed no-repeat;
-    color:#fff;
-    overflow:hidden;
   }
-  .hidden{ display:none!important; }
-  .glass{
-    background:rgba(255,255,255,.07);
-    border:1px solid rgba(255,255,255,.16);
-    border-radius:20px;
-    backdrop-filter:blur(8px);
-    padding:20px;
+  .hidden{display:none!important;}
+  .center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:20px; text-align:center;}
+  .row{display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap;}
+
+  /* カード（ゲーム画面用）は背景ぼかしを使わない＝見え方クリア */
+  .panel{
+    background:var(--glass-bg);
+    border:1px solid var(--glass-bd);
+    border-radius:18px;
+    padding:16px 18px;
+    max-width:860px;
+    width:min(92vw,860px);
   }
+
   .btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:.5em;
-    border:none;
-    border-radius:999px;
-    padding:12px 22px;
-    cursor:pointer;
-    color:#fff;
-    font-weight:bold;
-    background:linear-gradient(135deg,#4db6ff,#8e7cff);
-    box-shadow:0 0 10px rgba(0,0,0,.3);
-    transition:transform .2s;
+    display:inline-flex; align-items:center; justify-content:center; gap:.5em;
+    border:none; border-radius:999px; padding:12px 22px; cursor:pointer;
+    color:#fff; font-weight:700; letter-spacing:.02em;
+    background:linear-gradient(135deg,#4db6ff, var(--accent));
+    transition:transform .15s ease, opacity .15s ease;
   }
-  .btn:hover{ transform:scale(1.05); }
-  .center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1.2em; text-align:center; }
-  img.char{ width:160px; height:auto; border-radius:50%; box-shadow:0 0 20px rgba(255,255,255,.3); }
-  #gameArea{ display:none; }
+  .btn.secondary{ background:linear-gradient(135deg,#607d8b,#90a4ae);}
+  .btn.ghost{
+    background:transparent; border:1px solid rgba(255,255,255,.4);
+  }
+  .btn:hover{ transform:translateY(-1px); }
+
+  img.char{
+    width:min(34vw,220px); height:auto; border-radius:18px;
+    box-shadow:0 8px 24px rgba(0,0,0,.35);
+    background:rgba(255,255,255,.06);
+  }
+
+  /* COVER */
+  #cover h1{font-size:40px; margin:0;}
+  #cover p{color:var(--dim); margin:.2em 0 0 0;}
+
+  /* GAME */
+  #game{
+    display:none;
+    align-items:flex-start; justify-content:flex-start; text-align:left;
+  }
+  #game .layout{
+    display:grid; gap:16px; width:min(96vw,980px);
+    grid-template-columns: 240px 1fr;
+  }
+  #charBox{
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  #heart{
+    font-weight:700; padding:.35em .8em; border-radius:999px;
+    background:rgba(255,255,255,.12); border:1px solid var(--glass-bd);
+  }
+  #suggestBox .title{font-weight:700; opacity:.9; margin-bottom:6px;}
+  #suggest{font-size:18px; line-height:1.6;}
+  #log{max-height:180px; overflow:auto; font-size:13px; opacity:.9;}
+  #log li{margin:.2em 0;}
+  .spacer{height:10px;}
+
+  /* LANG */
+  #langWrap{
+    position:fixed; right:12px; bottom:12px; display:flex; gap:6px; align-items:center;
+    font-size:13px; color:#e0e0e0;
+  }
+  #langSelect{ background:rgba(0,0,0,.4); color:#fff; border:1px solid rgba(255,255,255,.3); border-radius:8px; padding:6px 8px; }
 </style>
 </head>
 <body>
 
-<div id="cover" class="center">
-  <h1>MeAI</h1>
-  <p>小さな“やってみる”をやさしく提案してくれる相棒。</p>
-  <img src="public/ako.png" alt="キャラ" class="char" id="charImg">
-  <button class="btn" id="startBtn">はじめる</button>
-
-  <div style="margin-top:10px;">
-    <label for="langSelect">Language:</label>
-    <select id="langSelect">
-      <option value="ja">日本語</option>
-      <option value="en">English</option>
-      <option value="zh">中文</option>
-      <option value="ko">한국어</option>
-    </select>
+<!-- ===== COVER ===== -->
+<section id="cover" class="center">
+  <div class="panel">
+    <h1 id="appTitle">MeAI</h1>
+    <p id="lead">小さな“やってみる”をやさしく提案してくれる相棒。</p>
+    <div class="spacer"></div>
+    <img id="coverChar" class="char" src="public/ako.png" alt="キャラ">
+    <div class="spacer"></div>
+    <div class="row">
+      <button class="btn" id="startBtn">はじめる</button>
+    </div>
   </div>
-</div>
+</section>
 
-<div id="gameArea" class="center glass">
-  <h2 id="welcomeText">こんにちは！</h2>
-  <p id="guideText">あなたのMeAI生活をはじめましょう。</p>
-  <button class="btn" id="backBtn">もどる</button>
+<!-- ===== GAME ===== -->
+<section id="game" class="center">
+  <div class="panel layout">
+    <!-- 左：キャラ＆お世話 -->
+    <div id="charBox">
+      <img id="gameChar" class="char" src="public/ako.png" alt="キャラ">
+      <div id="heart">♡ <span id="heartNum">0</span></div>
+      <div class="row">
+        <button class="btn" id="doneBtn">やったよ♡</button>
+        <button class="btn ghost" id="backBtn">もどる</button>
+      </div>
+    </div>
+
+    <!-- 右：提案＆ログ -->
+    <div id="rightCol">
+      <div id="suggestBox">
+        <div class="title">今日の提案</div>
+        <div id="suggest">ボタンを押すと、いまのあなたに合いそうな小さな行動を出します。</div>
+        <div class="spacer"></div>
+        <div class="row">
+          <button class="btn" id="nextSuggestBtn">提案を出す</button>
+          <button class="btn secondary" id="anotherBtn">別の案</button>
+        </div>
+      </div>
+
+      <div class="spacer"></div>
+
+      <div class="panel" style="background:rgba(255,255,255,.05);">
+        <div class="title">きろく</div>
+        <ul id="log"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== LANG SELECT (固定) ===== -->
+<div id="langWrap">
+  <label for="langSelect">Language</label>
+  <select id="langSelect">
+    <option value="ja">日本語</option>
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ko">한국어</option>
+  </select>
 </div>
 
 <script>
-// ===== 多言語定義 =====
+/* ===================== I18N ===================== */
 const I18N = {
-  ja:{
-    app:"MeAI",
-    coverLead:"小さな“やってみる”をやさしく提案してくれる相棒。",
-    start:"はじめる",
-    welcome:"こんにちは！",
-    guide:"あなたのMeAI生活をはじめましょう。",
-    back:"もどる"
-  },
-  en:{
-    app:"MeAI",
-    coverLead:"Your gentle buddy suggesting small actions.",
-    start:"Start",
-    welcome:"Hello!",
-    guide:"Let's begin your MeAI journey.",
-    back:"Back"
-  },
-  zh:{
-    app:"MeAI",
-    coverLead:"温柔地给你提小建议的伙伴。",
-    start:"开始",
-    welcome:"你好！",
-    guide:"让我们开始你的MeAI生活吧。",
-    back:"返回"
-  },
-  ko:{
-    app:"MeAI",
-    coverLead:"작은 시도를 부드럽게 제안하는 친구.",
-    start:"시작하기",
-    welcome:"안녕하세요!",
-    guide:"MeAI 생활을 시작해요.",
-    back:"뒤로가기"
-  }
+  ja:{app:"MeAI",lead:"小さな“やってみる”をやさしく提案してくれる相棒。",
+      start:"はじめる",back:"もどる",done:"やったよ♡",next:"提案を出す",another:"別の案",
+      today:"今日の提案",log:"きろく",help:"ボタンを押すと、いまのあなたに合いそうな小さな行動を出します。"},
+  en:{app:"MeAI",lead:"Your gentle buddy suggesting small actions.",
+      start:"Start",back:"Back",done:"I did it ♡",next:"Get a suggestion",another:"Another idea",
+      today:"Today's Suggestion",log:"Log",help:"Press the button to get a small action that may fit you now."},
+  zh:{app:"MeAI",lead:"温柔地给你提小建议的伙伴。",
+      start:"开始",back:"返回",done:"完成了♡",next:"给我建议",another:"换一个",
+      today:"今日建议",log:"记录",help:"点按钮获取现在适合你的一小步。"},
+  ko:{app:"MeAI",lead:"작은 시도를 부드럽게 제안하는 친구.",
+      start:"시작하기",back:"뒤로가기",done:"했어요 ♡",next:"제안 받기",another:"다른 제안",
+      today:"오늘의 제안",log:"기록",help:"버튼을 눌러 지금 당신에게 맞는 작은 행동을 받아보세요."}
 };
-
-// ===== 言語設定 =====
 const LS_LANG = 'MEAI_LANG';
+const LS_HEARTS = 'MEAI_HEARTS';
+const LS_LOG = 'MEAI_LOG';
+
 const $ = (s)=>document.querySelector(s);
+const $$ = (s)=>document.querySelectorAll(s);
 
 function applyLang(){
   const lang = localStorage.getItem(LS_LANG) || 'ja';
   const t = I18N[lang];
   document.title = t.app;
+  $('#appTitle').textContent = t.app;
+  $('#lead').textContent = t.lead;
   $('#startBtn').textContent = t.start;
-  $('#welcomeText').textContent = t.welcome;
-  $('#guideText').textContent = t.guide;
   $('#backBtn').textContent = t.back;
+  $('#doneBtn').textContent = t.done;
+  $('#nextSuggestBtn').textContent = t.next;
+  $('#anotherBtn').textContent = t.another;
+  $('#suggestBox .title').textContent = t.today;
+  document.querySelector('#rightCol .panel .title').textContent = t.log;
+  if (!suggestPicked) $('#suggest').textContent = t.help;
 }
 
 (function initLang(){
@@ -132,22 +199,83 @@ function applyLang(){
 
 $('#langSelect').addEventListener('change',(e)=>{
   const v = e.target.value;
-  if (I18N[v]) {
-    localStorage.setItem(LS_LANG, v);
-    applyLang();
-  }
+  if (I18N[v]) { localStorage.setItem(LS_LANG, v); applyLang(); }
 });
 
-// ===== 画面切替 =====
+/* ===================== DATA ===================== */
+const SUGGESTS = [
+  "水を一杯飲む","立ち上がって30秒ストレッチ","5分だけ机を片づける",
+  "今日の良かったことを1つ書く","10回深呼吸","歯磨きの仕上げ30秒",
+  "外の空気を吸う","タイマー3分で集中","人に一言ありがとうを伝える",
+  "目を閉じて休む30秒","使わないタブを3つ閉じる","背すじを伸ばす",
+  "短いメモを1行だけ書く","散歩を1分","水やりをする","ゴミを1つ捨てる"
+];
+
+let hearts = Number(localStorage.getItem(LS_HEARTS) || 0);
+$('#heartNum').textContent = hearts.toString();
+
+function pushLog(text){
+  const now = new Date();
+  const line = `${now.toLocaleString()}｜${text}`;
+  const arr = JSON.parse(localStorage.getItem(LS_LOG) || "[]");
+  arr.unshift(line);
+  localStorage.setItem(LS_LOG, JSON.stringify(arr.slice(0,100)));
+  renderLog();
+}
+
+function renderLog(){
+  const arr = JSON.parse(localStorage.getItem(LS_LOG) || "[]");
+  $('#log').innerHTML = arr.map(s=>`<li>${s}</li>`).join('');
+}
+renderLog();
+
+/* ===================== UI FLOW ===================== */
 $('#startBtn').addEventListener('click',()=>{
-  $('#cover').style.display='none';
-  $('#gameArea').style.display='flex';
+  // 画面クリアに切替（blurは使っていない）
+  $('#cover').classList.add('hidden');
+  $('#game').style.display='flex';
+  pushLog("スタート");
+});
+$('#backBtn').addEventListener('click',()=>{
+  $('#game').style.display='none';
+  $('#cover').classList.remove('hidden');
 });
 
-$('#backBtn').addEventListener('click',()=>{
-  $('#gameArea').style.display='none';
-  $('#cover').style.display='flex';
+/* ===================== お世話（やったよ） ===================== */
+$('#doneBtn').addEventListener('click', ()=>{
+  hearts += 1;
+  localStorage.setItem(LS_HEARTS, hearts);
+  $('#heartNum').textContent = hearts.toString();
+  pushLog("やったよ♡ 1ハート獲得");
 });
+
+/* ===================== 提案 ===================== */
+let suggestPicked = null;
+function pick(){
+  const i = Math.floor(Math.random()*SUGGESTS.length);
+  suggestPicked = SUGGESTS[i];
+  $('#suggest').textContent = suggestPicked;
+}
+$('#nextSuggestBtn').addEventListener('click', ()=>{
+  pick();
+  pushLog(`提案表示：${suggestPicked}`);
+});
+$('#anotherBtn').addEventListener('click', ()=>{
+  pick();
+});
+
+/* ===================== 画像の存在チェック（優しくログ） ===================== */
+function checkImg(imgEl){
+  if (!imgEl) return;
+  const test = new Image();
+  test.onload = ()=>{}; // OK
+  test.onerror = ()=>{
+    pushLog(`画像が見つかりません：${imgEl.getAttribute('src')}（public/ に置かれているか、大文字小文字を確認）`);
+  };
+  test.src = imgEl.getAttribute('src');
+}
+checkImg($('#coverChar'));
+checkImg($('#gameChar'));
 </script>
 </body>
 </html>
