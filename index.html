@@ -1,702 +1,269 @@
+<!-- FILE: /MeAI/index.html -->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MeAI Prototype (start → continue/reset)</title>
-<link rel="icon" href="data:,">
-<style>
-  html, body { height:100%; }
-  body{
-    margin:0;
-    font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    background:#000 url("public/space_background.png") center/cover fixed no-repeat;
-    color:#fff;
-  }
-  .hidden{display:none!important;}
-  .glass{ background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.16); border-radius:20px; backdrop-filter:blur(8px); }
-  .btn{ display:inline-flex; align-items:center; gap:.5em; border:none; border-radius:999px; padding:12px 18px; cursor:pointer; color:#fff; background:rgba(255,255,255,.18); }
-  .btn.primary{ background:linear-gradient(180deg,#ff8bd2,#ff6db3 60%,#ff55a1); color:#231227; }
-  .btn:disabled{ opacity:.45; cursor:not-allowed; filter:saturate(.5); }
-  .screen{ min-height:100dvh; display:grid; place-items:center; padding:24px; }
-  .container{ width:min(92vw, 960px); margin:auto; }
-  .cover-card{ text-align:center; padding:28px; border-radius:28px; }
-  .cover-illust{ width:180px; height:180px; object-fit:contain; filter:drop-shadow(0 8px 22px rgba(0,0,0,.6)); }
-  .cover-title{ font-size:40px; font-weight:800; margin:16px 0 8px; }
-  .cover-sub{ opacity:.92; margin:0 0 18px; }
-  .grid{ display:flex; flex-wrap:wrap; gap:12px; }
-  .char{ width:92px; height:92px; border-radius:50%; border:1px solid rgba(255,255,255,.22); display:grid; place-items:center; background:rgba(255,255,255,.10); cursor:pointer; }
-  .char img{ width:70px; height:70px; object-fit:contain; }
-  #header{ display:flex; gap:12px; align-items:center; padding:8px 12px; border-radius:999px; margin:10px auto 12px; width:max-content; }
-  #chat{ height:min(60vh,460px); overflow:auto; padding:16px; border-radius:16px; }
-  .bubble{ max-width:78%; margin:10px 0; padding:12px 16px; border-radius:16px; line-height:1.7; font-size:18px; white-space:pre-wrap; }
-  .ai{ background:linear-gradient(145deg, rgba(150,220,255,.28), rgba(150,200,255,.14)); border:1px solid rgba(150,220,255,.34); float:left; clear:both; }
-  .user{ background:linear-gradient(145deg, rgba(255,255,255,.26), rgba(255,255,255,.12)); border:1px solid rgba(255,255,255,.28); float:right; clear:both; }
-  #composer{ display:flex; gap:8px; margin:10px 0; align-items:center; flex-wrap:wrap; }
-  #input{ flex:1; min-width:220px; padding:12px 14px; border:none; border-radius:12px; color:#fff; background:rgba(255,255,255,.14); }
-  #footerMenu{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:10px 0 20px; }
-  #cooldownNote{ font-size:14px; opacity:.9; min-height:1.2em; }
-
-  /* モーダル */
-  #rewardsModal, #nameModal, #hubModal, #startModal{
-    position:fixed; inset:0; display:none; z-index:1500;
-    background: rgba(0,0,0,.45); backdrop-filter: blur(3px);
-  }
-  .modal-wrap{
-    width:min(92vw, 760px); max-height:80vh; overflow:auto;
-    background:rgba(15,15,24,.86); border:1px solid rgba(255,255,255,.18);
-    border-radius:20px; padding:18px; margin:10vh auto 0; backdrop-filter: blur(10px);
-  }
-
-  /* ご褒美UI */
-  #rewardToast{ position:fixed; right:16px; bottom:80px; z-index:1300; background:rgba(30,30,40,.85); border:1px solid rgba(255,255,255,.18); padding:12px 14px; border-radius:14px; display:none; max-width:min(80vw,380px); box-shadow:0 10px 30px rgba(0,0,0,.4); backdrop-filter: blur(8px); }
-  #rewardToast .ttl{ font-weight:800; margin-bottom:4px; }
-  #rewardToast .emo{ font-size:24px; line-height:1; margin-right:6px; }
-  .badge{ display:inline-block; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.12); margin:4px; font-size:14px; border:1px solid rgba(255,255,255,.18); }
-  .stamps{ display:flex; flex-wrap:wrap; gap:8px; }
-  .stamp{ width:44px; height:44px; display:grid; place-items:center; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18); border-radius:10px; font-size:22px; }
-  .list-row{display:flex; gap:10px; align-items:center; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,.1);}
-  .mono{font-family: ui-monospace, Menlo, Consolas, "Liberation Mono", monospace;}
-  .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);}
-
-  .langbox{ display:flex; gap:8px; align-items:center; justify-content:center; margin-top:12px; }
-  .langbox select{ background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25); border-radius:10px; padding:6px 10px; font-size:14px; }
-
-  /* === 追加: ぷかぷかキャラスプライト === */
-  #charSprite{
-    position:fixed;
-    right:6%;
-    bottom:10%;
-    width:min(22vw, 220px);
-    max-width:38vmin;
-    height:auto;
-    z-index:1200;
-    pointer-events:none; /* クリックを透過 */
-    filter: drop-shadow(0 8px 28px rgba(0,0,0,.55));
-    animation: floatY 7s ease-in-out infinite;
-    transition: transform .6s ease, filter .6s ease, opacity .35s ease;
-    opacity:0; /* 画面がmainのときに表示 */
-  }
-  #charSprite.show{ opacity:1; }
-  #charSprite.react{
-    animation: spinPop .9s ease-out 1, floatY 7s ease-in-out infinite .9s;
-    transform: scale(1.06);
-    filter: drop-shadow(0 12px 34px rgba(255,200,255,.55));
-  }
-  @keyframes floatY{
-    0%,100%{ transform: translateY(0); }
-    50%{ transform: translateY(-12px); }
-  }
-  @keyframes spinPop{
-    0%{ transform: scale(.92) rotate(0deg); }
-    60%{ transform: scale(1.12) rotate(360deg); }
-    100%{ transform: scale(1.00) rotate(360deg); }
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MeAI | Welcome</title>
+  <meta name="description" content="MeAI: お世話×会話AI×進化（HBD演奏）を統合した研究型アプリケーション" />
+  <!-- 404対策：簡易favicon -->
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.85em' font-size='80'%3E🌙%3C/text%3E%3C/svg%3E" />
+  <style>
+    :root{
+      --card-bg: rgba(0,0,0,.38);
+      --card-bd: rgba(255,255,255,.18);
+      --text:#fff;
+      --accent:#f7b0bf;
+      --accent-ink:#222;
+      --ok:#7CFFB2;
+      --ng:#FF8A8A;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{
+      font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Noto Color Emoji","Segoe UI Emoji",sans-serif;
+      color:var(--text);
+      background:#000 center/cover fixed no-repeat;
+      background-image:url("public/space_background.png");
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      padding:24px;
+    }
+    .hero{
+      width:min(92vw, 880px);
+      text-align:center;
+      padding:32px 20px 28px;
+      background:linear-gradient(transparent,rgba(0,0,0,.25));
+      border-radius:20px;
+    }
+    .hero img#hero-ako{
+      display:block;margin:0 auto 22px;width:min(42vw,260px);height:auto;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,.35));
+    }
+    h1{margin:0 0 14px;font-size:clamp(28px,5vw,44px);letter-spacing:.02em;text-shadow:0 2px 10px rgba(0,0,0,.6);}
+    .lead{margin:0 auto 20px;width:min(90%, 740px);font-size:clamp(15px,2.2vw,18px);line-height:1.9;text-shadow:0 1px 6px rgba(0,0,0,.55);}
+    .cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+    .primary,.ghost{
+      padding:.9rem 1.3rem;border:0;border-radius:14px;cursor:pointer;
+      font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.35);transition:transform .06s ease;
+    }
+    .primary{ background:var(--accent); color:var(--accent-ink); }
+    .ghost{ background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.22) }
+    .primary:active,.ghost:active{ transform:translateY(1px) }
+    .lang{ margin-top:14px; font-size:14px; opacity:.95; user-select:none; }
+    .lang button{ background:none;border:0;color:#fff;text-decoration:underline;cursor:pointer;padding:2px 4px;margin:0 2px }
+    .note{font-size:12px;opacity:.8;margin-top:10px}
+    .badge{
+      display:inline-flex;gap:6px;align-items:center;
+      font-size:12px;border:1px solid var(--card-bd);padding:6px 10px;border-radius:999px;
+      background:rgba(255,255,255,.06);backdrop-filter:saturate(120%) blur(2px);
+      margin: 8px auto 0;
+    }
+    .dot{width:8px;height:8px;border-radius:50%;}
+    .ok{background:var(--ok);} .ng{background:var(--ng);}
+  </style>
 </head>
 <body>
+  <div class="hero" role="banner" aria-label="MeAI hero">
+    <!-- ★ キャラ画像（差し替え可） -->
+    <img id="hero-ako" src="public/ako.png?v=2" alt="アコーディオンを弾くキャラクター" loading="eager" />
 
-<!-- === 追加: ぷかぷかキャラ（全画面共通オーバーレイ） === -->
-<img id="charSprite" src="public/char/green/calm.png" alt="character">
+    <h1 id="t_title">MeAIへようこそ</h1>
+    <p id="t_desc" class="lead">
+      “お世話”で心を育て、“会話AI”で日々を記録。ポイントが貯まると誕生日の曲が完成して進化します。
+    </p>
 
-<!-- ① 表紙 -->
-<section id="cover" class="screen">
-  <div class="container">
-    <div class="glass cover-card">
-      <img class="cover-illust" src="public/miwacchi_open.png" alt="MeAI cover" onerror="this.src='public/cover.png'">
-      <div class="cover-title" id="titleApp">MeAI</div>
-      <p class="cover-sub" id="titleLead">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
-      <button id="coverStart" class="btn primary" type="button">▶︎ スタート</button>
-      <div class="langbox">
-        <label for="langSelect">🌏</label>
-        <select id="langSelect">
-          <option value="ja">日本語</option><option value="en">English</option><option value="zh">中文</option><option value="ko">한국어</option>
-        </select>
-      </div>
+    <!-- API ステータス -->
+    <div id="api_badge" class="badge" aria-live="polite">
+      <span class="dot ng" id="api_dot"></span><span id="api_text">API: Checking…</span>
+    </div>
+
+    <div class="cta">
+      <!-- ★ はじめる：プロフィール未設定なら name_first.html、設定済みなら meai_home.html -->
+      <button id="t_start" class="primary" onclick="startFlow()">はじめる</button>
+      <!-- 続きから（進行状況があれば表示） -->
+      <button id="t_continue" class="ghost" style="display:none" onclick="continueFlow()">つづきから</button>
+      <!-- 研究について（about.htmlへ） -->
+      <button id="t_about" class="ghost" onclick="location.href='about.html'">この研究について</button>
+    </div>
+
+    <div class="lang" aria-label="language switch">
+      <button type="button" onclick="setLang('ja')">日本語</button> |
+      <button type="button" onclick="setLang('en')">English</button> |
+      <button type="button" onclick="setLang('zh-CN')">简体</button> |
+      <button type="button" onclick="setLang('zh-TW')">繁體</button> |
+      <button type="button" onclick="setLang('ko')">한국어</button>
+      <div class="note" id="t_note">言語設定は次回アクセス時も保持されます。</div>
     </div>
   </div>
-</section>
 
-<!-- ② 名前入力（リセット時のみ使用） -->
-<section id="askname" class="screen hidden">
-  <div class="container glass" style="padding:20px; max-width:720px;">
-    <h2 id="lblAskTitle">あなたのお名前を教えて</h2>
-    <p id="lblAskLead" style="opacity:.9">あとで変更もできます。呼びかけに使います。</p>
-    <div style="display:flex; gap:8px; margin-top:10px;">
-      <input id="userNameInput" class="glass" type="text" placeholder="おなまえ…" style="flex:1; padding:12px 14px; color:#fff;">
-      <button id="userNameSave" class="btn primary" type="button">つぎへ</button>
-    </div>
-    <div style="margin-top:10px;">
-      <button id="userNameSkip" class="btn" type="button">スキップ（あとで）</button>
-    </div>
-  </div>
-</section>
+  <script>
+    /* ====== LocalStorage Keys ====== */
+    const LS = {
+      LANG: 'MEAI_LANG',
+      PROGRESS: 'MEAI_PROGRESS',      // 'seed' | 'care' | 'talk' | 'evolved'
+      USER_NAME: 'MEAI_USER_NAME',    // あなたの名前
+      CHAR_NAME: 'MEAI_CHAR_NAME',    // キャラクターの名前
+      API_BASE: 'MEAI_API_BASE'       // 任意: 上書き用
+    };
 
-<!-- ③ キャラ選択（リセット時のみ使用） -->
-<section id="choose" class="screen hidden">
-  <div class="container glass" style="padding:18px;">
-    <h2 style="margin:6px 0 12px;" id="lblChoose">キャラクターを選んでね</h2>
-    <div class="grid" id="charGrid">
-      <button class="char" data-char="green" type="button"><img src="public/char/green/calm.png" alt=""></button>
-      <button class="char" data-char="blue"  type="button"><img src="public/char/blue/calm.png"  alt=""></button>
-      <button class="char" data-char="pink"  type="button"><img src="public/char/pink/calm.png"  alt=""></button>
-      <button class="char" data-char="purple"type="button"><img src="public/char/purple/calm.png"alt=""></button>
-    </div>
-    <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
-      <button id="chooseContinue" class="btn" type="button">前のキャラでつづき</button>
-    </div>
-  </div>
-</section>
+    /* ====== API Endpoint ======
+       既存の TALK_ENDPOINT をそのまま使いたい要件に対応。
+       1) localStorage.MEAI_API_BASE があれば優先
+       2) なければ window.TALK_ENDPOINT を使用
+       3) どちらも無ければ相対 'api/talk' を仮定
+    */
+    const TALK_ENDPOINT = (
+      localStorage.getItem(LS.API_BASE)
+      || (typeof window.TALK_ENDPOINT === 'string' ? window.TALK_ENDPOINT : '')
+    ) || 'api/talk';
 
-<!-- ④ メイン -->
-<section id="main" class="screen hidden">
-  <div class="container">
-    <div id="header" class="glass">
-      <img id="charIcon" src="" alt="" width="30" height="30">
-      <div id="heart">❤️ × <span id="heartCount">0</span></div>
-      <div id="charNameBox" style="opacity:.95;"></div>
-    </div>
-
-    <div id="chat" class="glass" aria-live="polite"></div>
-
-    <div id="composer">
-      <input id="input" class="glass" type="text" placeholder="返答を入力…（Enterで送信）" />
-      <button id="send" class="btn" type="button">送信</button>
-      <button id="done" class="btn" type="button">やったよ</button>
-      <div id="cooldownNote"></div>
-    </div>
-
-    <div id="footerMenu">
-      <button id="toHub" class="btn" type="button">メニューへ</button>
-      <button id="showLog" class="btn" type="button">ログを確認</button>
-      <button id="rewardsBtn2" class="btn" type="button">ご褒美</button>
-      <button id="reset" class="btn" type="button" onclick="localStorage.clear(); location.reload();">データ初期化</button>
-    </div>
-  </div>
-</section>
-
-<!-- ご褒美モーダル（簡略） -->
-<div id="rewardsModal" aria-modal="true" role="dialog">
-  <div class="modal-wrap" tabindex="-1">
-    <button class="btn" id="closeRewards" type="button" style="float:right;background:#fff;color:#111;border-radius:10px;">×</button>
-    <h3 id="lblRewardsTitle">ご褒美コレクション</h3>
-    <div id="rewardSummary" class="mono" style="margin:4px 0 10px;opacity:.9;"></div>
-    <h4>スタンプ</h4><div class="stamps" id="stampList"></div>
-  </div>
-</div>
-
-<!-- キャラ命名モーダル -->
-<div id="nameModal" aria-modal="true" role="dialog">
-  <div class="modal-wrap" tabindex="-1">
-    <button class="btn" id="closeName" type="button" style="float:right;background:#fff;color:#111;border-radius:10px;">×</button>
-    <h3 id="lblNameTitle">キャラクターの名前</h3>
-    <p id="lblNameLead">キャラに名前をつけてみる？（あとで変更OK）</p>
-    <div style="display:flex; gap:8px; align-items:center; margin:10px 0;">
-      <input id="nameInput" class="glass" type="text" placeholder="なまえ…" style="flex:1; padding:10px 12px; color:#fff;">
-      <button id="nameSave" class="btn primary" type="button">保存</button>
-    </div>
-    <button id="nameSkip" class="btn" type="button">あとで</button>
-  </div>
-</div>
-
-<!-- ハブ（容姿/記録/続き） -->
-<div id="hubModal" aria-modal="true" role="dialog">
-  <div class="modal-wrap" tabindex="-1" style="max-width:560px;">
-    <button class="btn" id="closeHub" type="button" style="float:right;background:#fff;color:#111;border-radius:10px;">×</button>
-    <h3 id="lblHubTitle">どこから再開する？</h3>
-    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-      <button id="hubAppearance" class="btn" type="button">容姿（ご褒美）</button>
-      <button id="hubRecords" class="btn" type="button">記録（ログ）</button>
-      <button id="hubContinue" class="btn primary" type="button">そのまま続き</button>
-    </div>
-  </div>
-</div>
-
-<!-- スタート選択モーダル（新規） -->
-<div id="startModal" aria-modal="true" role="dialog">
-  <div class="modal-wrap" tabindex="-1" style="max-width:560px;">
-    <button class="btn" id="closeStart" type="button" style="float:right;background:#fff;color:#111;border-radius:10px;">×</button>
-    <h3 id="lblStartTitle">はじめる</h3>
-    <p id="lblStartLead" style="opacity:.9">続きから or リセットを選んでください。</p>
-    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
-      <button id="btnContinueStart" class="btn primary" type="button">続きから</button>
-      <button id="btnResetStart" class="btn" type="button">リセットして最初から</button>
-    </div>
-    <div id="continueHint" class="mono" style="margin-top:10px; opacity:.8;"></div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div id="rewardToast" role="status" aria-live="polite"></div>
-
-<script>
-(function(){
-  // ===== i18n =====
-  const I18N = {
-    ja:{
-      app:"MeAI",
-      coverLead:"小さな“やってみる”を、やさしく提案してくれる相棒。",
-      askTitle:"あなたのお名前を教えて",
-      askLead:"あとで変更もできます。呼びかけに使います。",
-      choose:"キャラクターを選んでね",
-      chooseContinue:"前のキャラでつづき",
-      rewardsTitle:"ご褒美コレクション",
-      nameTitle:"キャラクターの名前", nameLead:"キャラに名前をつけてみる？（あとで変更OK）",
-      hubTitle:"どこから再開する？",
-      startTitle:"はじめる",
-      startLead:"続きから or リセットを選んでください。",
-      continueDisabled:"セーブデータがありません。リセットを選んでください。",
-      formatSuggest:(userName, req, charName)=> {
-        if(charName){ return `${userName ? userName + "さん、" : ""}${req}\n— ${charName}より`; }
-        return `${userName ? userName + "さん、" : ""}${req}`;
+    /* ====== i18n ====== */
+    const I18N = {
+      "ja": {
+        title: "MeAIへようこそ",
+        desc:  "“お世話”で心を育て、“会話AI”で日々を記録。ポイントが貯まると誕生日の曲が完成して進化します。",
+        start: "はじめる",
+        cont:  "つづきから",
+        about: "この研究について",
+        note:  "言語設定は次回アクセス時も保持されます。",
+        api_ok:"API: Online",
+        api_ng:"API: Offline"
       },
-      aiAck:"うん、なるほどね。",
-      doneLabel:"やったよ",
-      laterMsg:(h)=>`また後でね。約${h}時間後に次の提案を送るね。`,
-      noteAvail:(s)=>`次は${s}後に押せるよ。`,
-      noteReady:"押せるようになったよ！",
-      requests:[
-        "おはようって言って。","コップ一杯のお水を飲んでみて。","5秒だけ、静かに目を閉じてみよう。","今日の空の色をひとことで教えて。",
-        "窓を少し開けて、空気を入れ替えよう。","深呼吸を3回してみよう。","好きな音を5秒だけ聞かせて。","花や植物をひとつ思い浮かべて、名前を教えて。",
-        "今いる部屋で、やさしい色を探して教えて。","姿勢をすこし伸ばして、肩を回してみよう。","カーテンを少し開けて、明るさを感じてみて。",
-        "おやつか飲み物をひと口、味わってみよう。","机の上を10秒だけ整えてみよう。","目の前の“丸い形”をひとつ見つけて教えて。"
-      ]
-    },
-    en:{
-      app:"MeAI",
-      coverLead:"A gentle buddy that nudges small try-outs.",
-      askTitle:"What's your name?",
-      askLead:"You can change it later. Used for friendly greetings.",
-      choose:"Pick your character",
-      chooseContinue:"Continue with previous",
-      rewardsTitle:"Rewards Collection",
-      nameTitle:"Character name", nameLead:"Reward time! Give your buddy a name? (Change anytime.)",
-      hubTitle:"Where to resume?",
-      startTitle:"Start",
-      startLead:"Choose Continue or Reset.",
-      continueDisabled:"No save found. Please use Reset.",
-      formatSuggest:(userName, req, charName)=> charName ? `${userName?userName+", ":""}${req}\n— from ${charName}` : `${userName?userName+", ":""}${req}`,
-      aiAck:"Got it.", doneLabel:"Done",
-      laterMsg:(h)=>`See you later in about ${h} hours.`,
-      noteAvail:(s)=>`You can press again in ${s}.`,
-      noteReady:"It's available now!",
-      requests:["Say good morning to someone.","Drink a glass of water.","Close your eyes for 5 seconds.","Describe today’s sky color.","Open the window a little.","Take 3 deep breaths."]
-    },
-    zh:{ app:"MeAI", coverLead:"温柔的小伙伴，轻轻推动你尝试小事。", askTitle:"请告诉我你的名字", askLead:"之后可更改，用来友好称呼你。", choose:"请选择角色", chooseContinue:"沿用上次的角色",
-      rewardsTitle:"奖励收藏", nameTitle:"角色名字", nameLead:"奖励时间！给伙伴起个名字吧（可随时修改）。",
-      hubTitle:"从哪里继续？", startTitle:"开始", startLead:"选择继续或重置。", continueDisabled:"没有存档，请选择重置。",
-      formatSuggest:(userName, req, charName)=> charName ? `${userName?userName+"，":""}${req}\n— ${charName}` : `${userName?userName+"，":""}${req}`,
-      aiAck:"明白了。", doneLabel:"完成", laterMsg:(h)=>`约 ${h} 小时后再提醒你。`,
-      noteAvail:(s)=>`还需${s}才能再次按下。`, noteReady:"现在可以按啦！",
-      requests:["跟某人说早安。","喝一杯水。","闭眼 5 秒。","用一个词描述今天的天空颜色。","窗户开一点通风。","深呼吸 3 次。"]
-    },
-    ko:{ app:"MeAI", coverLead:"작은 시도를 살짝 밀어주는 다정한 친구.", askTitle:"이름을 알려주세요", askLead:"나중에 바꿀 수 있어요. 호칭에 사용합니다.",
-      choose:"캐릭터를 선택하세요", chooseContinue:"이전 캐릭터로 이어하기", rewardsTitle:"보상 컬렉션",
-      nameTitle:"캐릭터 이름", nameLead:"보상! 파트너에게 이름을 지어볼까요? (언제든 변경 가능)",
-      hubTitle:"어디서 재개할까요?", startTitle:"시작", startLead:"이어하기 또는 초기화를 선택하세요.", continueDisabled:"세이브가 없습니다. 초기화를 선택하세요.",
-      formatSuggest:(userName, req, charName)=> charName ? `${userName?userName+"님, ":""}${req}\n— ${charName} 드림` : `${userName?userName+"님, ":""}${req}`,
-      aiAck:"알겠어.", doneLabel:"했어요", laterMsg:(h)=>`${h}시간 후에 다시 제안할게요.`,
-      noteAvail:(s)=>`${s} 후에 다시 누를 수 있어요.`, noteReady:"이제 눌러도 돼요!",
-      requests:["누군가에게 ‘좋은 아침’.","물 한 잔.","눈 5초 감기.","오늘 하늘색 한 단어.","창문 조금 열기.","심호흡 3번."]
+      "en": {
+        title: "Welcome to MeAI",
+        desc:  "Care grows bond, chats log your days. Earn points to complete the birthday song and evolve.",
+        start: "Start",
+        cont:  "Continue",
+        about: "About this research",
+        note:  "Your language preference is saved for your next visit.",
+        api_ok:"API: Online",
+        api_ng:"API: Offline"
+      },
+      "zh-CN": {
+        title: "欢迎来到 MeAI",
+        desc:  "通过“照料”建立情感、用对话记录生活。积分累积后生日曲完成并进化！",
+        start: "开始",
+        cont:  "继续",
+        about: "关于本研究",
+        note:  "语言设置会在下次访问时保留。",
+        api_ok:"API：在线",
+        api_ng:"API：离线"
+      },
+      "zh-TW": {
+        title: "歡迎來到 MeAI",
+        desc:  "用「照顧」培養連結、以對話記錄生活。累積點數後生日曲完成並進化！",
+        start: "開始",
+        cont:  "從上次繼續",
+        about: "關於本研究",
+        note:  "語言設定會在下次造訪時保留。",
+        api_ok:"API：在線",
+        api_ng:"API：離線"
+      },
+      "ko": {
+        title: "MeAI에 오신 것을 환영합니다",
+        desc:  "돌봄으로 유대가 자라고, 대화로 하루를 기록해요. 포인트가 모이면 생일 노래가 완성되고 진화합니다.",
+        start: "시작하기",
+        cont:  "이어하기",
+        about: "연구 소개",
+        note:  "언어 설정은 다음 방문 시에도 유지됩니다.",
+        api_ok:"API: 온라인",
+        api_ng:"API: 오프라인"
+      }
+    };
+
+    function applyLang(lang){
+      const t = I18N[lang] || I18N.ja;
+      document.documentElement.lang = lang.startsWith('zh') ? 'zh' : lang;
+      document.getElementById('t_title').textContent = t.title;
+      document.getElementById('t_desc').textContent  = t.desc;
+      document.getElementById('t_start').textContent = t.start;
+      document.getElementById('t_about').textContent = t.about;
+      document.getElementById('t_note').textContent  = t.note;
+
+      const contBtn = document.getElementById('t_continue');
+      if (contBtn.style.display !== 'none') contBtn.textContent = t.cont;
+
+      // APIバッジ文言も更新
+      const apiText = document.getElementById('api_text');
+      const dot = document.getElementById('api_dot');
+      if (dot.classList.contains('ok')) apiText.textContent = t.api_ok;
+      else apiText.textContent = t.api_ng;
     }
-  };
-  const LS_LANG="meai_lang";
-  const KEY = {
-    char:'meai_character', hearts:'meai_heart', log:'meai_log', next:'meai_next_due',
-    rewards:'meai_rewards', milestones:'meai_milestones', charName:'meai_char_name',
-    user:'meai_user_name', poolJa:'meai_suggest_pool_ja', poolEn:'meai_suggest_pool_en',
-    poolZh:'meai_suggest_pool_zh', poolKo:'meai_suggest_pool_ko'
-  };
+    function setLang(lang){ localStorage.setItem(LS.LANG, lang); applyLang(lang); }
 
-  // ======= 座ったまま提案（簡略版プール生成：元のまま移植） =======
-  const SUGGEST_GEN_COPY = {
-    ja: { templates:[
-        "{when}{action}してみよう。","{when}{action}を{duration}やってみて。","{place}で{action}して、{report}。",
-        "{count}回だけ{action}してみよう。","{sense}に集中して{duration}、感じたことを{oneword}で。","{pose}して{duration}、そのまま呼吸を{breath}。",
-        "今日の{theme}をひとつ見つけて、{oneword}で教えて。","座ったままで{action}してみよう。","椅子に座ったまま、{sense}に集中してみて。",
-        "手だけ動かして{action}を{count}回してみよう。","音を立てずに{action}してみよう。","静かにできる{action}を{duration}やってみて。","座ったままでできる{smallTask}をひとつやってみよう。"
-      ],
-      lexicon:{ when:["いま","このあと","ひと息ついたら","休憩の前に","立ち上がったついでに"], action:["深呼吸","背伸び","目を閉じる","手のひらを温める","肩を回す","指をゆっくり開く","手首をまわす","コップの水を飲む","小さく首を回す","肩を上げてストンと下ろす","姿勢を正す"],
-        duration:["5秒","10秒","15秒","30秒"], place:["窓の近く","椅子の上","デスクの前","いつもの席","パソコンの前"],
-        report:["ひと言で教えて","色で教えて","天気に例えて教えて","絵文字ひとつで教えて"], count:["3","5","7"], sense:["音","光","手触り","温度","匂い"], oneword:["ひと言","一語","一文字"],
-        pose:["姿勢を正しく","肩を後ろに引いて","首をゆっくり回して","目線を遠くへ"], breath:["3回","4回","5回"], theme:["やさしい色","まるい形","心地よい音","落ち着くもの","好きな香り"],
-        smallTask:["深呼吸","首のストレッチ","手を組んで伸ばす","肩を軽くまわす","目を閉じて3秒休む","両手をこすって温める","手をグーパーしてみる","一度だけ伸びをする"] } },
-    en:{ templates:["{when} try {action}.","For {duration}, {action} and then share {report}.","At {place}, {action} and describe it in {oneword}.","Do {action} {count} times.","Focus on {sense} for {duration} and summarize in {oneword}.","While sitting, try {action}.","Stay seated and focus on your {sense} for {duration}.","Move only your hands and {action} {count} times.","Quietly {action} for {duration}.","Pick one thing you can do while sitting and {smallTask}."],
-      lexicon:{ when:["Now","After this","Before a break","While seated","During a short pause"], action:["take a deep breath","stretch your shoulders","close your eyes","rub your hands together","roll your wrists","drink some water","relax your neck","sit up straight"],
-        duration:["5s","10s","15s","30s"], place:["by the window","at your desk","while sitting","in your chair"], report:["in one word","as a color","as weather","with one emoji"], count:["3","5","7"], sense:["sound","light","touch","temperature","smell"], oneword:["one word","a word","one letter"], smallTask:["take a deep breath","open and close your hands","roll your shoulders","rub your palms together","stretch your fingers"] } }
-  };
-  function buildSuggestionPool(lang, max = 240){
-    const base = (I18N[lang]?.requests || I18N.ja.requests || []).slice();
-    const conf = SUGGEST_GEN_COPY[lang] || SUGGEST_GEN_COPY.ja;
-    const makeOne = ()=> conf.templates[Math.floor(Math.random()*conf.templates.length)]
-      .replace(/\{(\w+)\}/g, (_,k)=> {
-        const bag = conf.lexicon[k] || [];
-        return bag.length ? bag[Math.floor(Math.random()*bag.length)] : "";
-      });
-    const set = new Set(base);
-    while(set.size < Math.max(base.length + 60, max)){
-      set.add(makeOne());
-      if(set.size>2000) break;
+    /* ====== ルーティング ======
+      - Start: プロフィールが無ければ name_first.html、あれば meai_home.html
+      - Continue: 進行状況で分岐
+    */
+    function startFlow(){
+      const hasName = !!localStorage.getItem(LS.USER_NAME);
+      const hasChar = !!localStorage.getItem(LS.CHAR_NAME);
+      if (!hasName || !hasChar) {
+        location.href = 'name_first.html'; // あなたの名前→キャラ名の順（要件反映）
+        return;
+      }
+      location.href = 'meai_home.html';
     }
-    return Array.from(set);
-  }
-  function poolKey(lang){ return ({ja:KEY.poolJa,en:KEY.poolEn,zh:KEY.poolZh,ko:KEY.poolKo}[lang]) || KEY.poolJa; }
-  function getPool(lang){
-    try{ const raw=localStorage.getItem(poolKey(lang)); if(raw) return JSON.parse(raw); }catch{}
-    const pool = buildSuggestionPool(lang);
-    try{ localStorage.setItem(poolKey(lang), JSON.stringify(pool)); }catch{}
-    return pool;
-  }
-  function nextSuggestion(lang){
-    const pool=getPool(lang);
-    if(!pool.length) return (I18N[lang]?.requests || I18N.ja.requests)[0] || "深呼吸してみよう。";
-    const s=pool.shift(); pool.push(s);
-    try{ localStorage.setItem(poolKey(lang), JSON.stringify(pool)); }catch{}
-    return s;
-  }
 
-  // ===== DOM util
-  const $=(s,root=document)=>root.querySelector(s);
-  const on=(el,ev,fn,opt)=>{ if(el) el.addEventListener(ev,fn,opt||false); };
-  const t = ()=> I18N[localStorage.getItem(LS_LANG)||"ja"] || I18N.ja;
-
-  // ===== elements
-  const langSelect=$('#langSelect');
-  const scr={cover:$('#cover'), askname:$('#askname'), choose:$('#choose'), main:$('#main')};
-  const userNameInput=$('#userNameInput'), userNameSave=$('#userNameSave'), userNameSkip=$('#userNameSkip');
-  const lblAskTitle=$('#lblAskTitle'), lblAskLead=$('#lblAskLead');
-
-  const chooseGrid=$('#charGrid'), chooseContinue=$('#chooseContinue');
-
-  const chat=$('#chat'), input=$('#input'), btnSend=$('#send'), btnDone=$('#done'), cooldownNote=$('#cooldownNote');
-  const charIcon=$('#charIcon'), heartCountEl=$('#heartCount'), charNameBox=$('#charNameBox');
-
-  const rewardsModal=$('#rewardsModal'), closeRewards=$('#closeRewards');
-  const rewardSummary=$('#rewardSummary'), stampList=$('#stampList');
-  const rewardToast=$('#rewardToast');
-
-  const nameModal=$('#nameModal'), nameInput=$('#nameInput'), nameSave=$('#nameSave'), nameSkip=$('#nameSkip'), closeName=$('#closeName');
-
-  const hubModal=$('#hubModal'), closeHub=$('#closeHub'), hubAppearance=$('#hubAppearance'), hubRecords=$('#hubRecords'), hubContinue=$('#hubContinue');
-
-  // 新規: スタート選択
-  const startModal=$('#startModal'), closeStart=$('#closeStart'), btnContinueStart=$('#btnContinueStart'), btnResetStart=$('#btnResetStart'), continueHint=$('#continueHint');
-  const startTitle=$('#lblStartTitle'), startLead=$('#lblStartLead');
-
-  // === 追加要素: キャラスプライト ===
-  const charSprite = $('#charSprite');
-
-  // ===== state
-  let hearts    = toInt(get(KEY.hearts),0);
-  let log       = toArray(get(KEY.log),[]);
-  let nextTimer=null, labelTimer=null, guard=false;
-
-  // ===== helpers
-  function show(id){
-    Object.values(scr).forEach(el=>el&&el.classList.add('hidden'));
-    scr[id]?.classList.remove('hidden');
-    // 追加：メイン画面以外ではキャラ非表示
-    if(id==='main' && get(KEY.char)){
-      charSprite.classList.add('show');
-    }else{
-      charSprite.classList.remove('show');
+    function continueFlow(){
+      const step = localStorage.getItem(LS.PROGRESS); // 'seed' | 'care' | 'talk' | 'evolved'
+      switch(step){
+        case 'seed':     location.href = 'seed_select.html'; break;
+        case 'care':     location.href = 'care.html'; break;           // お世話画面（WhoAIのケア流用）
+        case 'talk':     location.href = 'talk.html'; break;           // 会話画面（TALK_ENDPOINT連携）
+        case 'evolved':  location.href = 'evolved.html'; break;        // HBD演奏後の進化画面
+        default:         location.href = 'meai_home.html'; break;      // ホーム（提案・ご褒美・ログ等）
+      }
     }
-  }
-  function get(k){ try{return localStorage.getItem(k)}catch{return null} }
-  function set(k,v){ try{localStorage.setItem(k,v)}catch{} }
-  function del(k){ try{localStorage.removeItem(k)}catch{} }
-  function toInt(v,d=0){ const n=parseInt(v,10); return Number.isFinite(n)?n:d; }
-  function toArray(raw,f=[]){ try{ const v=typeof raw==='string'?JSON.parse(raw):raw; return Array.isArray(v)?v:f }catch{ return f } }
-  function hasSave(){
-    const char=get(KEY.char), lg=get(KEY.log);
-    try{
-      const arr = JSON.parse(lg||'[]');
-      return !!char || (Array.isArray(arr)&&arr.length>0);
-    }catch{ return !!get(KEY.char); }
-  }
-  function clearProgressKeepPrefs(){
-    [KEY.hearts, KEY.log, KEY.next, KEY.rewards, KEY.milestones, KEY.charName, KEY.char].forEach(del);
-  }
 
-  function applyLang(){
-    const T=t();
-    $('#titleApp').textContent=T.app;
-    $('#titleLead').textContent=T.coverLead;
-    $('#lblChoose').textContent=T.choose;
-    $('#lblRewardsTitle').textContent=T.rewardsTitle;
-    $('#lblNameTitle').textContent=T.nameTitle;
-    $('#lblNameLead').textContent=T.nameLead;
-    $('#lblHubTitle').textContent=T.hubTitle;
-    lblAskTitle.textContent=T.askTitle;
-    lblAskLead.textContent=T.askLead;
+    /* ====== API起動チェック ======
+       - まず HEAD を試行（CORSで落ちる場合GET）
+       - 成功で Online、失敗で Offline
+    */
+    async function checkAPI(){
+      const apiText = document.getElementById('api_text');
+      const dot = document.getElementById('api_dot');
+      const lang = localStorage.getItem(LS.LANG) || detectLang();
+      const t = I18N[lang] || I18N.ja;
 
-    // start modal texts
-    startTitle.textContent = T.startTitle || "はじめる";
-    startLead.textContent  = T.startLead  || "続きから or リセットを選んでください。";
-    continueHint.textContent = "";
+      async function tryFetch(method){
+        try{
+          const res = await fetch(TALK_ENDPOINT, { method, mode:'cors' });
+          return res && (res.ok || (res.status >= 200 && res.status < 500));
+        }catch(_e){ return false; }
+      }
 
-    chooseContinue.textContent=T.chooseContinue;
-    btnDone.textContent=T.doneLabel;
-    $('#send').textContent = (T===I18N.ja? "送信": T===I18N.en? "Send": T===I18N.zh? "发送":"보내기");
+      let ok = await tryFetch('HEAD');
+      if (!ok) ok = await tryFetch('GET');
 
-    btnContinueStart.disabled = !hasSave();
-    if(!hasSave()) continueHint.textContent = T.continueDisabled || "セーブデータがありません。リセットを選んでください。";
-  }
- (function initLang(){
-    let lang = localStorage.getItem(LS_LANG);
-    if (!lang) {
-      const cand = (navigator.language || 'ja').slice(0,2);
-      lang = (cand in I18N) ? cand : 'ja';
-      localStorage.setItem(LS_LANG, lang);
+      if (ok){
+        dot.classList.remove('ng'); dot.classList.add('ok');
+        apiText.textContent = t.api_ok;
+      }else{
+        dot.classList.remove('ok'); dot.classList.add('ng');
+        apiText.textContent = t.api_ng;
+      }
     }
-    if (langSelect) langSelect.value = lang;
-    applyLang();
-  })();
 
-  on(langSelect, 'change', (e)=>{
-    const v = e.target.value;
-    if (I18N[v]) {
-      localStorage.setItem(LS_LANG, v);
-      applyLang();
+    function detectLang(){
+      const browser = (navigator.language || 'ja').toLowerCase();
+      return (['ja','en','zh-cn','zh-tw','ko'].find(k => browser.startsWith(k)) || 'ja');
     }
-  });
 
-  // ----- chat
-  function append(sender,text){ const d=document.createElement('div'); d.className='bubble '+sender; d.textContent=text; chat.appendChild(d); chat.scrollTop=chat.scrollHeight; }
-  function push(sender,text){ const item={sender,text,ts:Date.now()}; log.push(item); append(sender,text); saveAll(); }
-  function saveAll(){ set(KEY.hearts,String(hearts)); set(KEY.log,JSON.stringify(log)); }
+    /* ====== 初期化 ====== */
+    (function init(){
+      // 言語
+      const savedLang = localStorage.getItem(LS.LANG) || detectLang();
+      applyLang(savedLang);
 
-  function pickRequest(){ const lang = localStorage.getItem(LS_LANG) || "ja"; return nextSuggestion(lang); }
-  function formatSuggest(){
-    const userName = get(KEY.user)||"";
-    const charName = get(KEY.charName)||"";
-    const req = pickRequest();
-    return t().formatSuggest(userName, req, charName);
-  }
+      // 進行状況がある場合のみ「つづきから」を表示
+      const hasProgress = !!localStorage.getItem(LS.PROGRESS);
+      if (hasProgress) document.getElementById('t_continue').style.display = '';
 
-  // ===== rewards (スタンプのみ)
-  const STICKER_POOL=["⭐","🌙","🌈","💎","🫧","🌸","🍀","🔥","❄️","🎵","✨","🍎","☕","📚","🧡"];
-  function grantSticker(){
-    const emo = STICKER_POOL[Math.floor(Math.random()*STICKER_POOL.length)];
-    const r = toObj(get(KEY.rewards), {stamps:[]}); r.stamps??=[];
-    r.stamps.push({emo,ts:Date.now()}); set(KEY.rewards,JSON.stringify(r));
-    rewardSummary.textContent = `ハート：${hearts}　スタンプ：${r.stamps.length}`;
-    renderStamps(r.stamps); toast(`<span class="emo">${emo}</span>Get!`);
-  }
-  function toObj(raw,f={}){ try{ const v=typeof raw==='string'?JSON.parse(raw):raw; return (v && typeof v==='object')?v:f }catch{ return f } }
-  function renderStamps(list){ stampList.innerHTML=''; list.slice(-100).forEach(s=>{ const d=document.createElement('div'); d.className='stamp'; d.textContent=s.emo; stampList.appendChild(d); }); }
-  function toast(html){ rewardToast.innerHTML=html; rewardToast.style.display='block'; setTimeout(()=> rewardToast.style.display='none', 3000); }
-
-  // ===== cooldown 表示/管理
-  function canDoneNow(){ const due=toInt(get(KEY.next),0); return !due||due<=Date.now(); }
-  function countdown(ms){
-    if(ms<=0) return "";
-    const s=Math.ceil(ms/1000);
-    if(s<60) return `${s}秒`;
-    const m=Math.ceil(s/60);
-    if(m<60) return `${m}分`;
-    const h=Math.floor(m/60), mm=m%60; return mm?`${h}時間${mm}分`:`${h}時間`;
-  }
-  function setNextAfterHours(h){
-    const due=Date.now()+Math.round(h*3600*1000);
-    set(KEY.next,String(due));
-    updateDoneState();
-    startNextTimer();
-    startLabelTimer();
-  }
-  function updateCooldownNote(){
-    const due=toInt(get(KEY.next),0);
-    if(!due){ cooldownNote.textContent=""; return; }
-    const remain = due - Date.now();
-    if(remain<=0){ cooldownNote.textContent = t().noteReady; return; }
-    cooldownNote.textContent = t().noteAvail( countdown(remain) );
-  }
-  function updateDoneState(){
-    const due=toInt(get(KEY.next),0);
-    const disabled=due && due>Date.now();
-    btnDone.disabled=!!disabled;
-    btnDone.textContent = disabled ? `${t().doneLabel}（あと${countdown(due-Date.now())}）` : t().doneLabel;
-    updateCooldownNote();
-  }
-  function startNextTimer(){
-    if(nextTimer) clearTimeout(nextTimer);
-    const due=toInt(get(KEY.next),0);
-    if(!due) return;
-    const wait=due-Date.now();
-    if(wait<=0){ push('ai', formatSuggest()); del(KEY.next); updateDoneState(); return; }
-    nextTimer=setTimeout(()=>{ del(KEY.next); updateDoneState(); push('ai', formatSuggest()); }, wait);
-  }
-  function startLabelTimer(){
-    if(labelTimer) clearInterval(labelTimer);
-    labelTimer=setInterval(()=>{
-      updateDoneState();
-      const due=toInt(get(KEY.next),0);
-      if(!due || due<=Date.now()){ clearInterval(labelTimer); labelTimer=null; }
-    }, 1000*30);
-  }
-
-  // ===== character naming reward
-  function maybeAskName(){ const nm=get(KEY.charName); if(!nm && hearts>=3){ nameModal.style.display='block'; setTimeout(()=> nameInput?.focus(), 10); } }
-  function updateCharNameUI(){ const nm=get(KEY.charName)||""; charNameBox.textContent = nm? `キャラの名前 ${nm}`:""; }
-
-  // === 追加：キャラスプライトの見た目・リアクション制御 ===
-  function currentCharPath(kind="calm"){
-    const c = get(KEY.char) || "green";
-    return `public/char/${c}/${kind}.png`;
-  }
-  function setSprite(kind="calm"){
-    charSprite.src = currentCharPath(kind);
-    charSprite.onerror = ()=>{ charSprite.src = 'public/char/green/calm.png'; };
-  }
-  function reactSprite(){
-    // joy に差し替えて回転、終わったら calm に戻す
-    setSprite("joy");
-    charSprite.classList.remove('react'); // 再生リセット
-    void charSprite.offsetWidth; // reflow for restart
-    charSprite.classList.add('react');
-    setTimeout(()=> setSprite("calm"), 900);
-  }
-
-  // ===== flow
-  function startMain(newSession){
-    const char = get(KEY.char);
-    if(!char){ show('choose'); return; }
-    charIcon.src=`public/char/${char}/calm.png`; charIcon.onerror=()=>{ charIcon.src='public/char/green/calm.png'; };
-    setSprite("calm");
-    heartCountEl.textContent=hearts; updateCharNameUI();
-
-    chat.innerHTML='';
-    if(newSession || log.length===0){ log=[]; push('ai', formatSuggest()); }
-    else{ log.forEach(m=>append(m.sender,m.text)); chat.scrollTop=chat.scrollHeight; }
-
-    show('main'); setTimeout(()=> input?.focus(), 10);
-    updateDoneState(); startNextTimer(); startLabelTimer();
-  }
-
-  // ===== bindings
-  on($('#coverStart'),'click', ()=>{
-    startModal.style.display='block';
-    applyLang();
-  });
-
-  on(langSelect,'change', ()=>{ localStorage.setItem(LS_LANG, langSelect.value); applyLang(); updateDoneState(); });
-
-  // リセット（名前→キャラ）
-  on(userNameSave,'click', ()=>{
-    const v=(userNameInput.value||"").trim();
-    if(v) set(KEY.user, v);
-    show('choose');
-  });
-  on(userNameSkip,'click', ()=> show('choose'));
-
-  // キャラ選択
-  on(chooseGrid,'click', (e)=>{
-    const b=e.target.closest('.char'); if(!b) return;
-    set(KEY.char, b.dataset.char);
-    hearts=0; log=[];
-    saveAll();
-    startMain(true);
-  });
-
-  on(chooseContinue,'click', ()=>{
-    if(!get(KEY.char)){ alert('セーブデータがありません。'); return; }
-    startMain(false);
-  });
-
-  // メッセージ送受
-  on($('#send'),'click', ()=>{ const v=(input.value||"").trim(); if(!v) return; push('user', v); input.value=''; push('ai', t().aiAck); });
-  on(input,'keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#send').click(); }});
-
-  // やったよ
-  on(btnDone,'click', ()=>{
-    if(guard) return; guard=true; setTimeout(()=>guard=false,500);
-    if(!canDoneNow()){
-      const rest = Math.max(0, toInt(get(KEY.next),0)-Date.now());
-      alert(`もう少し休憩… 次は ${countdown(rest)} 後に「${t().doneLabel}」できます。`);
-      return;
-    }
-    push('user', t().doneLabel);
-    hearts++; heartCountEl.textContent=hearts; saveAll();
-    grantSticker();
-    maybeAskName();
-
-    // ★ 追加：リアクション
-    reactSprite();
-
-    const h=Math.round((1+Math.random()*2)*10)/10;
-    push('ai', t().laterMsg(h));
-    setNextAfterHours(h);
-  });
-
-  // ご褒美
-  on($('#rewardsBtn2'),'click', ()=>{
-    const r=toObj(get(KEY.rewards),{stamps:[]});
-    rewardSummary.textContent=`ハート：${hearts}　スタンプ：${(r.stamps||[]).length}`;
-    renderStamps(r.stamps||[]);
-    rewardsModal.style.display='block';
-  });
-  on(closeRewards,'click', ()=> rewardsModal.style.display='none');
-  on(rewardsModal,'click', e=>{ if(e.target===rewardsModal) rewardsModal.style.display='none'; });
-
-  // 命名
-  on(nameSave,'click', ()=>{ const v=(nameInput.value||"").trim(); if(!v) return; set(KEY.charName, v); updateCharNameUI(); push('ai', `これからは「${v}」って呼ぶね。よろしく！`); nameModal.style.display='none'; });
-  on(nameSkip,'click', ()=> nameModal.style.display='none');
-  on(closeName,'click', ()=> nameModal.style.display='none');
-  on(nameModal,'click', e=>{ if(e.target===nameModal) nameModal.style.display='none'; });
-
-  // ハブ
-  on($('#toHub'),'click', ()=> $('#hubModal').style.display='block');
-  on(closeHub,'click', ()=> $('#hubModal').style.display='none');
-  on(hubContinue,'click', ()=> { $('#hubModal').style.display='none'; push('ai', formatSuggest()); });
-  on(hubAppearance,'click', ()=> { $('#hubModal').style.display='none'; const r=toObj(get(KEY.rewards),{stamps:[]}); rewardSummary.textContent=`ハート：${hearts}　スタンプ：${(r.stamps||[]).length}`; renderStamps(r.stamps||[]); rewardsModal.style.display='block'; });
-  on(hubRecords,'click', ()=> { $('#hubModal').style.display='none'; const text=(log||[]).map(l=>`${new Date(l.ts).toLocaleString()} [${l.sender}] ${l.text}`).join('\n')||'（ログなし）'; alert(text); });
-
-  // スタートモーダル
-  on(closeStart,'click', ()=> startModal.style.display='none');
-  on(startModal,'click', e=>{ if(e.target===startModal) startModal.style.display='none'; });
-
-  on(btnContinueStart,'click', ()=>{
-    if(!hasSave()){
-      alert((t().continueDisabled)||'セーブデータがありません。リセットを選んでください。');
-      return;
-    }
-    startModal.style.display='none';
-    hearts = toInt(get(KEY.hearts),0);
-    log    = toArray(get(KEY.log),[]);
-    // 追加：スプライトも復元
-    setSprite("calm");
-    show('main');
-    // 既存ログ再描画
-    chat.innerHTML = '';
-    log.forEach(m=>append(m.sender,m.text));
-    chat.scrollTop=chat.scrollHeight;
-    updateCharNameUI();
-    charIcon.src = currentCharPath("calm");
-    updateDoneState(); startNextTimer(); startLabelTimer();
-    charSprite.classList.add('show');
-  });
-
-  on(btnResetStart,'click', ()=>{
-    clearProgressKeepPrefs();
-    hearts=0; log=[];
-    startModal.style.display='none';
-    show('askname');
-    setTimeout(()=> userNameInput?.focus(), 10);
-  });
-
-  // 初期
-  try{
-    const lang = localStorage.getItem(LS_LANG)||"ja";
-    $('#langSelect').value = lang;
-    applyLang();
-    show('cover');
-    // 初期は calm
-    if(get(KEY.char)){ setSprite("calm"); }
-  }catch(e){
-    console.error(e);
-    show('cover');
-  }
-})();
-</script>
+      // APIチェック
+      checkAPI();
+    })();
+  </script>
 </body>
 </html>
