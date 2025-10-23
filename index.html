@@ -6,79 +6,38 @@
 <title>MeAI</title>
 <link rel="icon" href="data:,">
 <style>
-  :root{
-    --fg:#fff; --dim:#cfd8dc; --accent:#8e7cff;
-    --glass-bg: rgba(255,255,255,.08);
-    --glass-bd: rgba(255,255,255,.18);
-  }
-  html, body { height:100%; }
+  :root{ --fg:#fff; --dim:#cfd8dc; --accent:#8e7cff; --glass:rgba(255,255,255,.08); --bd:rgba(255,255,255,.18); }
+  html,body{height:100%}
   body{
-    margin:0;
+    margin:0; color:var(--fg);
     font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    color:var(--fg);
     background:#000 url("public/space_background.png") center/cover fixed no-repeat;
   }
   .hidden{display:none!important;}
   .center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; padding:20px; text-align:center;}
   .row{display:flex; gap:10px; align-items:center; justify-content:center; flex-wrap:wrap;}
-  .panel{
-    background:var(--glass-bg);
-    border:1px solid var(--glass-bd);
-    border-radius:18px;
-    padding:16px 18px;
-    max-width:860px;
-    width:min(92vw,860px);
-  }
-  .btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:.5em;
-    border:none; border-radius:999px; padding:12px 22px; cursor:pointer;
-    color:#fff; font-weight:700; letter-spacing:.02em;
-    background:linear-gradient(135deg,#4db6ff, var(--accent));
-    transition:transform .15s ease, opacity .15s ease;
-  }
+  .panel{ background:var(--glass); border:1px solid var(--bd); border-radius:18px; padding:16px 18px; max-width:860px; width:min(92vw,860px); }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5em; border:none; border-radius:999px; padding:12px 22px; cursor:pointer; color:#fff; font-weight:700; background:linear-gradient(135deg,#4db6ff,var(--accent)); }
   .btn.secondary{ background:linear-gradient(135deg,#607d8b,#90a4ae);}
   .btn.ghost{ background:transparent; border:1px solid rgba(255,255,255,.4);}
-  .btn:hover{ transform:translateY(-1px); }
-
-  img.char{
-    width:min(34vw,220px); height:auto; border-radius:18px;
-    box-shadow:0 8px 24px rgba(0,0,0,.35);
-    background:rgba(255,255,255,.06);
-  }
-
-  #cover h1{font-size:40px; margin:0;}
-  #cover p{color:var(--dim); margin:.2em 0 0 0;}
-
-  #game{
-    display:none;
-    align-items:flex-start; justify-content:flex-start; text-align:left;
-  }
-  #game .layout{
-    display:grid; gap:16px; width:min(96vw,980px);
-    grid-template-columns: 240px 1fr;
-  }
+  img.char{ width:min(34vw,220px); height:auto; border-radius:18px; box-shadow:0 8px 24px rgba(0,0,0,.35); background:rgba(255,255,255,.06); }
+  #cover h1{font-size:40px; margin:0;}  #cover p{color:var(--dim); margin:.2em 0 0 0;}
+  #game{ display:none; align-items:flex-start; justify-content:flex-start; text-align:left; }
+  #game .layout{ display:grid; gap:16px; width:min(96vw,980px); grid-template-columns:240px 1fr; }
   #charBox{ display:flex; flex-direction:column; align-items:center; gap:10px; }
-  #heart{
-    font-weight:700; padding:.35em .8em; border-radius:999px;
-    background:rgba(255,255,255,.12); border:1px solid var(--glass-bd);
-  }
+  #heart{ font-weight:700; padding:.35em .8em; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid var(--bd); }
   #suggestBox .title{font-weight:700; opacity:.9; margin-bottom:6px;}
   #suggest{font-size:18px; line-height:1.6;}
-  #log{max-height:180px; overflow:auto; font-size:13px; opacity:.9;}
-  #log li{margin:.2em 0;}
+  #log{max-height:180px; overflow:auto; font-size:13px; opacity:.9;} #log li{margin:.2em 0;}
   .spacer{height:10px;}
-
-  #langWrap{
-    position:fixed; right:12px; bottom:12px; display:flex; gap:6px; align-items:center;
-    font-size:13px; color:#e0e0e0;
-  }
+  #langWrap{ position:fixed; right:12px; bottom:12px; display:flex; gap:6px; align-items:center; font-size:13px; color:#e0e0e0;}
   #langSelect{ background:rgba(0,0,0,.4); color:#fff; border:1px solid rgba(255,255,255,.3); border-radius:8px; padding:6px 8px; }
 </style>
 </head>
 <body>
 
-<!-- ===== COVER ===== -->
-<section id="cover" class="center">
+<!-- COVER -->
+<section id="cover" class="center" aria-label="cover">
   <div class="panel">
     <h1 id="appTitle">MeAI</h1>
     <p id="lead">小さな“やってみる”をやさしく提案してくれる相棒。</p>
@@ -86,47 +45,45 @@
     <img id="coverChar" class="char" src="public/char/ako2.png" alt="キャラ">
     <div class="spacer"></div>
     <div class="row">
-      <button class="btn" id="startBtn">はじめる</button>
+      <button class="btn" id="startBtn" type="button">はじめる</button>
     </div>
   </div>
 </section>
 
-<!-- ===== GAME ===== -->
-<section id="game" class="center">
+<!-- GAME -->
+<section id="game" class="center" aria-label="game">
   <div class="panel layout">
-    <!-- 左：キャラ＆お世話 -->
     <div id="charBox">
       <img id="gameChar" class="char" src="public/char/ako2.png" alt="キャラ">
       <div id="heart">♡ <span id="heartNum">0</span></div>
       <div class="row">
-        <button class="btn" id="doneBtn">やったよ♡</button>
-        <button class="btn ghost" id="backBtn">もどる</button>
+        <button class="btn" id="doneBtn" type="button">やったよ♡</button>
+        <button class="btn ghost" id="backBtn" type="button">もどる</button>
       </div>
     </div>
 
-    <!-- 右：提案＆ログ -->
     <div id="rightCol">
       <div id="suggestBox">
-        <div class="title">今日の提案</div>
+        <div class="title" id="todayTitle">今日の提案</div>
         <div id="suggest">ボタンを押すと、いまのあなたに合いそうな小さな行動を出します。</div>
         <div class="spacer"></div>
         <div class="row">
-          <button class="btn" id="nextSuggestBtn">提案を出す</button>
-          <button class="btn secondary" id="anotherBtn">別の案</button>
+          <button class="btn" id="nextSuggestBtn" type="button">提案を出す</button>
+          <button class="btn secondary" id="anotherBtn" type="button">別の案</button>
         </div>
       </div>
 
       <div class="spacer"></div>
 
       <div class="panel" style="background:rgba(255,255,255,.05);">
-        <div class="title">きろく</div>
+        <div class="title" id="logTitle">きろく</div>
         <ul id="log"></ul>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ===== LANG SELECT ===== -->
+<!-- LANG -->
 <div id="langWrap">
   <label for="langSelect">Language</label>
   <select id="langSelect">
@@ -138,8 +95,14 @@
 </div>
 
 <script>
-/* ========== I18N ========== */
-const I18N = {
+/* ===== ユーティリティ ===== */
+const LS_LANG='MEAI_LANG', LS_HEARTS='MEAI_HEARTS', LS_LOG='MEAI_LOG';
+const $=(s)=>document.querySelector(s);
+const safe = (el, fn) => { if (el) fn(el); };     // あれば実行
+const setText = (el, txt) => safe(el, e=>e.textContent = txt);
+
+/* ===== I18N ===== */
+const I18N={
   ja:{app:"MeAI",lead:"小さな“やってみる”をやさしく提案してくれる相棒。",
       start:"はじめる",back:"もどる",done:"やったよ♡",next:"提案を出す",another:"別の案",
       today:"今日の提案",log:"きろく",help:"ボタンを押すと、いまのあなたに合いそうな小さな行動を出します。"},
@@ -153,33 +116,24 @@ const I18N = {
       start:"시작하기",back:"뒤로가기",done:"했어요 ♡",next:"제안 받기",another:"다른 제안",
       today:"오늘의 제안",log:"기록",help:"버튼을 눌러 지금 당신에게 맞는 작은 행동을 받아보세요."}
 };
-const LS_LANG='MEAI_LANG', LS_HEARTS='MEAI_HEARTS', LS_LOG='MEAI_LOG';
-const $=(s)=>document.querySelector(s);
 
 function applyLang(){
-  const lang=localStorage.getItem(LS_LANG)||'ja',t=I18N[lang];
-  document.title=t.app;
-  $('#appTitle').textContent=t.app;
-  $('#lead').textContent=t.lead;
-  $('#startBtn').textContent=t.start;
-  $('#backBtn').textContent=t.back;
-  $('#doneBtn').textContent=t.done;
-  $('#nextSuggestBtn').textContent=t.next;
-  $('#anotherBtn').textContent=t.another;
-  $('#suggestBox .title').textContent=t.today;
-  document.querySelector('#rightCol .panel .title').textContent=t.log;
-  if(!suggestPicked)$('#suggest').textContent=t.help;
+  const lang = localStorage.getItem(LS_LANG) || 'ja';
+  const t = I18N[lang];
+  document.title = t.app;
+  setText($('#appTitle'), t.app);
+  setText($('#lead'), t.lead);
+  setText($('#startBtn'), t.start);
+  setText($('#backBtn'), t.back);
+  setText($('#doneBtn'), t.done);
+  setText($('#nextSuggestBtn'), t.next);
+  setText($('#anotherBtn'), t.another);
+  setText($('#todayTitle'), t.today);
+  setText($('#logTitle'), t.log);
+  if (!suggestPicked) setText($('#suggest'), t.help);
 }
-(function(){
-  let lang=localStorage.getItem(LS_LANG);
-  if(!lang){const c=(navigator.language||'ja').slice(0,2);lang=I18N[c]?c:'ja';localStorage.setItem(LS_LANG,lang);}
-  $('#langSelect').value=lang;applyLang();
-})();
-$('#langSelect').addEventListener('change',e=>{
-  const v=e.target.value;if(I18N[v]){localStorage.setItem(LS_LANG,v);applyLang();}
-});
 
-/* ========== データ ========== */
+/* ===== データ ===== */
 const SUGGESTS=[
   "水を一杯飲む","立ち上がって30秒ストレッチ","5分だけ机を片づける",
   "今日の良かったことを1つ書く","10回深呼吸","歯磨きの仕上げ30秒",
@@ -187,45 +141,74 @@ const SUGGESTS=[
   "目を閉じて休む30秒","使わないタブを3つ閉じる","背すじを伸ばす",
   "短いメモを1行だけ書く","散歩を1分","水やりをする","ゴミを1つ捨てる"
 ];
-let hearts=Number(localStorage.getItem(LS_HEARTS)||0);
-$('#heartNum').textContent=hearts;
+let hearts = Number(localStorage.getItem(LS_HEARTS)||0);
+let suggestPicked = null;
+
+function updateHearts(){ setText($('#heartNum'), String(hearts)); }
 function pushLog(text){
-  const now=new Date(),line=`${now.toLocaleString()}｜${text}`;
+  const now=new Date(), line=`${now.toLocaleString()}｜${text}`;
   const arr=JSON.parse(localStorage.getItem(LS_LOG)||"[]");
-  arr.unshift(line);localStorage.setItem(LS_LOG,JSON.stringify(arr.slice(0,100)));renderLog();
+  arr.unshift(line);
+  localStorage.setItem(LS_LOG, JSON.stringify(arr.slice(0,100)));
+  const list = $('#log'); if (list) list.innerHTML = arr.map(s=>`<li>${s}</li>`).join('');
 }
-function renderLog(){
-  const arr=JSON.parse(localStorage.getItem(LS_LOG)||"[]");
-  $('#log').innerHTML=arr.map(s=>`<li>${s}</li>`).join('');
-}
-renderLog();
+function pick(){ const i=Math.floor(Math.random()*SUGGESTS.length); suggestPicked=SUGGESTS[i]; setText($('#suggest'), suggestPicked); }
 
-/* ========== 操作 ========== */
-$('#startBtn').addEventListener('click',()=>{
-  $('#cover').classList.add('hidden');$('#game').style.display='flex';pushLog("スタート");
-});
-$('#backBtn').addEventListener('click',()=>{
-  $('#game').style.display='none';$('#cover').classList.remove('hidden');
-});
-$('#doneBtn').addEventListener('click',()=>{
-  hearts++;localStorage.setItem(LS_HEARTS,hearts);
-  $('#heartNum').textContent=hearts;pushLog("やったよ♡ 1ハート獲得");
-});
-let suggestPicked=null;
-function pick(){const i=Math.floor(Math.random()*SUGGESTS.length);
-  suggestPicked=SUGGESTS[i];$('#suggest').textContent=suggestPicked;}
-$('#nextSuggestBtn').addEventListener('click',()=>{pick();pushLog(`提案表示：${suggestPicked}`);});
-$('#anotherBtn').addEventListener('click',()=>{pick();});
+/* ===== 起動（DOMContentLoadedで安全登録） ===== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  // 言語初期化
+  let lang=localStorage.getItem(LS_LANG);
+  if(!lang){ const c=(navigator.language||'ja').slice(0,2); lang = I18N[c]?c:'ja'; localStorage.setItem(LS_LANG, lang); }
+  const langSel = $('#langSelect'); if (langSel) langSel.value = lang;
+  applyLang();
 
-/* 画像チェック */
-function checkImg(el){
-  if(!el)return;
-  const t=new Image();
-  t.onerror=()=>pushLog(`画像が見つかりません：${el.getAttribute('src')}`);
-  t.src=el.getAttribute('src');
-}
-checkImg($('#coverChar'));
-checkImg($('#gameChar'));
+  updateHearts(); pushLog("ロード完了");
+
+  // クリック系（要素が無ければ何もしない→エラーにならない）
+  safe($('#startBtn'), btn=>{
+    btn.addEventListener('click', ()=>{
+      $('#cover')?.classList.add('hidden');
+      const g = $('#game'); if (g) g.style.display='flex';
+      pushLog("スタート");
+    });
+  });
+
+  safe($('#backBtn'), btn=>{
+    btn.addEventListener('click', ()=>{
+      const g = $('#game'); if (g) g.style.display='none';
+      $('#cover')?.classList.remove('hidden');
+    });
+  });
+
+  safe($('#doneBtn'), btn=>{
+    btn.addEventListener('click', ()=>{
+      hearts++; localStorage.setItem(LS_HEARTS, hearts); updateHearts();
+      pushLog("やったよ♡ 1ハート獲得");
+    });
+  });
+
+  safe($('#nextSuggestBtn'), btn=>{
+    btn.addEventListener('click', ()=>{ pick(); pushLog(`提案表示：${suggestPicked}`); });
+  });
+  safe($('#anotherBtn'), btn=>{
+    btn.addEventListener('click', ()=> pick());
+  });
+
+  safe($('#langSelect'), sel=>{
+    sel.addEventListener('change', (e)=>{
+      const v = e.target.value;
+      if (I18N[v]){ localStorage.setItem(LS_LANG, v); applyLang(); }
+    });
+  });
+
+  // 画像存在チェック（ログだけ出す・処理は止めない）
+  ['#coverChar','#gameChar'].forEach(sel=>{
+    const el=$(sel); if(!el) return;
+    const test=new Image();
+    test.onerror=()=>pushLog(`画像が見つかりません：${el.getAttribute('src')}`);
+    test.src=el.getAttribute('src');
+  });
+});
 </script>
 </body>
 </html>
