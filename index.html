@@ -1,350 +1,371 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>MeAI</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MeAI | index</title>
 <link rel="icon" href="data:,">
 <style>
   :root{
-    --fg:#fff; --dim:#cfd8dc; --accent:#8e7cff; --accent2:#4db6ff;
-    --glass:rgba(255,255,255,.08); --bd:rgba(255,255,255,.18);
-    --pad: clamp(12px, 4vw, 24px);
+    --glass: rgba(255,255,255,.08);
+    --glass-b: rgba(255,255,255,.16);
+    --ok: #5be37e; --warn:#ffcc66; --danger:#ff7a7a;
   }
-  *{ box-sizing:border-box; }
-  html,body{ height:100%; }
+  html,body{height:100%}
   body{
-    margin:0; color:var(--fg);
-    font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    background:#000 url("public/space_background.png") center/cover fixed no-repeat;
+    margin:0; font-family: "Noto Sans JP", system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+    color:#fff; background:#000 url("public/space_background.png") center/cover fixed no-repeat;
   }
+  .hidden{display:none!important}
+  .app{position:relative; min-height:100%;}
+  .stars, .stars::after{
+    position:fixed; inset:0; content:""; pointer-events:none; z-index:0;
+    background:radial-gradient(white 1px, transparent 1px) 0 0/3px 3px; opacity:.22;
+    animation:twinkle 10s linear infinite;
+  }
+  .stars::after{ animation-duration:15s; opacity:.15; filter:blur(.6px) brightness(1.2); }
+  @keyframes twinkle{0%{transform:translateY(0)}100%{transform:translateY(-3px)}}
 
-  /* 共通 */
-  .page{
-    min-height:100dvh; display:flex; align-items:center; justify-content:center;
-    padding: var(--pad); /* ← 左右に常に余白を確保（端切れ防止） */
-  }
-  .hidden{display:none!important;}
-  .container{
-    width: min(100%, 1080px);
-  }
-  .panel{
-    background:var(--glass); border:1px solid var(--bd); border-radius:18px;
-    padding:var(--pad);
-  }
-  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:center;}
-  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5em; border:none; border-radius:999px; padding:12px 20px; cursor:pointer; color:#fff; font-weight:700; background:linear-gradient(135deg,var(--accent2),var(--accent)); }
-  .btn.secondary{ background:linear-gradient(135deg,#607d8b,#90a4ae);}
-  .btn.ghost{ background:transparent; border:1px solid rgba(255,255,255,.4); color:#fff; }
-  .btn:disabled{ opacity:.55; cursor:not-allowed; }
-  .title{font-weight:800; font-size:20px; margin:0 0 8px;}
-  .spacer{height:10px;}
-  img.char{ width:min(38vw,240px); height:auto; border-radius:18px; box-shadow:0 8px 24px rgba(0,0,0,.35); background:rgba(255,255,255,.06); }
+  .wrap{position:relative; z-index:1; max-width:900px; margin:0 auto; padding:24px;}
+  .row{display:grid; grid-template-columns: 1fr; gap:16px}
+  @media (min-width: 800px){ .row{ grid-template-columns: 1.3fr .7fr; } }
 
-  /* ===== Cover ===== */
-  #cover h1{ font-size: clamp(28px, 5vw, 44px); margin:.1em 0 .2em; text-align:center; }
-  #cover p{ color:var(--dim); text-align:center; margin:0 0 var(--pad); }
+  .card{ background:var(--glass); border:1px solid var(--glass-b); border-radius:20px; padding:16px 18px; backdrop-filter: blur(8px); }
+  .title{ font-weight:700; font-size:1.1rem; margin:0 0 8px }
+  .muted{ opacity:.85; font-size:.95rem }
 
-  .inputRow{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; width:100%; }
-  input[type="text"]{
-    flex:1 1 320px; max-width:560px;
-    padding:12px 14px; border-radius:12px;
-    border:1px solid rgba(255,255,255,.35);
-    background:rgba(255,255,255,.18);
-    color:#122; outline:none;
-    box-shadow:0 6px 16px rgba(0,0,0,.18) inset;
-    backdrop-filter: blur(6px);
-    transition:border-color .15s, box-shadow .15s, background .15s;
-  }
-  input[type="text"]::placeholder{ color:rgba(17,34,34,.6); }
-  input[type="text"]:focus{ background:rgba(255,255,255,.26); border-color:#9fbfff; box-shadow:0 0 0 3px rgba(79,166,255,.25); }
-  #saveNameBtn{ height:44px; padding:0 18px; }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px }
+  .pill{ display:inline-flex; align-items:center; gap:.5em; padding:6px 10px; border-radius:999px; background:var(--glass); border:1px solid var(--glass-b); }
+  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5em; border:none; border-radius:999px; padding:12px 16px; cursor:pointer; color:#fff; background:#3b82f6; font-weight:700 }
+  .btn[disabled]{ opacity:.5; cursor:not-allowed }
+  .btn-ghost{ background:transparent; border:1px solid var(--glass-b) }
+  .btn-good{ background: var(--ok) }
+  .btn-danger{ background: var(--danger) }
 
-  /* ===== Game ===== */
-  #greet{ font-size: clamp(16px, 2.6vw, 20px); }
-  #layout{
-    display:grid; gap:16px; align-items:start;
-    grid-template-columns: 300px 1fr;  /* PC: 2カラム */
-  }
-  #charBox{ display:flex; flex-direction:column; align-items:center; gap:10px; }
-  #stats{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
-  .chip{ font-weight:700; padding:.35em .8em; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid var(--bd); }
-  #suggest{ font-size:18px; line-height:1.6; min-height:3em; }
-  #log{ max-height:240px; overflow:auto; font-size:13px; opacity:.95; padding-left:18px; }
-  #log li{ margin:.2em 0; }
+  .big{ font-size:1.2rem }
+  .hr{ height:1px; background:var(--glass-b); margin:10px 0 }
 
-  /* ===== モーダル ===== */
-  .modalWrap{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:var(--pad); background:rgba(0,0,0,.5); }
-  .modal{ background:rgba(22,22,33,.94); border:1px solid var(--bd); border-radius:14px; padding:var(--pad); width:min(680px, 100%); }
-  .gridChars{ display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px; }
-  .gridChars .btn{ flex-direction:column; padding:10px; }
+  /* cover */
+  .cover{ position:fixed; inset:0; display:grid; place-items:center; z-index:10; background:rgba(0,0,0,.6) }
+  .cover-inner{ text-align:center; max-width:680px }
+  .logo{ font-size:2rem; font-weight:900; letter-spacing:.02em; }
+  .lead{ opacity:.9; margin:.6rem auto 1.2rem }
+  .nameRow{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:12px 0 }
+  .input{ padding:10px 12px; border-radius:12px; border:1px solid var(--glass-b); background:rgba(0,0,0,.4); color:#fff; min-width:220px }
 
-  /* ===== スマホ最適化 ===== */
-  @media (max-width: 720px){
-    #layout{ grid-template-columns: 1fr; } /* スマホ: 1カラム */
-    img.char{ width:min(60vw, 260px); }
-    #log{ max-height:200px; }
-  }
+  /* avatar */
+  .avatar{ display:flex; align-items:center; gap:10px }
+  .avatar img{ width:64px; height:64px; border-radius:16px; object-fit:cover; background:#111; border:1px solid var(--glass-b) }
+  .avatar .name{ font-weight:700 }
+
+  /* poop (💩) charm */
+  .poop{ position:fixed; z-index:5; font-size:40px; filter: drop-shadow(0 0 8px rgba(0,0,0,.5)); cursor:pointer; user-select:none; animation: floaty 2.2s ease-in-out infinite }
+  @keyframes floaty{ 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-8px) } }
+  .noteBurst{ position:fixed; z-index:6; font-size:22px; pointer-events:none; animation: rise 900ms ease-out forwards }
+  @keyframes rise{ to{ transform: translateY(-60px); opacity:0 } }
+
+  .modal{ position:fixed; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.55); z-index:20 }
+  .modal .box{ background:#0b0b0b; border:1px solid var(--glass-b); border-radius:18px; padding:18px; width:min(720px,92vw) }
+  .chars{ display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap:12px }
+  .charBtn{ border:1px solid var(--glass-b); background:var(--glass); border-radius:16px; padding:10px; cursor:pointer; }
+  .charBtn:hover{ outline:2px solid #fff3 }
+
+  .toast{ position:fixed; left:50%; bottom:22px; transform: translateX(-50%); background:#171717; border:1px solid var(--glass-b); padding:10px 14px; border-radius:999px; z-index:30 }
 </style>
 </head>
 <body>
-
-<!-- ================= Cover ================= -->
-<section id="cover" class="page">
-  <div class="container">
-    <div class="panel">
-      <h1>MeAI</h1>
-      <p>小さな“やってみる”をやさしく提案してくれる相棒。</p>
-
-      <div class="panel" style="background:rgba(255,255,255,.05);">
-        <div class="inputRow">
-          <input id="userNameInput" type="text" placeholder="あなたの名前" aria-label="あなたの名前">
-          <button class="btn" id="saveNameBtn" type="button">名前を保存</button>
-        </div>
-        <div class="spacer"></div>
-        <small>※あとで変更できます</small>
-      </div>
-
-      <div class="spacer"></div>
-
-      <div class="row">
-        <img id="coverChar" class="char" src="public/char/ako2.png" alt="キャラ">
-      </div>
-
-      <div class="spacer"></div>
-      <div class="row">
-        <button class="btn" id="startBtn" type="button">はじめる</button>
+<div class="app">
+  <div class="stars"></div>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="pill" id="helloPill">👋 ようこそ</div>
+      <div style="display:flex; gap:8px; align-items:center">
+        <div class="pill">❤️ <span id="hearts">0</span></div>
+        <div class="pill">♪ <span id="notes">0</span></div>
+        <button class="btn btn-ghost" id="playBtn" disabled>♪ Happy Birthday を再生</button>
       </div>
     </div>
-  </div>
-</section>
 
-<!-- ================= Game ================= -->
-<section id="game" class="page hidden">
-  <div class="container">
-    <div class="panel">
-      <div id="greet">こんにちは！</div>
-      <div class="spacer"></div>
-
-      <div id="layout">
-        <!-- Left -->
-        <div id="charBox">
-          <img id="gameChar" class="char" src="public/char/ako2.png" alt="キャラ">
-          <div class="chip">キャラ名：<span id="charNick">（未設定）</span></div>
-          <div id="stats">
-            <div class="chip">♡ <span id="heartNum">0</span></div>
-            <div class="chip">🎯 今日 <span id="todayCount">0</span>/3</div>
-            <div class="chip">🏅 <span id="stampNum">0</span></div>
-          </div>
-          <div class="row">
-            <button class="btn" id="doneBtn">やったよ♡</button>
-            <button class="btn ghost" id="backBtn">カバーへ</button>
-          </div>
-
-          <div class="spacer"></div>
-          <div class="panel" style="background:rgba(255,255,255,.05);">
-            <p class="title">お世話（いつでもOK）</p>
-            <div class="row">
-              <button class="btn secondary" id="careMeal">ごはん</button>
-              <button class="btn secondary" id="careToilet">トイレ</button>
-              <button class="btn secondary" id="carePet">なでる</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right -->
-        <div id="rightCol">
-          <div class="panel" style="background:rgba(255,255,255,.05);">
-            <p class="title">今日の提案</p>
-            <div id="suggest">準備中…</div>
-            <div class="spacer"></div>
-            <div class="row">
-              <!-- 自動提案にしたので「出す」ボタンは無し。スキップだけ置く -->
-              <button class="btn secondary" id="skipBtn">別の案（スキップ）</button>
-              <button class="btn" id="clearBtn" disabled>クリア！</button>
-            </div>
-            <small>※提案は1日に最大3回まで自動で出ます</small>
-          </div>
-
-          <div class="spacer"></div>
-          <div class="panel" style="background:rgba(255,255,255,.05);">
-            <p class="title">きろく</p>
-            <ul id="log"></ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== モーダル：キャラ選択 ===== -->
-<div id="modalSelect" class="modalWrap" role="dialog" aria-modal="true">
-  <div class="modal">
-    <h3 style="margin:0 0 8px">キャラをえらぼう！（3回クリアで解放）</h3>
-    <div class="spacer"></div>
-    <div id="charOptions" class="gridChars"></div>
-    <div class="spacer"></div>
-    <div class="row"><button class="btn ghost" id="closeSelect">とじる</button></div>
-  </div>
-</div>
-
-<!-- ===== モーダル：キャラ命名 ===== -->
-<div id="modalName" class="modalWrap" role="dialog" aria-modal="true">
-  <div class="modal">
-    <h3 style="margin:0 0 8px">キャラに名前をつけよう！（5回クリアで解放）</h3>
-    <div class="spacer"></div>
-    <input id="charNameInput" type="text" placeholder="キャラの名前">
-    <div class="spacer"></div>
     <div class="row">
-      <button class="btn" id="saveCharName">保存</button>
-      <button class="btn ghost" id="closeName">とじる</button>
+      <!-- main column -->
+      <div class="card">
+        <p class="title" id="charSpeak">今日のミッション</p>
+        <div class="hr"></div>
+        <p class="big" id="taskText">挨拶してみよう。「おはよう！」</p>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px">
+          <button class="btn btn-good" id="doneBtn">やった！</button>
+          <button class="btn btn-ghost" id="nextBtn">次の提案</button>
+        </div>
+        <p class="muted" id="hint">※ 1日3回まで。3回クリアでキャラが選べます。</p>
+      </div>
+
+      <!-- side column -->
+      <div class="card">
+        <div class="title">キャラ</div>
+        <div class="avatar">
+          <img id="charImg" alt="avatar" src="public/char/blue/calm.png">
+          <div>
+            <div class="name" id="charName">（未選択）</div>
+            <div class="muted" id="charInfo">3回クリアすると選べます。</div>
+          </div>
+        </div>
+        <div class="hr"></div>
+        <button class="btn btn-ghost" id="renameBtn" disabled>キャラに名前をつける</button>
+      </div>
     </div>
   </div>
+
+  <!-- cover (enter name + start) -->
+  <div class="cover" id="cover">
+    <div class="cover-inner card">
+      <div class="logo">MeAI</div>
+      <p class="lead">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
+      <div class="nameRow">
+        <input id="youName" class="input" placeholder="あなたの名前（例：みわ）" />
+        <button id="startBtn" class="btn">はじめる</button>
+      </div>
+      <p class="muted">※ 後から設定で変更できます。</p>
+    </div>
+  </div>
+
+  <!-- character select modal -->
+  <div class="modal hidden" id="charModal">
+    <div class="box">
+      <div class="title">キャラを選ぼう（3回クリア達成！）</div>
+      <div class="chars" id="charGrid">
+        <!-- 動的に生成 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- name modal -->
+  <div class="modal hidden" id="nameModal">
+    <div class="box">
+      <div class="title">キャラに名前をつけよう（5回クリアで解放）</div>
+      <input id="petName" class="input" placeholder="キャラの名前" style="width:100%; margin:10px 0 12px">
+      <div style="display:flex; gap:8px; justify-content:flex-end">
+        <button class="btn btn-ghost" id="cancelName">やめる</button>
+        <button class="btn" id="saveName">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
 </div>
 
 <script>
-/* ========= ユーティリティ & ストレージキー ========= */
-const LS = {
-  NAME:'MEAI_USER_NAME', HEART:'MEAI_HEART', STAMP:'MEAI_STAMP',
-  CLEAR_TOTAL:'MEAI_CLEAR_TOTAL', TODAY_DATE:'MEAI_TODAY_DATE', TODAY_COUNT:'MEAI_TODAY_COUNT',
-  CHAR_SRC:'MEAI_CHAR_SRC', CHAR_NAME:'MEAI_CHAR_NAME'
-};
-const $ = s => document.querySelector(s);
-const on = (el,ev,fn)=>el&&el.addEventListener(ev,fn);
-const todayStr = ()=> new Date().toISOString().slice(0,10);
+  // ====== LocalStorage Keys ======
+  const LS = {
+    YOU: 'meai_you_name',
+    HEARTS: 'meai_hearts',
+    NOTES: 'meai_notes',
+    DAILY_COUNT: 'meai_daily_count',
+    DAILY_DATE: 'meai_daily_date',
+    TOTAL_COUNT: 'meai_total_count',
+    CHAR_COLOR: 'meai_char_color',
+    CHAR_ID: 'meai_char_id',
+    CHAR_LABEL: 'meai_char_label',
+    CHAR_NAME: 'meai_char_name',
+  };
 
-/* ========= 変数 ========= */
-let hearts = Number(localStorage.getItem(LS.HEART)||0);
-let stamps = Number(localStorage.getItem(LS.STAMP)||0);
-let clearTotal = Number(localStorage.getItem(LS.CLEAR_TOTAL)||0);
-let tDate = localStorage.getItem(LS.TODAY_DATE)||todayStr();
-let tCount = Number(localStorage.getItem(LS.TODAY_COUNT)||0);
-let currentSuggest = null;
+  // ====== Elements ======
+  const cover = document.getElementById('cover');
+  const startBtn = document.getElementById('startBtn');
+  const youName = document.getElementById('youName');
+  const helloPill = document.getElementById('helloPill');
+  const taskText = document.getElementById('taskText');
+  const doneBtn = document.getElementById('doneBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const heartsEl = document.getElementById('hearts');
+  const notesEl = document.getElementById('notes');
+  const playBtn = document.getElementById('playBtn');
+  const charImg = document.getElementById('charImg');
+  const charName = document.getElementById('charName');
+  const charInfo = document.getElementById('charInfo');
+  const renameBtn = document.getElementById('renameBtn');
+  const charModal = document.getElementById('charModal');
+  const charGrid  = document.getElementById('charGrid');
+  const nameModal = document.getElementById('nameModal');
+  const petName = document.getElementById('petName');
+  const cancelName = document.getElementById('cancelName');
+  const saveName = document.getElementById('saveName');
+  const toast = document.getElementById('toast');
 
-/* 日付切り替えで日次回数リセット */
-if (tDate !== todayStr()){ tDate=todayStr(); tCount=0; localStorage.setItem(LS.TODAY_DATE,tDate); localStorage.setItem(LS.TODAY_COUNT,tCount); }
+  // ====== Helpers ======
+  const todayKey = () => new Date().toISOString().slice(0,10);
+  const get = (k, def) => {
+    const v = localStorage.getItem(k);
+    return (v===null||v===undefined) ? def : (isNaN(v) ? v : Number(v));
+  };
+  const set = (k, v) => localStorage.setItem(k, String(v));
+  const inc = (k, by=1) => { const v = get(k,0)+by; set(k,v); return v; };
 
-/* ========= データ ========= */
-const CHAR_POOL = ["public/char/ako1.png","public/char/ako2.png","public/char/ako3.png"];
-const SUGGESTS = [
-  "水を一杯飲む","立ち上がって30秒ストレッチ","5分だけ机を片づける",
-  "今日の良かったことを1つ書く","10回深呼吸","歯磨きの仕上げ30秒",
-  "外の空気を吸う","タイマー3分で集中","人に一言ありがとうを伝える",
-  "目を閉じて休む30秒","使わないタブを3つ閉じる","背すじを伸ばす",
-  "短いメモを1行だけ書く","散歩を1分","水やりをする","ゴミを1つ捨てる"
-];
+  // ====== Proposals (placeholder) ======
+  const PROPOSALS = [
+    'コップ一杯のお水を飲んでみよう。',
+    '背伸びをして深呼吸を3回。',
+    '5秒だけ目を閉じて、音を聞いてみよう。',
+    '窓の外を見て空の色を言葉にしてみる。',
+    '今日のラッキー色を決めてメモ。',
+  ];
+  function randomProposal(){ return PROPOSALS[Math.floor(Math.random()*PROPOSALS.length)]; }
 
-/* ========= 表示更新 ========= */
-function pushLog(msg){
-  const li=document.createElement('li'); li.textContent=`${new Date().toLocaleString()}｜${msg}`;
-  $('#log').prepend(li);
-}
-function renderHUD(){
-  $('#heartNum').textContent = hearts;
-  $('#stampNum').textContent = stamps;
-  $('#todayCount').textContent = tCount;
-  const name = localStorage.getItem(LS.NAME)||"";
-  const call = name? `${name}さん、` : "";
-  $('#greet').textContent = `${call}こんにちは！ 今日はあと ${Math.max(0, 3 - tCount)} 回クリアできます。`;
-  $('#charNick').textContent = localStorage.getItem(LS.CHAR_NAME) || "（未設定）";
-}
+  // ====== Greeting ======
+  function setHello(){
+    const you = get(LS.YOU, '');
+    helloPill.textContent = you ? `👋 ${you}さん、ようこそ！` : '👋 ようこそ';
+  }
 
-/* ========= キャラ関連 ========= */
-function imgExists(src){ return new Promise(res=>{ const i=new Image(); i.onload=()=>res(true); i.onerror=()=>res(false); i.src=src; }); }
-async function buildCharOptions(){
-  const wrap = $('#charOptions'); wrap.innerHTML="";
-  const okList = await Promise.all(CHAR_POOL.map(imgExists));
-  okList.forEach((ok,i)=>{
-    if(!ok) return;
-    const src=CHAR_POOL[i];
-    const b=document.createElement('button');
-    b.className='btn ghost'; b.style.flexDirection='column';
-    b.innerHTML=`<img class="char" src="${src}" alt="char" style="width:140px"><div style="margin-top:6px">${src.split('/').pop()}</div>`;
-    b.onclick=()=>{ localStorage.setItem(LS.CHAR_SRC, src); $('#coverChar').src=src; $('#gameChar').src=src; pushLog(`キャラ変更：${src}`); closeSelectModal(); };
-    wrap.appendChild(b);
-  });
-}
-function openSelectModal(){ $('#modalSelect').style.display='flex'; buildCharOptions(); }
-function closeSelectModal(){ $('#modalSelect').style.display='none'; }
-function openNameModal(){ $('#modalName').style.display='flex'; }
-function closeNameModal(){ $('#modalName').style.display='none'; }
+  // ====== Daily gate (1日3回) ======
+  function syncDaily(){
+    const tk = todayKey();
+    const last = localStorage.getItem(LS.DAILY_DATE);
+    if (last !== tk){ set(LS.DAILY_DATE, tk); set(LS.DAILY_COUNT, 0); }
+    const cnt = get(LS.DAILY_COUNT, 0);
+    doneBtn.disabled = cnt >= 3;
+    document.getElementById('hint').textContent = cnt >= 3
+      ? '今日は3回クリアで終了。明日また来てね。'
+      : '※ 1日3回まで。3回クリアでキャラが選べます。';
+  }
 
-/* ========= 提案（自動） ========= */
-function pickSuggest(){
-  if (tCount>=3){ $('#suggest').textContent="今日は3回まで。明日またやろう！"; $('#clearBtn').disabled=true; return; }
-  const i=Math.floor(Math.random()*SUGGESTS.length);
-  currentSuggest = SUGGESTS[i];
-  $('#suggest').textContent = currentSuggest;
-  $('#clearBtn').disabled=false;
-  pushLog("提案を自動表示");
-}
-function autoNextSuggestAfterClear(){
-  // クリア後、1.5秒待って次の提案を自動表示（残回数があれば）
-  if (tCount<3) setTimeout(pickSuggest, 1500);
-}
+  // ====== Character list (color/name -> path) ======
+  const CHAR_CATALOG = [
+    {color:'blue',   id:'calm',   label:'ブルー（Calm）'},
+    {color:'pink',   id:'smile',  label:'ピンク（Smile）'},
+    {color:'green',  id:'fresh',  label:'グリーン（Fresh）'},
+    {color:'purple', id:'mystic', label:'パープル（Mystic）'},
+  ];
+  function buildCharGrid(){
+    charGrid.innerHTML = '';
+    CHAR_CATALOG.forEach(c =>{
+      const btn = document.createElement('button');
+      btn.className = 'charBtn';
+      btn.dataset.color = c.color; btn.dataset.id = c.id; btn.dataset.name = c.label;
+      btn.innerHTML = `<img src="public/char/${c.color}/${c.id}.png" style="width:100%;border-radius:12px" alt="${c.label}"><div style="text-align:center;margin-top:6px">${c.label.split('（')[0]}</div>`;
+      btn.addEventListener('click', ()=>{
+        set(LS.CHAR_COLOR, c.color); set(LS.CHAR_ID, c.id); set(LS.CHAR_LABEL, c.label);
+        applyChar(); closeCharModal(); showToast(`${c.label} を選びました！`);
+      });
+      charGrid.appendChild(btn);
+    });
+  }
 
-/* ========= イベント ========= */
-on($('#saveNameBtn'),'click',()=>{
-  const v=($('#userNameInput').value||"").trim();
-  localStorage.setItem(LS.NAME, v);
-  pushLog(`名前を保存：${v||"(未設定)"}`);
-});
+  function applyChar(){
+    const color = get(LS.CHAR_COLOR,'');
+    const id    = get(LS.CHAR_ID,'');
+    const label = get(LS.CHAR_LABEL,'');
+    const pname = get(LS.CHAR_NAME,'');
+    if (id){
+      charImg.src = `public/char/${color}/${id}.png`;
+      charName.textContent = pname ? `${pname}（${label}）` : label;
+      charInfo.textContent = pname ? 'いっしょにがんばろう！' : '5回クリアで名前がつけられます。';
+      renameBtn.disabled = get(LS.TOTAL_COUNT,0) < 5;
+    } else {
+      charImg.src = 'public/char/blue/calm.png';
+      charName.textContent = '（未選択）';
+      charInfo.textContent = '3回クリアすると選べます。';
+      renameBtn.disabled = true;
+    }
+  }
 
-on($('#startBtn'),'click',()=>{
-  const savedSrc = localStorage.getItem(LS.CHAR_SRC) || "public/char/ako2.png";
-  $('#coverChar').src=savedSrc; $('#gameChar').src=savedSrc;
-  $('#cover').classList.add('hidden'); $('#game').classList.remove('hidden');
-  renderHUD();
-  pickSuggest();           // ← 自動で最初の提案を出す
-  pushLog("スタート");
-});
-on($('#backBtn'),'click',()=>{ $('#game').classList.add('hidden'); $('#cover').classList.remove('hidden'); });
+  // ====== Toast ======
+  let toastTimer;
+  function showToast(msg){
+    toast.textContent = msg; toast.classList.remove('hidden');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> toast.classList.add('hidden'), 1800);
+  }
 
-on($('#doneBtn'),'click',()=>{ hearts++; localStorage.setItem(LS.HEART, hearts); renderHUD(); pushLog("やったよ♡ 1ハート"); });
+  // ====== Reward ======
+  function rewardHeart(){ heartsEl.textContent = inc(LS.HEARTS, 1); showToast('❤️ +1'); }
+  function rewardNote(x=1){
+    const n = inc(LS.NOTES, x); notesEl.textContent = n; showToast('♪ +'+x);
+    if (n >= 25) playBtn.disabled = false;
+  }
 
-on($('#careMeal'),'click', ()=>{ hearts++; localStorage.setItem(LS.HEART,hearts); renderHUD(); pushLog("ごはん：満足そう！♡+1"); });
-on($('#careToilet'),'click', ()=>{ pushLog("トイレ：スッキリ！"); });
-on($('#carePet'),'click',   ()=>{ hearts++; localStorage.setItem(LS.HEART,hearts); renderHUD(); pushLog("なでなで：うれしい！♡+1"); });
+  // ====== WebAudio: Happy Birthday ======
+  const NOTE_FREQ = {
+    'C4':261.63,'Cs4':277.18,'D4':293.66,'Ds4':311.13,'E4':329.63,'F4':349.23,'Fs4':369.99,'G4':392.00,'Gs4':415.30,'A4':440.00,'As4':466.16,'B4':493.88,
+    'C5':523.25,'Cs5':554.37,'D5':587.33,'Ds5':622.25,'E5':659.25,'F5':698.46,'G5':783.99,'A5':880.00
+  };
+  const HB = [
+    ['G4',1],['G4',1],['A4',2],['G4',2],['C5',2],['B4',4],
+    ['G4',1],['G4',1],['A4',2],['G4',2],['D5',2],['C5',4],
+    ['G4',1],['G4',1],['G5',2],['E5',2],['C5',2],['B4',2],['A4',2],
+    ['Fs5',1],['Fs5',1],['E5',2],['C5',2],['D5',2],['C5',4]
+  ];
+  function playHappyBirthday(){
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const beat = 0.35; let t = ctx.currentTime + 0.05;
+    HB.forEach(([n,b])=>{
+      const f = NOTE_FREQ[n]; if(!f) return;
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.frequency.value = f; o.type='sine';
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.18, t+0.02);
+      g.gain.linearRampToValueAtTime(0.0001, t + beat*b - 0.02);
+      o.connect(g).connect(ctx.destination);
+      o.start(t); o.stop(t + beat*b);
+      t += beat*b*1.02;
+    });
+  }
 
-on($('#skipBtn'),'click', ()=>{ pushLog("スキップ：別の案に切替"); pickSuggest(); });
-on($('#clearBtn'),'click',()=>{
-  if (tCount>=3) return;
-  tCount++; localStorage.setItem(LS.TODAY_COUNT, tCount);
-  localStorage.setItem(LS.TODAY_DATE, todayStr());
-  clearTotal++; localStorage.setItem(LS.CLEAR_TOTAL, clearTotal);
-  stamps++; localStorage.setItem(LS.STAMP, stamps);
-  $('#clearBtn').disabled=true;
-  pushLog(`提案クリア！「${currentSuggest}」｜スタンプ+1`);
-  renderHUD();
-  // 解放条件
-  if (clearTotal===3) openSelectModal();
-  if (clearTotal===5 && !localStorage.getItem(LS.CHAR_NAME)) openNameModal();
-  autoNextSuggestAfterClear(); // 次の提案を自動で出す
-});
+  // ====== 💩 spawner ======
+  function spawnPoop(){
+    const el = document.createElement('div');
+    el.className = 'poop'; el.textContent = '💩';
+    const x = Math.random()* (window.innerWidth - 40);
+    const y = Math.random()* (window.innerHeight - 200) + 80;
+    el.style.left = x+ 'px'; el.style.top = y + 'px';
+    document.body.appendChild(el);
+    const kill = () => el.remove();
+    el.addEventListener('click', ()=>{ rewardNote(1); burstNote(x+10,y); kill(); });
+    setTimeout(kill, 9000);
+  }
+  function burstNote(x,y){
+    const b = document.createElement('div'); b.className='noteBurst'; b.textContent='♪';
+    b.style.left = x+'px'; b.style.top = y+'px'; document.body.appendChild(b);
+    setTimeout(()=> b.remove(), 900);
+  }
+  function startPoopLoop(){ setInterval(()=>{ if (Math.random() < 0.6) spawnPoop(); }, 22000); }
 
-on($('#saveCharName'),'click', ()=>{
-  const v=($('#charNameInput').value||"").trim();
-  localStorage.setItem(LS.CHAR_NAME, v);
-  pushLog(`キャラ命名：「${v||"(未設定)"}」`);
-  closeNameModal();
-  renderHUD();
-});
-on($('#closeSelect'),'click', closeSelectModal);
-on($('#closeName'),'click', closeNameModal);
+  // ====== Tasks flow ======
+  function setNewTask(){ taskText.textContent = randomProposal(); }
+  function onDone(){
+    const cnt = inc(LS.DAILY_COUNT, 1); set(LS.DAILY_DATE, todayKey());
+    const total = inc(LS.TOTAL_COUNT, 1);
+    rewardHeart(); setNewTask(); syncDaily();
+    if (!get(LS.CHAR_ID,'') && cnt >= 3) openCharModal();
+    if (total >= 5 && !get(LS.CHAR_NAME,'')) renameBtn.disabled = false;
+  }
+  function onNext(){ setNewTask(); showToast('新しい提案！'); }
 
-/* ========= 初期ロード ========= */
-(function boot(){
-  // 既存値の反映
-  $('#userNameInput').value = localStorage.getItem(LS.NAME) || "";
-  const src = localStorage.getItem(LS.CHAR_SRC) || "public/char/ako2.png";
-  $('#coverChar').src=src; $('#gameChar').src=src;
-  if (localStorage.getItem(LS.CHAR_NAME)) $('#charNick').textContent = localStorage.getItem(LS.CHAR_NAME);
-  renderHUD();
+  // ====== Modals ======
+  function openCharModal(){ buildCharGrid(); charModal.classList.remove('hidden'); }
+  function closeCharModal(){ charModal.classList.add('hidden'); }
+  function openNameModal(){ nameModal.classList.remove('hidden'); }
+  function closeNameModal(){ nameModal.classList.add('hidden'); }
 
-  // ヒント
-  if (clearTotal<3) pushLog("ヒント：合計3回クリアでキャラ選択が解放されます。");
-  else if (clearTotal<5) pushLog("ヒント：合計5回クリアでキャラ命名が解放されます。");
-})();
+  // ====== Events ======
+  startBtn.addEventListener('click', ()=>{ const v=(youName.value||'').trim(); if(v) set(LS.YOU, v); cover.classList.add('hidden'); setHello(); });
+  doneBtn.addEventListener('click', onDone);
+  nextBtn.addEventListener('click', onNext);
+  playBtn.addEventListener('click', playHappyBirthday);
+  renameBtn.addEventListener('click', ()=>{ if (get(LS.TOTAL_COUNT,0) >= 5) openNameModal(); });
+  cancelName.addEventListener('click', closeNameModal);
+  saveName.addEventListener('click', ()=>{ const v=(petName.value||'').trim(); if(!v) return; set(LS.CHAR_NAME, v); applyChar(); closeNameModal(); showToast('名前を保存しました'); });
+  charModal.addEventListener('click', (e)=>{ if (e.target === charModal) closeCharModal(); });
+
+  // ====== Init ======
+  function init(){
+    heartsEl.textContent = get(LS.HEARTS,0);
+    notesEl.textContent  = get(LS.NOTES,0);
+    playBtn.disabled     = get(LS.NOTES,0) < 25;
+    const you = get(LS.YOU, ''); if (you){ youName.value = you; cover.classList.add('hidden'); }
+    setHello(); applyChar(); setNewTask(); syncDaily(); startPoopLoop();
+  }
+  document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
