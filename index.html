@@ -6,7 +6,7 @@
 <title>MeAI | index</title>
 <link rel="icon" href="data:,">
 <style>
-  :root{ --glass: rgba(255,255,255,.08); --glass-b: rgba(255,255,255,.16); --ok:#5be37e; --warn:#ffcc66; --danger:#ff7a7a; --blue:#60a5fa; }
+  :root{ --glass: rgba(255,255,255,.04); --glass-b: rgba(255,255,255,.12); --ok:#5be37e; --warn:#ffcc66; --danger:#ff7a7a; --blue:#60a5fa; }
   html,body{height:100%}
   body{ margin:0; font-family:"Noto Sans JP",system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; color:#fff; background:#000 url("public/space_background.png") center/cover fixed no-repeat; overflow:hidden; }
   .hidden{display:none!important}
@@ -19,7 +19,7 @@
   .wrap{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:18px}
   .row{display:grid;grid-template-columns:1fr;gap:16px}
   @media(min-width:900px){.row{grid-template-columns:1.2fr .8fr}}
-  .card{background:var(--glass);border:1px solid var(--glass-b);border-radius:20px;padding:14px 16px;backdrop-filter:blur(8px)}
+  .card{background:var(--glass);border:1px solid var(--glass-b);border-radius:20px;padding:14px 16px;backdrop-filter:blur(6px) saturate(120%)}
   .title{font-weight:700;margin:0 0 8px}
   .muted{opacity:.85}
   .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
@@ -126,14 +126,16 @@
 
   <!-- cover (opaque) -->
   <div class="cover" id="cover" aria-modal="true" role="dialog">
-    <div class="cover-inner card" style="background:#0b0b0b;border:1px solid var(--glass-b)">
-      <div class="logo">MeAI</div>
+    <div class="cover-inner card" style="background:#0b0b0b;border:1px solid var(--glass-b);text-align:center">
+      <img src="public/char/pink/joy.png" alt="ako" style="width:min(260px,60vw);height:auto;filter:drop-shadow(0 20px 40px rgba(0,0,0,.45));border-radius:30px;margin:6px auto 10px;display:block">
+      <div class="logo">アコ / AKO</div>
       <p class="muted" id="coverLead">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
       <div class="nameRow">
         <input id="youName" class="input" placeholder="あなたの名前（例：みわ）" />
         <button id="startBtn" class="btn">はじめる</button>
       </div>
     </div>
+  </div>
   </div>
 
   <!-- character select modal -->
@@ -161,7 +163,8 @@
       <div class="title" id="aboutTitle">研究について / About this project</div>
       <div class="hr"></div>
       <div id="aboutBody" class="muted">
-        本アプリは、日常の小さな行動提案とケア行動を通じて、キャラクターへの愛着と自己観察の関係を探る研究プロトタイプです。行動の回数・間隔、ケアの選択、再訪時の変化などをログ化し、CAPGAP（C・A・Pのギャップ）観点で分析します。教育・研究目的以外には利用しません。
+        本アプリは、日常の小さな行動提案とケア行動を通じて、キャラクターへの愛着と自己観察の関係を探る研究プロトタイプです。行動の回数・間隔、ケアの選択、
+        再訪時の変化などをログ化し分析します。教育・研究目的以外には利用しません。
       </div>
       <div style="text-align:right;margin-top:10px"><button class="btn btn-ghost" id="aboutClose">閉じる</button></div>
     </div>
@@ -193,7 +196,7 @@ function applyLang(){ $('#startBtn').textContent=t('start'); $('#coverLead').tex
 langSelect.addEventListener('change', e=>{ localStorage.setItem(LS.LANG, e.target.value); applyLang(); });
 
 // ===== Core constants =====
-const COOLDOWN_MINUTES=30; // 提案間隔（分）
+const COOLDOWN_MINUTES=30; // ← 任意で調整 // 提案間隔（分）
 
 // ===== Elements =====
 const cover=$('#cover'), youName=$('#youName'), startBtn=$('#startBtn');
@@ -285,7 +288,7 @@ doneBtn.onclick = onDone;
 // ===== Modals =====
 function showCharModal(){ buildCharGrid(); charModal.classList.remove('hidden'); }
 function hideCharModal(){ charModal.classList.add('hidden'); }
-chooseBtn.onclick=()=>{ if(get(LS.DAILY_COUNT,0)>=3 || get(LS.TOTAL_COUNT,0)>=3) showCharModal(); else showToast('まずは提案を3回クリアしてね'); };
+chooseBtn.onclick=()=>{ showCharModal(); };
 closeCharBtn.onclick=hideCharModal;
 renameBtn.onclick=()=>{ if(get(LS.TOTAL_COUNT,0)>=5) nameModal.classList.remove('hidden'); };
 cancelName.onclick=()=> nameModal.classList.add('hidden');
@@ -315,7 +318,10 @@ function init(){
   // care defaults
   if(localStorage.getItem(LS.SATIETY)===null){ set(LS.SATIETY,50); set(LS.CLEAN,60); set(LS.MOOD,50); }
   renderCare();
+  // ☆ 初回キャラ選択：保存がなければすぐ開く
+  if(!get(LS.CHAR_ID,'')) showCharModal();
 }
+
 
 document.addEventListener('DOMContentLoaded', init);
 </script>
