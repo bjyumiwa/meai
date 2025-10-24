@@ -11,7 +11,7 @@
   body{ margin:0; font-family:"Noto Sans JP",system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; color:#fff; background:#000 url("public/space_background.png") center/cover fixed no-repeat; overflow:hidden; }
   .hidden{display:none!important}
   .app{position:relative;min-height:100%;}
-  .stage{position:fixed;inset:0;}
+  .stage{position:fixed;inset:0;z-index:5;}
   .stars,.stars::after{position:absolute;inset:0;content:"";pointer-events:none;z-index:0;background:radial-gradient(white 1px,transparent 1px) 0 0/3px 3px;opacity:.22;animation:twinkle 10s linear infinite}
   .stars::after{animation-duration:15s;opacity:.15;filter:blur(.6px) brightness(1.2)}
   @keyframes twinkle{0%{transform:translateY(0)}100%{transform:translateY(-3px)}}
@@ -40,12 +40,12 @@
   .input{padding:10px 12px;border-radius:12px;border:1px solid var(--glass-b);background:#111;color:#fff;min-width:220px}
 
   /* avatar on stage */
-  #pet{position:absolute;z-index:1;width:140px;height:140px;transform-origin:50% 60%;filter:drop-shadow(0 10px 24px rgba(0,0,0,.5));animation:yurayura 3.4s ease-in-out infinite}
+  #pet{position:absolute;z-index:25;width:140px;height:140px;pointer-events:none;transform-origin:50% 60%;filter:drop-shadow(0 10px 24px rgba(0,0,0,.5));animation:yurayura 3.4s ease-in-out infinite}
   @keyframes yurayura{0%,100%{transform:translate(-50%,-50%) rotate(-3deg)}50%{transform:translate(-50%,-52%) rotate(3deg)}}
   #pet img{width:100%;height:100%;object-fit:contain}
 
   /* poop & notes */
-  .poop{position:absolute;z-index:1;font-size:40px;cursor:pointer;user-select:none;animation:floaty 2.2s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(0,0,0,.6))}
+  .poop{position:absolute;z-index:35;font-size:40px;cursor:pointer;user-select:none;animation:floaty 2.2s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(0,0,0,.6))}
   @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
   .noteBurst{position:absolute;z-index:3;font-size:22px;pointer-events:none;animation:rise 900ms ease-out forwards}
   @keyframes rise{to{transform:translateY(-60px);opacity:0}}
@@ -163,8 +163,8 @@
       <div class="title" id="aboutTitle">研究について / About this project</div>
       <div class="hr"></div>
       <div id="aboutBody" class="muted">
-        本アプリは、日常の小さな行動提案とケア行動を通じて、キャラクターへの愛着と自己観察の関係を探る研究プロトタイプです。行動の回数・間隔、ケアの選択、
-        再訪時の変化などをログ化し分析します。教育・研究目的以外には利用しません。
+        本アプリは、日常の小さな行動提案とケア行動を通じて、キャラクターへの愛着と自己観察の関係を探る研究プロトタイプです
+        。行動の回数・間隔、ケアの選択、再訪時の変化などをログ化し分析します。教育・研究目的以外には利用しません。
       </div>
       <div style="text-align:right;margin-top:10px"><button class="btn btn-ghost" id="aboutClose">閉じる</button></div>
     </div>
@@ -266,10 +266,11 @@ function decayCare(){ addSatiety(-0.05); addClean(-0.03); addMood(-0.04); }
 setInterval(decayCare, 1000*5);
 function renderCare(){ setBar(satietyBar, get(LS.SATIETY,50)); setBar(cleanBar, get(LS.CLEAN,60)); setBar(moodBar, get(LS.MOOD,50)); }
 
-feedBtn.onclick = ()=>{ addSatiety(12); addMood(4); showToast('🍙 もぐもぐ'); wigglePet(); };
-waterBtn.onclick= ()=>{ addSatiety(6);  addMood(2); showToast('💧 ごくごく'); wigglePet(); };
-petBtn.onclick  = ()=>{ addMood(10); showToast('🤲 よしよし'); wigglePet(12); };
-cleanBtn.onclick= ()=>{ document.querySelectorAll('.poop').forEach(n=>n.remove()); addClean(18); showToast('🧹 お部屋がきれいになった！'); };
+feedBtn.onclick = ()=>{ location.href = 'room.html?mode=feed'; };
+waterBtn.onclick= ()=>{ location.href = 'room.html?mode=water'; };
+petBtn.onclick  = ()=>{ location.href = 'room.html?mode=pet'; };
+cleanBtn.onclick= ()=>{ location.href = 'room.html?mode=clean'; };
+ addClean(18); showToast('🧹 お部屋がきれいになった！'); };
 
 // ===== Pet wandering =====
 function placePetCenter(){ pet.style.left='50%'; pet.style.top='55%'; pet.style.transform='translate(-50%,-50%)'; }
