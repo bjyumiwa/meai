@@ -9,77 +9,73 @@
   :root{
     --glass: rgba(255,255,255,.08);
     --glass-b: rgba(255,255,255,.16);
-    --ok: #5be37e; --warn:#ffcc66; --danger:#ff7a7a;
+    --ok:#5be37e; --warn:#ffcc66; --danger:#ff7a7a; --blue:#60a5fa;
   }
   html,body{height:100%}
   body{
-    margin:0; font-family: "Noto Sans JP", system-ui, -apple-system, Segoe UI, Roboto, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-    color:#fff; background:#000 url("public/space_background.png") center/cover fixed no-repeat;
+    margin:0; font-family:"Noto Sans JP",system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    color:#fff; background:#000 url("public/space_background.png") center/cover fixed no-repeat; overflow:hidden;
   }
   .hidden{display:none!important}
-  .app{position:relative; min-height:100%;}
-  .stars, .stars::after{
-    position:fixed; inset:0; content:""; pointer-events:none; z-index:0;
-    background:radial-gradient(white 1px, transparent 1px) 0 0/3px 3px; opacity:.22;
-    animation:twinkle 10s linear infinite;
-  }
-  .stars::after{ animation-duration:15s; opacity:.15; filter:blur(.6px) brightness(1.2); }
+  .app{position:relative;min-height:100%;}
+  .stage{position:fixed;inset:0;}
+  .stars,.stars::after{position:absolute;inset:0;content:"";pointer-events:none;z-index:0;background:radial-gradient(white 1px,transparent 1px) 0 0/3px 3px;opacity:.22;animation:twinkle 10s linear infinite}
+  .stars::after{animation-duration:15s;opacity:.15;filter:blur(.6px) brightness(1.2)}
   @keyframes twinkle{0%{transform:translateY(0)}100%{transform:translateY(-3px)}}
 
-  .wrap{position:relative; z-index:1; max-width:900px; margin:0 auto; padding:24px;}
-  .row{display:grid; grid-template-columns: 1fr; gap:16px}
-  @media (min-width: 800px){ .row{ grid-template-columns: 1.3fr .7fr; } }
-
-  .card{ background:var(--glass); border:1px solid var(--glass-b); border-radius:20px; padding:16px 18px; backdrop-filter: blur(8px); }
-  .title{ font-weight:700; font-size:1.1rem; margin:0 0 8px }
-  .muted{ opacity:.85; font-size:.95rem }
-
-  .topbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px }
-  .pill{ display:inline-flex; align-items:center; gap:.5em; padding:6px 10px; border-radius:999px; background:var(--glass); border:1px solid var(--glass-b); }
-  .btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5em; border:none; border-radius:999px; padding:12px 16px; cursor:pointer; color:#fff; background:#3b82f6; font-weight:700 }
-  .btn[disabled]{ opacity:.5; cursor:not-allowed }
-  .btn-ghost{ background:transparent; border:1px solid var(--glass-b) }
-  .btn-good{ background: var(--ok) }
-  .btn-danger{ background: var(--danger) }
-
-  .big{ font-size:1.2rem }
-  .hr{ height:1px; background:var(--glass-b); margin:10px 0 }
+  .wrap{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:18px}
+  .row{display:grid;grid-template-columns:1fr;gap:16px}
+  @media(min-width:900px){.row{grid-template-columns:1.2fr .8fr}}
+  .card{background:var(--glass);border:1px solid var(--glass-b);border-radius:20px;padding:14px 16px;backdrop-filter:blur(8px)}
+  .title{font-weight:700;margin:0 0 8px}
+  .muted{opacity:.85}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .pill{display:inline-flex;align-items:center;gap:.5em;padding:6px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-b)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;border:none;border-radius:999px;padding:10px 14px;cursor:pointer;color:#fff;background:var(--blue);font-weight:700}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .btn-ghost{background:transparent;border:1px solid var(--glass-b)}
+  .btn-good{background:var(--ok)}
+  .hr{height:1px;background:var(--glass-b);margin:10px 0}
+  .big{font-size:1.1rem}
 
   /* cover */
-  .cover{ position:fixed; inset:0; display:grid; place-items:center; z-index:10; background:rgba(0,0,0,.6) }
-  .cover-inner{ text-align:center; max-width:680px }
-  .logo{ font-size:2rem; font-weight:900; letter-spacing:.02em; }
-  .lead{ opacity:.9; margin:.6rem auto 1.2rem }
-  .nameRow{ display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin:12px 0 }
-  .input{ padding:10px 12px; border-radius:12px; border:1px solid var(--glass-b); background:rgba(0,0,0,.4); color:#fff; min-width:220px }
+  .cover{position:fixed;inset:0;display:grid;place-items:center;z-index:10;background:rgba(0,0,0,.6)}
+  .cover-inner{text-align:center;max-width:680px}
+  .logo{font-size:2rem;font-weight:900}
+  .nameRow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+  .input{padding:10px 12px;border-radius:12px;border:1px solid var(--glass-b);background:rgba(0,0,0,.4);color:#fff;min-width:220px}
 
-  /* avatar */
-  .avatar{ display:flex; align-items:center; gap:10px }
-  .avatar img{ width:64px; height:64px; border-radius:16px; object-fit:cover; background:#111; border:1px solid var(--glass-b) }
-  .avatar .name{ font-weight:700 }
+  /* avatar on stage */
+  #pet{position:absolute;z-index:1;width:140px;height:140px;transform-origin:50% 60%;filter:drop-shadow(0 10px 24px rgba(0,0,0,.5));animation:yurayura 3.4s ease-in-out infinite}
+  @keyframes yurayura{0%,100%{transform:translate(-50%,-50%) rotate(-3deg)}50%{transform:translate(-50%,-52%) rotate(3deg)}}
+  #pet img{width:100%;height:100%;object-fit:contain}
 
-  /* poop (💩) charm */
-  .poop{ position:fixed; z-index:5; font-size:40px; filter: drop-shadow(0 0 8px rgba(0,0,0,.5)); cursor:pointer; user-select:none; animation: floaty 2.2s ease-in-out infinite }
-  @keyframes floaty{ 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-8px) } }
-  .noteBurst{ position:fixed; z-index:6; font-size:22px; pointer-events:none; animation: rise 900ms ease-out forwards }
-  @keyframes rise{ to{ transform: translateY(-60px); opacity:0 } }
+  /* poop & notes */
+  .poop{position:absolute;z-index:1;font-size:40px;cursor:pointer;user-select:none;animation:floaty 2.2s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(0,0,0,.6))}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .noteBurst{position:absolute;z-index:3;font-size:22px;pointer-events:none;animation:rise 900ms ease-out forwards}
+  @keyframes rise{to{transform:translateY(-60px);opacity:0}}
 
-  .modal{ position:fixed; inset:0; display:grid; place-items:center; background:rgba(0,0,0,.55); z-index:20 }
-  .modal .box{ background:#0b0b0b; border:1px solid var(--glass-b); border-radius:18px; padding:18px; width:min(720px,92vw) }
-  .chars{ display:grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap:12px }
-  .charBtn{ border:1px solid var(--glass-b); background:var(--glass); border-radius:16px; padding:10px; cursor:pointer; }
-  .charBtn:hover{ outline:2px solid #fff3 }
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#171717;border:1px solid var(--glass-b);padding:10px 14px;border-radius:999px;z-index:30}
 
-  .toast{ position:fixed; left:50%; bottom:22px; transform: translateX(-50%); background:#171717; border:1px solid var(--glass-b); padding:10px 14px; border-radius:999px; z-index:30 }
+  /* care stats */
+  .bar{height:10px;background:#111;border-radius:999px;overflow:hidden;border:1px solid var(--glass-b)}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,#34d399,#3b82f6);width:50%}
+  .care-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="stars"></div>
+  <div class="stage">
+    <div class="stars"></div>
+    <!-- wandering pet -->
+    <div id="pet"><img id="petImg" src="public/char/blue/calm.png" alt="pet"></div>
+  </div>
+
   <div class="wrap">
     <div class="topbar">
       <div class="pill" id="helloPill">👋 ようこそ</div>
-      <div style="display:flex; gap:8px; align-items:center">
+      <div style="display:flex;gap:8px;align-items:center">
         <div class="pill">❤️ <span id="hearts">0</span></div>
         <div class="pill">♪ <span id="notes">0</span></div>
         <button class="btn btn-ghost" id="playBtn" disabled>♪ Happy Birthday を再生</button>
@@ -87,67 +83,72 @@
     </div>
 
     <div class="row">
-      <!-- main column -->
+      <!-- main: proposal & care switcher -->
       <div class="card">
-        <p class="title" id="charSpeak">今日のミッション</p>
+        <p class="title">今日のミッション</p>
         <div class="hr"></div>
         <p class="big" id="taskText">挨拶してみよう。「おはよう！」</p>
-
-        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:14px">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
           <button class="btn btn-good" id="doneBtn">やった！</button>
           <button class="btn btn-ghost" id="nextBtn">次の提案</button>
+          <span class="pill" id="cooldownPill" style="display:none">⏳ 次まで <b id="cooldownLeft">00:00</b></span>
         </div>
-        <p class="muted" id="hint">※ 1日3回まで。3回クリアでキャラが選べます。</p>
+        <p class="muted" id="hint">※ 1日3回まで。3回クリアでキャラ選択が解放されます。提案の合間は「お世話コーナー」でお世話してね。</p>
       </div>
 
-      <!-- side column -->
+      <!-- side: character & care -->
       <div class="card">
         <div class="title">キャラ</div>
-        <div class="avatar">
-          <img id="charImg" alt="avatar" src="public/char/blue/calm.png">
-          <div>
-            <div class="name" id="charName">（未選択）</div>
-            <div class="muted" id="charInfo">3回クリアすると選べます。</div>
-          </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div class="pill" id="charLabel">（未選択）</div>
+          <button class="btn btn-ghost" id="chooseBtn">キャラ選択</button>
+          <button class="btn btn-ghost" id="renameBtn" disabled>名前</button>
         </div>
         <div class="hr"></div>
-        <button class="btn btn-ghost" id="renameBtn" disabled>キャラに名前をつける</button>
+        <div class="title">お世話コーナー</div>
+        <div class="care-grid" style="margin:6px 0 10px">
+          <button class="btn" id="feedBtn">🍙 ご飯をあげる</button>
+          <button class="btn" id="waterBtn">💧 お水をあげる</button>
+          <button class="btn" id="petBtn">🤲 なでる</button>
+          <button class="btn" id="cleanBtn">🧹 お片づけ</button>
+        </div>
+        <div class="muted" style="display:grid;gap:6px">
+          <div>満腹度<div class="bar"><i id="satietyBar" style="width:40%"></i></div></div>
+          <div>清潔度<div class="bar"><i id="cleanBar" style="width:60%"></i></div></div>
+          <div>ごきげん<div class="bar"><i id="moodBar" style="width:50%"></i></div></div>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- cover (enter name + start) -->
+  <!-- cover -->
   <div class="cover" id="cover">
     <div class="cover-inner card">
       <div class="logo">MeAI</div>
-      <p class="lead">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
+      <p class="muted">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
       <div class="nameRow">
         <input id="youName" class="input" placeholder="あなたの名前（例：みわ）" />
         <button id="startBtn" class="btn">はじめる</button>
       </div>
-      <p class="muted">※ 後から設定で変更できます。</p>
     </div>
   </div>
 
   <!-- character select modal -->
-  <div class="modal hidden" id="charModal">
-    <div class="box">
-      <div class="title">キャラを選ぼう（3回クリア達成！）</div>
-      <div class="chars" id="charGrid">
-        <!-- 動的に生成 -->
-      </div>
+  <div class="hidden" id="charModal" style="position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.55);z-index:20">
+    <div class="card" style="width:min(780px,92vw)">
+      <div class="title">キャラを選ぼう（3回クリアで解放）</div>
+      <div class="hr"></div>
+      <div class="chars" id="charGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px"></div>
+      <div style="text-align:right;margin-top:8px"><button class="btn btn-ghost" id="closeChar">閉じる</button></div>
     </div>
   </div>
 
   <!-- name modal -->
-  <div class="modal hidden" id="nameModal">
-    <div class="box">
-      <div class="title">キャラに名前をつけよう（5回クリアで解放）</div>
-      <input id="petName" class="input" placeholder="キャラの名前" style="width:100%; margin:10px 0 12px">
-      <div style="display:flex; gap:8px; justify-content:flex-end">
-        <button class="btn btn-ghost" id="cancelName">やめる</button>
-        <button class="btn" id="saveName">保存</button>
-      </div>
+  <div class="hidden" id="nameModal" style="position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.55);z-index:20">
+    <div class="card" style="width:min(560px,92vw)">
+      <div class="title">キャラに名前をつけよう（5回で解放）</div>
+      <input id="petName" class="input" placeholder="キャラの名前" style="width:100%;margin:10px 0 12px">
+      <div style="text-align:right"><button class="btn btn-ghost" id="cancelName">やめる</button> <button class="btn" id="saveName">保存</button></div>
     </div>
   </div>
 
@@ -155,217 +156,136 @@
 </div>
 
 <script>
-  // ====== LocalStorage Keys ======
-  const LS = {
-    YOU: 'meai_you_name',
-    HEARTS: 'meai_hearts',
-    NOTES: 'meai_notes',
-    DAILY_COUNT: 'meai_daily_count',
-    DAILY_DATE: 'meai_daily_date',
-    TOTAL_COUNT: 'meai_total_count',
-    CHAR_COLOR: 'meai_char_color',
-    CHAR_ID: 'meai_char_id',
-    CHAR_LABEL: 'meai_char_label',
-    CHAR_NAME: 'meai_char_name',
-  };
+// ===== Constants & LocalStorage Keys =====
+const COOLDOWN_MINUTES = 30; // ★提案の間隔（分）— 運用時に調整可
+const LS={
+  YOU:'meai_you', HEARTS:'meai_hearts', NOTES:'meai_notes',
+  DAILY_COUNT:'meai_daily_count', DAILY_DATE:'meai_daily_date', TOTAL_COUNT:'meai_total_count',
+  LAST_PROPOSAL_AT:'meai_last_prop_at', // epoch ms when completed
+  CHAR_COLOR:'meai_char_color', CHAR_ID:'meai_char_id', CHAR_LABEL:'meai_char_label', CHAR_NAME:'meai_char_name',
+  SATIETY:'meai_satiety', CLEAN:'meai_clean', MOOD:'meai_mood'
+};
+const get=(k,d)=>{const v=localStorage.getItem(k);return v===null?d:isNaN(v)?v:Number(v)};
+const set=(k,v)=>localStorage.setItem(k,String(v));
+const inc=(k,by=1)=>{const v=get(k,0)+by; set(k,v); return v};
+const today=()=>new Date().toISOString().slice(0,10);
 
-  // ====== Elements ======
-  const cover = document.getElementById('cover');
-  const startBtn = document.getElementById('startBtn');
-  const youName = document.getElementById('youName');
-  const helloPill = document.getElementById('helloPill');
-  const taskText = document.getElementById('taskText');
-  const doneBtn = document.getElementById('doneBtn');
-  const nextBtn = document.getElementById('nextBtn');
-  const heartsEl = document.getElementById('hearts');
-  const notesEl = document.getElementById('notes');
-  const playBtn = document.getElementById('playBtn');
-  const charImg = document.getElementById('charImg');
-  const charName = document.getElementById('charName');
-  const charInfo = document.getElementById('charInfo');
-  const renameBtn = document.getElementById('renameBtn');
-  const charModal = document.getElementById('charModal');
-  const charGrid  = document.getElementById('charGrid');
-  const nameModal = document.getElementById('nameModal');
-  const petName = document.getElementById('petName');
-  const cancelName = document.getElementById('cancelName');
-  const saveName = document.getElementById('saveName');
-  const toast = document.getElementById('toast');
+// ===== Elements =====
+const cover=$('#cover'), youName=$('#youName'), startBtn=$('#startBtn');
+const helloPill=$('#helloPill'), heartsEl=$('#hearts'), notesEl=$('#notes'), playBtn=$('#playBtn');
+const taskText=$('#taskText'), doneBtn=$('#doneBtn'), nextBtn=$('#nextBtn'), hint=$('#hint');
+const cooldownPill=$('#cooldownPill'), cooldownLeft=$('#cooldownLeft');
+const pet=$('#pet'), petImg=$('#petImg');
+const charLabel=$('#charLabel'), chooseBtn=$('#chooseBtn'), renameBtn=$('#renameBtn');
+const charModal=$('#charModal'), charGrid=$('#charGrid'), closeChar=$('#closeChar');
+const nameModal=$('#nameModal'), petNameInput=$('#petName'), cancelName=$('#cancelName'), saveName=$('#saveName');
+const feedBtn=$('#feedBtn'), waterBtn=$('#waterBtn'), petBtn=$('#petBtn'), cleanBtn=$('#cleanBtn');
+const satietyBar=$('#satietyBar'), cleanBar=$('#cleanBar'), moodBar=$('#moodBar');
+const toast=$('#toast');
+function $(q){return document.querySelector(q)}
 
-  // ====== Helpers ======
-  const todayKey = () => new Date().toISOString().slice(0,10);
-  const get = (k, def) => {
-    const v = localStorage.getItem(k);
-    return (v===null||v===undefined) ? def : (isNaN(v) ? v : Number(v));
-  };
-  const set = (k, v) => localStorage.setItem(k, String(v));
-  const inc = (k, by=1) => { const v = get(k,0)+by; set(k,v); return v; };
+// ===== Proposals (sample) =====
+const PROPOSALS=[
+  'コップ一杯のお水を飲んでみよう。',
+  '背伸びをして深呼吸を3回。',
+  '5秒だけ目を閉じて身の回りの音を聞いてみよう。',
+  '空の色を言葉でメモしてみよう。',
+  '今日のラッキー色を決めてメモ。'
+];
+function randomProposal(){return PROPOSALS[Math.floor(Math.random()*PROPOSALS.length)]}
 
-  // ====== Proposals (placeholder) ======
-  const PROPOSALS = [
-    'コップ一杯のお水を飲んでみよう。',
-    '背伸びをして深呼吸を3回。',
-    '5秒だけ目を閉じて、音を聞いてみよう。',
-    '窓の外を見て空の色を言葉にしてみる。',
-    '今日のラッキー色を決めてメモ。',
-  ];
-  function randomProposal(){ return PROPOSALS[Math.floor(Math.random()*PROPOSALS.length)]; }
+// ===== Greet & Daily =====
+function setHello(){ const nm=get(LS.YOU,''); helloPill.textContent=nm?`👋 ${nm}さん、ようこそ！`:'👋 ようこそ' }
+function syncDaily(){ const d=today(), last=localStorage.getItem(LS.DAILY_DATE); if(d!==last){set(LS.DAILY_DATE,d); set(LS.DAILY_COUNT,0);} const c=get(LS.DAILY_COUNT,0); hint.textContent=c>=3?'今日は3回クリアで終了。明日また来てね。':'※ 1日3回まで。3回クリアでキャラ選択が解放されます。'; doneBtn.disabled=c>=3 || isCooldown(); nextBtn.disabled=isCooldown(); cooldownPill.style.display=isCooldown()?'inline-flex':'none'; }
 
-  // ====== Greeting ======
-  function setHello(){
-    const you = get(LS.YOU, '');
-    helloPill.textContent = you ? `👋 ${you}さん、ようこそ！` : '👋 ようこそ';
-  }
+// ===== Cooldown =====
+function isCooldown(){const at=get(LS.LAST_PROPOSAL_AT,0); if(!at) return false; return Date.now()<at+COOLDOWN_MINUTES*60*1000}
+function updateCooldownUI(){ if(!isCooldown()){ cooldownPill.style.display='none'; doneBtn.disabled=get(LS.DAILY_COUNT,0)>=3; nextBtn.disabled=false; return; } cooldownPill.style.display='inline-flex'; const remain=atEnd()-Date.now(); const m=Math.max(0,Math.floor(remain/60000)); const s=Math.max(0,Math.floor((remain%60000)/1000)); cooldownLeft.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; doneBtn.disabled=true; nextBtn.disabled=true; }
+function atEnd(){return get(LS.LAST_PROPOSAL_AT,0)+COOLDOWN_MINUTES*60*1000}
+setInterval(updateCooldownUI,1000);
 
-  // ====== Daily gate (1日3回) ======
-  function syncDaily(){
-    const tk = todayKey();
-    const last = localStorage.getItem(LS.DAILY_DATE);
-    if (last !== tk){ set(LS.DAILY_DATE, tk); set(LS.DAILY_COUNT, 0); }
-    const cnt = get(LS.DAILY_COUNT, 0);
-    doneBtn.disabled = cnt >= 3;
-    document.getElementById('hint').textContent = cnt >= 3
-      ? '今日は3回クリアで終了。明日また来てね。'
-      : '※ 1日3回まで。3回クリアでキャラが選べます。';
-  }
+// ===== Character catalog =====
+const CHAR_CATALOG=[
+  {color:'pink',   id:'joy',   label:'ピンク（Joy）',    path:'public/char/pink/joy.png'},
+  {color:'pink',   id:'calm',  label:'ピンク（Calm）',   path:'public/char/pink/calm.png'},
+  {color:'purple', id:'calm',  label:'パープル（Calm）', path:'public/char/purple/calm.png'},
+  {color:'purple', id:'joy',   label:'パープル（Joy）',  path:'public/char/purple/joy.png'},
+  {color:'blue',   id:'calm',  label:'ブルー（Calm）',   path:'public/char/blue/calm.png'},
+  {color:'blue',   id:'joy',   label:'ブルー（Joy）',    path:'public/char/blue/joy.png'},
+  {color:'green',  id:'calm',  label:'グリーン（Calm）', path:'public/char/green/calm.png'},
+  {color:'green',  id:'joy',   label:'グリーン（Joy）',  path:'public/char/green/joy.png'},
+];
+function buildCharGrid(){ charGrid.innerHTML=''; CHAR_CATALOG.forEach(c=>{ const b=document.createElement('button'); b.className='btn btn-ghost'; b.style.display='grid'; b.style.placeItems='center'; b.style.padding='8px'; b.innerHTML=`<img src="${c.path}" alt="${c.label}" style="width:120px;height:120px;object-fit:contain"><div class="muted" style="margin-top:6px">${c.label}</div>`; b.onclick=()=>{ set(LS.CHAR_COLOR,c.color); set(LS.CHAR_ID,c.id); set(LS.CHAR_LABEL,c.label); setPetImage(); showToast(`${c.label} を選びました！`); closeChar(); }; charGrid.appendChild(b); }); }
+function setPetImage(){ const color=get(LS.CHAR_COLOR,'blue'), id=get(LS.CHAR_ID,'calm'); const item=CHAR_CATALOG.find(x=>x.color===color&&x.id===id); petImg.src=item?item.path:'public/char/blue/calm.png'; charLabel.textContent=get(LS.CHAR_NAME,'')?`${get(LS.CHAR_NAME,'')}（${get(LS.CHAR_LABEL,'')}）`: (get(LS.CHAR_LABEL,'（未選択）')); renameBtn.disabled=get(LS.TOTAL_COUNT,0)<5; }
 
-  // ====== Character list (color/name -> path) ======
-  const CHAR_CATALOG = [
-    {color:'blue',   id:'calm',   label:'ブルー（Calm）'},
-    {color:'pink',   id:'smile',  label:'ピンク（Smile）'},
-    {color:'green',  id:'fresh',  label:'グリーン（Fresh）'},
-    {color:'purple', id:'mystic', label:'パープル（Mystic）'},
-  ];
-  function buildCharGrid(){
-    charGrid.innerHTML = '';
-    CHAR_CATALOG.forEach(c =>{
-      const btn = document.createElement('button');
-      btn.className = 'charBtn';
-      btn.dataset.color = c.color; btn.dataset.id = c.id; btn.dataset.name = c.label;
-      btn.innerHTML = `<img src="public/char/${c.color}/${c.id}.png" style="width:100%;border-radius:12px" alt="${c.label}"><div style="text-align:center;margin-top:6px">${c.label.split('（')[0]}</div>`;
-      btn.addEventListener('click', ()=>{
-        set(LS.CHAR_COLOR, c.color); set(LS.CHAR_ID, c.id); set(LS.CHAR_LABEL, c.label);
-        applyChar(); closeCharModal(); showToast(`${c.label} を選びました！`);
-      });
-      charGrid.appendChild(btn);
-    });
-  }
+// ===== Toast =====
+let toastTimer; function showToast(m){ toast.textContent=m; toast.classList.remove('hidden'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>toast.classList.add('hidden'),1600); }
 
-  function applyChar(){
-    const color = get(LS.CHAR_COLOR,'');
-    const id    = get(LS.CHAR_ID,'');
-    const label = get(LS.CHAR_LABEL,'');
-    const pname = get(LS.CHAR_NAME,'');
-    if (id){
-      charImg.src = `public/char/${color}/${id}.png`;
-      charName.textContent = pname ? `${pname}（${label}）` : label;
-      charInfo.textContent = pname ? 'いっしょにがんばろう！' : '5回クリアで名前がつけられます。';
-      renameBtn.disabled = get(LS.TOTAL_COUNT,0) < 5;
-    } else {
-      charImg.src = 'public/char/blue/calm.png';
-      charName.textContent = '（未選択）';
-      charInfo.textContent = '3回クリアすると選べます。';
-      renameBtn.disabled = true;
-    }
-  }
+// ===== Rewards & Music =====
+function rewardHeart(){ heartsEl.textContent=inc(LS.HEARTS,1); showToast('❤️ +1'); }
+function rewardNote(n=1){ const x=inc(LS.NOTES,n); notesEl.textContent=x; showToast('♪ +'+n); if(x>=25) playBtn.disabled=false; }
+playBtn.onclick=()=>{ const ctx=new (window.AudioContext||window.webkitAudioContext)(); const N={'C4':261.63,'Cs4':277.18,'D4':293.66,'Ds4':311.13,'E4':329.63,'F4':349.23,'Fs4':369.99,'G4':392,'Gs4':415.3,'A4':440,'As4':466.16,'B4':493.88,'C5':523.25,'D5':587.33,'E5':659.25,'F5':698.46,'G5':783.99,'A5':880}; const HB=[['G4',1],['G4',1],['A4',2],['G4',2],['C5',2],['B4',4],['G4',1],['G4',1],['A4',2],['G4',2],['D5',2],['C5',4],['G4',1],['G4',1],['G5',2],['E5',2],['C5',2],['B4',2],['A4',2],['Fs5',1],['Fs5',1],['E5',2],['C5',2],['D5',2],['C5',4]]; let t=ctx.currentTime+.05,beat=.35; HB.forEach(([n,b])=>{ if(!N[n])return; const o=ctx.createOscillator(),g=ctx.createGain(); o.frequency.value=N[n]; o.type='sine'; g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.18,t+.02); g.gain.linearRampToValueAtTime(.0001,t+beat*b-.02); o.connect(g).connect(ctx.destination); o.start(t); o.stop(t+beat*b); t+=beat*b*1.02; }); };
 
-  // ====== Toast ======
-  let toastTimer;
-  function showToast(msg){
-    toast.textContent = msg; toast.classList.remove('hidden');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=> toast.classList.add('hidden'), 1800);
-  }
+// ===== 💩 spawn & clean =====
+function spawnPoop(){ const el=document.createElement('div'); el.className='poop'; el.textContent='💩'; const x=Math.random()*(innerWidth-60)+30, y=Math.random()*(innerHeight-220)+120; el.style.left=x+'px'; el.style.top=y+'px'; document.body.appendChild(el); const kill=()=>el.remove(); el.onclick=()=>{ rewardNote(1); burstNote(x,y); kill(); addClean(5); }; setTimeout(kill,12000); }
+function burstNote(x,y){ const b=document.createElement('div'); b.className='noteBurst'; b.textContent='♪'; b.style.left=x+'px'; b.style.top=y+'px'; document.body.appendChild(b); setTimeout(()=>b.remove(),900); }
+setInterval(()=>{ if(Math.random()<0.55) spawnPoop(); }, 24000);
 
-  // ====== Reward ======
-  function rewardHeart(){ heartsEl.textContent = inc(LS.HEARTS, 1); showToast('❤️ +1'); }
-  function rewardNote(x=1){
-    const n = inc(LS.NOTES, x); notesEl.textContent = n; showToast('♪ +'+x);
-    if (n >= 25) playBtn.disabled = false;
-  }
+// ===== Care stats =====
+function setBar(el,val){ el.style.width=Math.max(0,Math.min(100,val))+'%'; }
+function addSatiety(v){ set(LS.SATIETY, Math.min(100, get(LS.SATIETY,50)+v)); renderCare(); }
+function addClean(v){ set(LS.CLEAN, Math.min(100, get(LS.CLEAN,60)+v)); renderCare(); }
+function addMood(v){ set(LS.MOOD, Math.min(100, get(LS.MOOD,50)+v)); renderCare(); }
+function decayCare(){ addSatiety(-0.05); addClean(-0.03); addMood(-0.04); }
+setInterval(decayCare, 1000*5); // ゆっくり減衰
+function renderCare(){ setBar(satietyBar, get(LS.SATIETY,50)); setBar(cleanBar, get(LS.CLEAN,60)); setBar(moodBar, get(LS.MOOD,50)); }
 
-  // ====== WebAudio: Happy Birthday ======
-  const NOTE_FREQ = {
-    'C4':261.63,'Cs4':277.18,'D4':293.66,'Ds4':311.13,'E4':329.63,'F4':349.23,'Fs4':369.99,'G4':392.00,'Gs4':415.30,'A4':440.00,'As4':466.16,'B4':493.88,
-    'C5':523.25,'Cs5':554.37,'D5':587.33,'Ds5':622.25,'E5':659.25,'F5':698.46,'G5':783.99,'A5':880.00
-  };
-  const HB = [
-    ['G4',1],['G4',1],['A4',2],['G4',2],['C5',2],['B4',4],
-    ['G4',1],['G4',1],['A4',2],['G4',2],['D5',2],['C5',4],
-    ['G4',1],['G4',1],['G5',2],['E5',2],['C5',2],['B4',2],['A4',2],
-    ['Fs5',1],['Fs5',1],['E5',2],['C5',2],['D5',2],['C5',4]
-  ];
-  function playHappyBirthday(){
-    const ctx = new (window.AudioContext||window.webkitAudioContext)();
-    const beat = 0.35; let t = ctx.currentTime + 0.05;
-    HB.forEach(([n,b])=>{
-      const f = NOTE_FREQ[n]; if(!f) return;
-      const o = ctx.createOscillator(); const g = ctx.createGain();
-      o.frequency.value = f; o.type='sine';
-      g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(0.18, t+0.02);
-      g.gain.linearRampToValueAtTime(0.0001, t + beat*b - 0.02);
-      o.connect(g).connect(ctx.destination);
-      o.start(t); o.stop(t + beat*b);
-      t += beat*b*1.02;
-    });
-  }
+feedBtn.onclick = ()=>{ addSatiety(12); addMood(4); showToast('🍙 もぐもぐ'); wigglePet(); };
+waterBtn.onclick= ()=>{ addSatiety(6);  addMood(2); showToast('💧 ごくごく'); wigglePet(); };
+petBtn.onclick  = ()=>{ addMood(10); showToast('🤲 よしよし'); wigglePet(12); };
+cleanBtn.onclick= ()=>{ document.querySelectorAll('.poop').forEach(n=>n.remove()); addClean(18); showToast('🧹 お部屋がきれいになった！'); };
 
-  // ====== 💩 spawner ======
-  function spawnPoop(){
-    const el = document.createElement('div');
-    el.className = 'poop'; el.textContent = '💩';
-    const x = Math.random()* (window.innerWidth - 40);
-    const y = Math.random()* (window.innerHeight - 200) + 80;
-    el.style.left = x+ 'px'; el.style.top = y + 'px';
-    document.body.appendChild(el);
-    const kill = () => el.remove();
-    el.addEventListener('click', ()=>{ rewardNote(1); burstNote(x+10,y); kill(); });
-    setTimeout(kill, 9000);
-  }
-  function burstNote(x,y){
-    const b = document.createElement('div'); b.className='noteBurst'; b.textContent='♪';
-    b.style.left = x+'px'; b.style.top = y+'px'; document.body.appendChild(b);
-    setTimeout(()=> b.remove(), 900);
-  }
-  function startPoopLoop(){ setInterval(()=>{ if (Math.random() < 0.6) spawnPoop(); }, 22000); }
+// ===== Pet wandering =====
+function placePetCenter(){ pet.style.left='50%'; pet.style.top='55%'; pet.style.transform='translate(-50%,-50%)'; }
+function wander(){ const pad=90; const x=pad+Math.random()*(innerWidth - pad*2); const y=pad+Math.random()*(innerHeight- pad*2); const r=(Math.random()*14-7); pet.style.transition='transform 2.6s ease, left 2.6s ease, top 2.6s ease'; pet.style.left=x+'px'; pet.style.top=y+'px'; pet.style.transform=`translate(-50%,-50%) rotate(${r}deg)`; }
+setInterval(wander, 3000);
+function wigglePet(power=8){ const r=(Math.random()*power - power/2); pet.style.transform=`translate(-50%,-50%) rotate(${r}deg)`; setTimeout(()=>pet.style.transform='translate(-50%,-50%) rotate(0deg)',400); }
 
-  // ====== Tasks flow ======
-  function setNewTask(){ taskText.textContent = randomProposal(); }
-  function onDone(){
-    const cnt = inc(LS.DAILY_COUNT, 1); set(LS.DAILY_DATE, todayKey());
-    const total = inc(LS.TOTAL_COUNT, 1);
-    rewardHeart(); setNewTask(); syncDaily();
-    if (!get(LS.CHAR_ID,'') && cnt >= 3) openCharModal();
-    if (total >= 5 && !get(LS.CHAR_NAME,'')) renameBtn.disabled = false;
-  }
-  function onNext(){ setNewTask(); showToast('新しい提案！'); }
+// ===== Proposal flow =====
+function newTask(){ taskText.textContent=randomProposal(); }
+function startProposal(){ if(isCooldown()) return; newTask(); showToast('📮 新しい提案！'); }
+function onDone(){ const c=inc(LS.DAILY_COUNT,1); inc(LS.TOTAL_COUNT,1); rewardHeart(); set(LS.LAST_PROPOSAL_AT, Date.now()); syncDaily(); if(!get(LS.CHAR_ID,'') && c>=3){ openChar(); } if(get(LS.TOTAL_COUNT,0)>=5){ renameBtn.disabled=false; } }
 
-  // ====== Modals ======
-  function openCharModal(){ buildCharGrid(); charModal.classList.remove('hidden'); }
-  function closeCharModal(){ charModal.classList.add('hidden'); }
-  function openNameModal(){ nameModal.classList.remove('hidden'); }
-  function closeNameModal(){ nameModal.classList.add('hidden'); }
+nextBtn.onclick = startProposal;
+doneBtn.onclick = onDone;
 
-  // ====== Events ======
-  startBtn.addEventListener('click', ()=>{ const v=(youName.value||'').trim(); if(v) set(LS.YOU, v); cover.classList.add('hidden'); setHello(); });
-  doneBtn.addEventListener('click', onDone);
-  nextBtn.addEventListener('click', onNext);
-  playBtn.addEventListener('click', playHappyBirthday);
-  renameBtn.addEventListener('click', ()=>{ if (get(LS.TOTAL_COUNT,0) >= 5) openNameModal(); });
-  cancelName.addEventListener('click', closeNameModal);
-  saveName.addEventListener('click', ()=>{ const v=(petName.value||'').trim(); if(!v) return; set(LS.CHAR_NAME, v); applyChar(); closeNameModal(); showToast('名前を保存しました'); });
-  charModal.addEventListener('click', (e)=>{ if (e.target === charModal) closeCharModal(); });
+// ===== Character selection / naming =====
+function openChar(){ buildCharGrid(); charModal.classList.remove('hidden'); }
+function closeChar(){ charModal.classList.add('hidden'); }
+chooseBtn.onclick=()=>{ if(get(LS.DAILY_COUNT,0)>=3 || get(LS.TOTAL_COUNT,0)>=3) openChar(); else showToast('まずは提案を3回クリアしてね'); };
+closeChar.onclick=closeChar;
+renameBtn.onclick=()=>{ if(get(LS.TOTAL_COUNT,0)>=5) nameModal.classList.remove('hidden'); };
+cancelName.onclick=()=> nameModal.classList.add('hidden');
+saveName.onclick=()=>{ const v=(petNameInput.value||'').trim(); if(!v) return; set(LS.CHAR_NAME,v); nameModal.classList.add('hidden'); setPetImage(); showToast('名前を保存しました'); };
 
-  // ====== Init ======
-  function init(){
-    heartsEl.textContent = get(LS.HEARTS,0);
-    notesEl.textContent  = get(LS.NOTES,0);
-    playBtn.disabled     = get(LS.NOTES,0) < 25;
-    const you = get(LS.YOU, ''); if (you){ youName.value = you; cover.classList.add('hidden'); }
-    setHello(); applyChar(); setNewTask(); syncDaily(); startPoopLoop();
-  }
-  document.addEventListener('DOMContentLoaded', init);
+// ===== Cover & init =====
+startBtn.onclick=()=>{ const v=(youName.value||'').trim(); if(v) set(LS.YOU,v); cover.classList.add('hidden'); setHello(); };
+function init(){
+  // stats numbers
+  heartsEl.textContent=get(LS.HEARTS,0); notesEl.textContent=get(LS.NOTES,0); playBtn.disabled=get(LS.NOTES,0)<25;
+  // greet, cover, pet
+  const you=get(LS.YOU,''); if(you){ youName.value=you; cover.classList.add('hidden'); }
+  setHello(); placePetCenter(); setPetImage();
+  // task
+  newTask();
+  // daily & cooldown UI
+  syncDaily(); updateCooldownUI();
+  // care
+  if(localStorage.getItem(LS.SATIETY)===null){ set(LS.SATIETY,50); set(LS.CLEAN,60); set(LS.MOOD,50); }
+  renderCare();
+}
+
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
