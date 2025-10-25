@@ -3,41 +3,53 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MeAI | room</title>
+<title>MeAI | Room</title>
 <link rel="icon" href="data:,">
 <style>
-  :root{ --glass: rgba(255,255,255,.05); --glass-b: rgba(255,255,255,.12); --blue:#60a5fa; --ok:#5be37e; }
+  :root{
+    --glass: rgba(255,255,255,.05);
+    --glass-b: rgba(255,255,255,.12);
+    --blue:#60a5fa; --ok:#5be37e;
+  }
   html,body{height:100%}
-  body{ margin:0; font-family:"Noto Sans JP",system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; color:#fff; background:#0a0f1a; overflow:hidden; }
-  .wrap{ position:relative; z-index:2; max-width:980px; margin:0 auto; padding:14px }
-  .top{ display:flex; align-items:center; justify-content:space-between; gap:10px }
-  .btn{ display:inline-flex; align-items:center; gap:.5em; border:none; border-radius:999px; padding:10px 14px; cursor:pointer; color:#fff; background:var(--blue); font-weight:700 }
-  .btn-ghost{ background:transparent; border:1px solid var(--glass-b) }
-  .pill{ display:inline-flex; align-items:center; gap:.5em; padding:6px 10px; border-radius:999px; background:var(--glass); border:1px solid var(--glass-b) }
-  .card{ background:var(--glass); border:1px solid var(--glass-b); border-radius:18px; padding:12px 14px; backdrop-filter: blur(6px) saturate(120%); }
-  .room{ position:fixed; inset:0; overflow:hidden; }
-  .bg{ position:absolute; inset:0; z-index:0; background: radial-gradient(60% 80% at 70% 30%, #1d2b53, transparent 60%), radial-gradient(70% 90% at 20% 70%, #0b5b5b55, transparent 60%), url('public/space_background.png') center/cover fixed no-repeat; filter:brightness(.9); }
-  .floor{ position:absolute; left:50%; bottom:-40px; transform:translateX(-50%); width:80vw; height:22vh; background: radial-gradient(ellipse at center, rgba(0,0,0,.5), rgba(0,0,0,0) 70%); z-index:1 }
+  body{
+    margin:0;
+    font-family:"Noto Sans JP",system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+    color:#fff; background:#0a0f1a; overflow:hidden;
+  }
 
-  /* pet */
-  #pet{ position:absolute; z-index:25; width:160px; height:160px; transform-origin:50% 60%; filter:drop-shadow(0 10px 24px rgba(0,0,0,.5)); animation:yura 3.4s ease-in-out infinite; left:50%; top:55%; transform:translate(-50%,-50%); pointer-events:none }
-  #pet img{ width:100%; height:100%; object-fit:contain }
-  @keyframes yura{ 0%,100%{ transform:translate(-50%,-50%) rotate(-3deg);} 50%{ transform:translate(-50%,-52%) rotate(3deg);} }
+  .wrap{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:14px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .btn{display:inline-flex;align-items:center;gap:.5em;border:none;border-radius:999px;padding:10px 14px;cursor:pointer;color:#fff;background:var(--blue);font-weight:700}
+  .btn-ghost{background:transparent;border:1px solid var(--glass-b)}
+  .pill{display:inline-flex;align-items:center;gap:.5em;padding:6px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-b)}
+  .card{background:var(--glass);border:1px solid var(--glass-b);border-radius:18px;padding:12px 14px;backdrop-filter: blur(6px) saturate(120%);}
 
-  .hud{ position:fixed; left:50%; bottom:16px; transform:translateX(-50%); display:flex; gap:8px; z-index:30 }
+  .room{position:fixed;inset:0;overflow:hidden;}
+  .bg{position:absolute;inset:0;z-index:0;background: radial-gradient(60% 80% at 70% 30%, #1d2b53, transparent 60%), radial-gradient(70% 90% at 20% 70%, #0b5b5b55, transparent 60%), url('public/space_background.png') center/cover fixed no-repeat; filter:brightness(.9);}
+  .floor{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%);width:80vw;height:22vh;background: radial-gradient(ellipse at center, rgba(0,0,0,.5), rgba(0,0,0,0) 70%);z-index:1}
 
-  /* props */
-  .prop{ position:absolute; z-index:28; filter:drop-shadow(0 8px 16px rgba(0,0,0,.5)); }
-  .food{ width:120px; height:120px; left:55%; top:62%; background:url('public/props/rice_bowl.png') center/contain no-repeat }
-  .water{ width:120px; height:120px; left:45%; top:62%; background:url('public/props/water_drop.png') center/contain no-repeat }
-  .broom{ width:140px; height:140px; left:52%; top:58%; background:url('public/props/broom.png') center/contain no-repeat }
-  .hand{ width:140px; height:140px; left:48%; top:50%; background:url('public/props/hand.png') center/contain no-repeat; animation:petHand 2.4s ease-in-out infinite }
-  @keyframes petHand{ 0%,100%{ transform:translateY(0)} 50%{ transform:translateY(-6px)} }
+  /* キャラ */
+  #pet{position:absolute;z-index:25;width:160px;height:160px;transform-origin:50% 60%;
+        filter:drop-shadow(0 10px 24px rgba(0,0,0,.5));animation:yura 3.4s ease-in-out infinite;
+        left:50%;top:55%;transform:translate(-50%,-50%);pointer-events:none;}
+  #pet img{width:100%;height:100%;object-fit:contain}
+  @keyframes yura{0%,100%{transform:translate(-50%,-50%) rotate(-3deg);}50%{transform:translate(-50%,-52%) rotate(3deg);} }
 
-  .noteBurst{ position:absolute; z-index:40; font-size:22px; pointer-events:none; animation: rise 900ms ease-out forwards }
-  @keyframes rise{ to{ transform: translateY(-60px); opacity:0 } }
+  .hud{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:8px;z-index:30}
 
-  .poop{ position:absolute; z-index:35; font-size:40px; cursor:pointer; user-select:none; animation: floaty 2.2s ease-in-out infinite; filter: drop-shadow(0 0 8px rgba(0,0,0,.6)) }
+  /* 道具 */
+  .prop{position:absolute;z-index:28;filter:drop-shadow(0 8px 16px rgba(0,0,0,.5));}
+  .food{width:120px;height:120px;left:55%;top:62%;background:url('public/props/rice_bowl.png') center/contain no-repeat}
+  .water{width:120px;height:120px;left:45%;top:62%;background:url('public/props/water_drop.png') center/contain no-repeat}
+  .broom{width:140px;height:140px;left:52%;top:58%;background:url('public/props/broom.png') center/contain no-repeat}
+  .hand{width:140px;height:140px;left:48%;top:50%;background:url('public/props/hand.png') center/contain no-repeat;animation:petHand 2.4s ease-in-out infinite}
+  @keyframes petHand{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+  .noteBurst{position:absolute;z-index:40;font-size:22px;pointer-events:none;animation: rise 900ms ease-out forwards}
+  @keyframes rise{to{transform: translateY(-60px);opacity:0}}
+  .poop{position:absolute;z-index:35;font-size:40px;cursor:pointer;user-select:none;
+        animation: floaty 2.2s ease-in-out infinite;filter: drop-shadow(0 0 8px rgba(0,0,0,.6))}
   @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
 </style>
 </head>
@@ -71,78 +83,92 @@
 </div>
 
 <script>
-// ===== helpers & LS keys =====
-const LS={ YOU:'meai_you', HEARTS:'meai_hearts', NOTES:'meai_notes', CHAR_COLOR:'meai_char_color', CHAR_ID:'meai_char_id', CHAR_LABEL:'meai_char_label', CHAR_NAME:'meai_char_name', SATIETY:'meai_satiety', CLEAN:'meai_clean', MOOD:'meai_mood', LANG:'meai_lang' };
+const LS={YOU:'meai_you',HEARTS:'meai_hearts',NOTES:'meai_notes',CHAR_COLOR:'meai_char_color',CHAR_ID:'meai_char_id'};
 const get=(k,d)=>{const v=localStorage.getItem(k);return v===null?d:isNaN(v)?v:Number(v)};
 const set=(k,v)=>localStorage.setItem(k,String(v));
-const inc=(k,by=1)=>{const v=get(k,0)+by; set(k,v); return v};
+const inc=(k,by=1)=>{const v=get(k,0)+by;set(k,v);return v};
 
-const params=new URLSearchParams(location.search); const MODE=params.get('mode')||'feed';
-const heartsEl=document.getElementById('hearts'); const notesEl=document.getElementById('notes');
-const petImg=document.getElementById('petImg'); const prop=document.getElementById('prop');
-const modeLabel=document.getElementById('modeLabel'); const roomDesc=document.getElementById('roomDesc');
-const actionBtn=document.getElementById('actionBtn'); const bg=document.getElementById('bg');
+const params=new URLSearchParams(location.search);
+const MODE=params.get('mode')||'feed';
 
-function setPetImage(){ const map=[
-  {color:'pink',id:'joy',path:'public/char/pink/joy.png'},
-  {color:'pink',id:'calm',path:'public/char/pink/calm.png'},
-  {color:'purple',id:'calm',path:'public/char/purple/calm.png'},
-  {color:'purple',id:'joy',path:'public/char/purple/joy.png'},
-  {color:'blue',id:'calm',path:'public/char/blue/calm.png'},
-  {color:'blue',id:'joy',path:'public/char/blue/joy.png'},
-  {color:'green',id:'calm',path:'public/char/green/calm.png'},
-  {color:'green',id:'joy',path:'public/char/green/joy.png'}];
-  const color=get(LS.CHAR_COLOR,'blue'), id=get(LS.CHAR_ID,'calm');
-  const item=map.find(m=>m.color===color&&m.id===id);
-  petImg.src=item?item.path:'public/char/blue/calm.png';
+const heartsEl=document.getElementById('hearts');
+const notesEl=document.getElementById('notes');
+const petImg=document.getElementById('petImg');
+const prop=document.getElementById('prop');
+const modeLabel=document.getElementById('modeLabel');
+const roomDesc=document.getElementById('roomDesc');
+const actionBtn=document.getElementById('actionBtn');
+const bg=document.getElementById('bg');
+
+function setPetImage(){
+  const color=get('meai_char_color','blue');
+  const id=get('meai_char_id','calm');
+  petImg.src=`public/char/${color}/${id}.png`;
 }
 
-function i18n(){ const l=localStorage.getItem(LS.LANG)||'ja'; const pack={
-  ja:{back:'← 戻る', feed:['ご飯の部屋','ご飯をあげよう','🍙 もぐもぐ！ +満腹 +ごきげん'], water:['お水の部屋','お水をあげよう','💧 ごくごく！ +満腹 +ごきげん'], pet:['なでなでの部屋','なでてあげよう','🤲 よしよし！ +ごきげん'], clean:['お掃除の部屋','お片づけしよう','🧹 ぴかぴか！ +清潔'], exec:'実行'},
-  en:{back:'← Back', feed:['Feeding Room','Give some food','🍙 Yum! +Satiety +Mood'], water:['Water Room','Give water','💧 Slurp! +Satiety +Mood'], pet:['Petting Room','Pet gently','🤲 Pat pat! +Mood'], clean:['Cleaning Room','Tidy up','🧹 Sparkly! +Clean'], exec:'Do'},
-  ko:{back:'← 돌아가기', feed:['밥 방','밥을 주자','🍙 냠! +포만 +기분'], water:['물 방','물을 주자','💧 꿀꺽! +포만 +기분'], pet:['쓰담 방','쓰다듬기','🤲 쓰담! +기분'], clean:['청소 방','정리하자','🧹 반짝! +청결'], exec:'실행'},
-  zh:{back:'← 返回', feed:['喂食房','喂点饭','🍙 好吃！+饱腹 +心情'], water:['喝水房','给水','💧 咕噜！+饱腹 +心情'], pet:['抚摸房','摸摸','🤲 好乖！+心情'], clean:['清理房','打扫','🧹 干净！+清洁'], exec:'执行'} }[l]; return pack; }
-
-function setRoom(){ const t=i18n(); document.getElementById('backBtn').textContent=t.back; actionBtn.textContent=t.exec; let title,sub; prop.className='prop'; switch(MODE){
-  case 'feed': title=t.feed[0]; sub=t.feed[1]; prop.classList.add('food'); bg.style.filter='hue-rotate(-10deg) brightness(.9)'; break;
-  case 'water': title=t.water[0]; sub=t.water[1]; prop.classList.add('water'); bg.style.filter='hue-rotate(-60deg) brightness(.95)'; break;
-  case 'pet': title=t.pet[0]; sub=t.pet[1]; prop.classList.add('hand'); bg.style.filter='hue-rotate(40deg) brightness(.95)'; break;
-  case 'clean': title=t.clean[0]; sub=t.clean[1]; prop.classList.add('broom'); bg.style.filter='hue-rotate(180deg) brightness(.9)'; spawnPoops(3); break;
-  default: title='room'; sub='';
- }
- modeLabel.textContent=title; roomDesc.textContent=sub;
+function toast(msg){
+  const t=document.createElement('div');
+  t.textContent=msg;
+  Object.assign(t.style,{position:'fixed',left:'50%',top:'14px',transform:'translateX(-50%)',
+    background:'#171717',border:'1px solid rgba(255,255,255,.2)',padding:'8px 12px',
+    borderRadius:'999px',zIndex:'999'});
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),1400);
 }
 
-function spawnPoop(){ const el=document.createElement('div'); el.className='poop'; el.textContent='💩'; const x=Math.random()*(innerWidth-60)+30, y=Math.random()*(innerHeight-260)+140; el.style.left=x+'px'; el.style.top=y+'px'; document.body.appendChild(el); el.onclick=()=>{ el.remove(); addClean(8); burstNote(x,y); } }
-function spawnPoops(n){ for(let i=0;i<n;i++){ setTimeout(spawnPoop, 500+i*600); } }
-function burstNote(x,y){ const b=document.createElement('div'); b.className='noteBurst'; b.textContent='♪'; b.style.left=x+'px'; b.style.top=y+'px'; document.body.appendChild(b); setTimeout(()=>b.remove(),900); }
-
-// stats helpers
-function setBar(k,delta,min=0,max=100){ const nv=Math.max(min,Math.min(max,get(k,50)+delta)); set(k,nv); }
-function addSatiety(v){ setBar(LS.SATIETY,v); }
-function addClean(v){ setBar(LS.CLEAN,v,0,100); }
-function addMood(v){ setBar(LS.MOOD,v); }
-
-function act(){ const t=i18n(); switch(MODE){
-  case 'feed': addSatiety(15); addMood(6); toast(t.feed[2]); break;
-  case 'water': addSatiety(8); addMood(4); toast(t.water[2]); break;
-  case 'pet': addMood(12); hearts(5); toast(t.pet[2]); break;
-  case 'clean': addClean(20); document.querySelectorAll('.poop').forEach(p=>p.remove()); toast(t.clean[2]); break;
- }
+function burstNote(x,y){
+  const b=document.createElement('div');
+  b.className='noteBurst';
+  b.textContent='♪';
+  b.style.left=x+'px';
+  b.style.top=y+'px';
+  document.body.appendChild(b);
+  setTimeout(()=>b.remove(),900);
 }
 
-function hearts(n){ for(let i=0;i<n;i++){ setTimeout(()=>burstNote(innerWidth*0.52, innerHeight*0.5), i*120); } }
+function setRoom(){
+  let title,desc;
+  prop.className='prop';
+  switch(MODE){
+    case 'feed': title='ご飯の部屋'; desc='🍙 ご飯をあげよう'; prop.classList.add('food'); break;
+    case 'water': title='お水の部屋'; desc='💧 お水をあげよう'; prop.classList.add('water'); break;
+    case 'pet': title='なでなでの部屋'; desc='🤲 なでてあげよう'; prop.classList.add('hand'); break;
+    case 'clean': title='お掃除の部屋'; desc='🧹 お片づけしよう'; prop.classList.add('broom'); spawnPoops(3); break;
+  }
+  modeLabel.textContent=title;
+  roomDesc.textContent=desc;
+}
 
-function toast(m){ const t=document.createElement('div'); t.textContent=m; t.style.position='fixed'; t.style.left='50%'; t.style.top='14px'; t.style.transform='translateX(-50%)'; t.style.background='#171717'; t.style.border='1px solid var(--glass-b)'; t.style.padding='8px 12px'; t.style.borderRadius='999px'; t.style.zIndex='50'; document.body.appendChild(t); setTimeout(()=>t.remove(),1400); }
+function spawnPoop(){
+  const el=document.createElement('div');
+  el.className='poop';
+  el.textContent='💩';
+  el.style.left=(Math.random()*(innerWidth-60)+30)+'px';
+  el.style.top=(Math.random()*(innerHeight-260)+140)+'px';
+  document.body.appendChild(el);
+  el.onclick=()=>{el.remove();burstNote(innerWidth/2,innerHeight/2);toast('🧹 Clean!');};
+}
+function spawnPoops(n){for(let i=0;i<n;i++){setTimeout(spawnPoop,i*600);}}
 
-// events
- document.getElementById('backBtn').onclick=()=>history.back();
- actionBtn.onclick=act;
+function act(){
+  switch(MODE){
+    case 'feed': inc('meai_hearts',1);toast('🍙 もぐもぐ！');break;
+    case 'water': inc('meai_notes',1);toast('💧 ごくごく！');break;
+    case 'pet': inc('meai_hearts',2);toast('🤲 よしよし！');break;
+    case 'clean': toast('🧹 ぴかぴか！');document.querySelectorAll('.poop').forEach(p=>p.remove());break;
+  }
+}
 
-// init
-function init(){ heartsEl.textContent=get(LS.HEARTS,0); notesEl.textContent=get(LS.NOTES,0); setPetImage(); setRoom(); }
+document.getElementById('backBtn').onclick=()=>history.back();
+actionBtn.onclick=act;
 
-document.addEventListener('DOMContentLoaded', init);
+function init(){
+  heartsEl.textContent=get('meai_hearts',0);
+  notesEl.textContent=get('meai_notes',0);
+  setPetImage();
+  setRoom();
+}
+document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
