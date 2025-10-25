@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MeAI | Research</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{ --glass: rgba(255,255,255,.06); --glass-b: rgba(255,255,255,.14); --blue:#60a5fa; }
+  html,body{height:100%}
+  body{ margin:0; font-family:"Noto Sans JP",system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; color:#fff; background:#000 url("public/space_background.png") center/cover fixed no-repeat; }
+  .wrap{max-width:900px;margin:0 auto;padding:24px}
+  .card{background:var(--glass);border:1px solid var(--glass-b);border-radius:20px;padding:18px;backdrop-filter:blur(8px) saturate(120%)}
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px}
+  .btn{display:inline-flex;align-items:center;gap:.5em;border:none;border-radius:999px;padding:10px 14px;cursor:pointer;color:#fff;background:var(--blue);font-weight:700}
+  select{background:transparent;color:#fff;border:1px solid var(--glass-b);border-radius:10px;padding:6px 10px}
+  h1{margin:0 0 8px}
+  .muted{opacity:.85}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <a class="btn" href="index.html">← Back</a>
+    <select id="langSelect">
+      <option value="ja">日本語</option>
+      <option value="en">English</option>
+      <option value="ko">한국어</option>
+      <option value="zh">中文</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <h1 id="title">研究について</h1>
+    <p class="muted" id="body">
+      本アプリは、日常の小さな「やってみる」提案と、お世話行動（ご飯・水・掃除・接触）を通じて、
+      キャラクターへの愛着と自己観察の関係を探る研究プロトタイプです。
+      提案の達成回数・間隔、ケアの選択、再訪時の変化を記録し、分析します。
+      収集するデータは匿名化し、教育・研究目的に限定して使用します。
+    </p>
+  </div>
+</div>
+
+<script>
+const LS_LANG='meai_lang';
+const I18N = {
+  ja: {
+    title: '研究について',
+    body: '本アプリは、日常の小さな「やってみる」提案と、お世話行動（ご飯・水・掃除・接触）を通じて、キャラクターへの愛着と自己観察の関係を探る研究プロトタイプです。提案の達成回数・間隔、ケアの選択、再訪時の変化を記録し、分析します。収集するデータは匿名化し、教育・研究目的に限定して使用します。'
+  },
+  en: {
+    title: 'About the Research',
+    body: 'This prototype explores how tiny daily prompts and care actions (feeding, water, cleaning, petting) build attachment and self-reflection. We log counts/intervals, care choices, and revisit patterns, then analyze the data. All data is anonymized and used solely for education and research.'
+  },
+  ko: {
+    title: '연구 소개',
+    body: '이 프로토타입은 작은 제안과 돌봄 행동(밥·물·청소·접촉)을 통해 애착과 자기관찰의 관계를 탐구합니다. 달성 횟수와 간격, 돌봄 선택, 재방문 양상을 기록하여 분석합니다. 수집 데이터는 익명화하여 교육·연구 목적에만 사용합니다.'
+  },
+  zh: {
+    title: '关于研究',
+    body: '本原型通过日常小提议与照料行为（喂食、饮水、清理、抚摸），研究依恋与自我观察的关系。我们记录完成次数、间隔、照料选择与回访变化，并进行分析。所有数据将匿名化，仅用于教育与研究目的。'
+  }
+};
+
+function $(q){return document.querySelector(q)}
+function curLang(){ let v=localStorage.getItem(LS_LANG); if(!v){ const c=(navigator.language||'ja').slice(0,2); v=(c in I18N)?c:'ja'; localStorage.setItem(LS_LANG,v);} return v; }
+function apply(){ const L=I18N[curLang()]; $('#title').textContent=L.title; $('#body').textContent=L.body; $('#langSelect').value=curLang(); }
+$('#langSelect').addEventListener('change', e=>{ localStorage.setItem(LS_LANG,e.target.value); apply(); });
+document.addEventListener('DOMContentLoaded', apply);
+</script>
+</body>
+</html>
