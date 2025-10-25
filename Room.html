@@ -70,8 +70,26 @@ const get=(k,d)=>{const v=localStorage.getItem(k);return v===null?d:isNaN(v)?v:N
 const inc=(k,by=1)=>{const v=get(k,0)+by; set(k,v); return v};
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.remove('hidden'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.add('hidden'),1200); }
 
+/* 画像フォールバック */
+function loadImageWithFallback(targetEl, paths){
+  let i=0; const tmp=new Image();
+  tmp.onload=()=>{ targetEl.src=tmp.src; };
+  tmp.onerror=()=>{ i++; if(i<paths.length){ tmp.src=paths[i]; } };
+  tmp.src=paths[0];
+}
+function loadPetImage(color,id){
+  const el=document.getElementById('petImg');
+  loadImageWithFallback(el,[
+    `public/char/${color}/${id}.png`,
+    `./public/char/${color}/${id}.png`,
+    `char/${color}/${id}.png`,
+    `./char/${color}/${id}.png`,
+    `public/char/blue/calm.png`
+  ]);
+}
+
 const MODE=new URLSearchParams(location.search).get('mode')||'feed';
-function setPet(){ const color=get(LS.CHAR_COLOR,'blue'), id=get(LS.CHAR_ID,'calm'); $('#petImg').src=`public/char/${color}/${id}.png`; }
+function setPet(){ const color=get(LS.CHAR_COLOR,'blue'), id=get(LS.CHAR_ID,'calm'); loadPetImage(color,id); }
 function setRoom(){
   const p=$('#prop'); p.className='prop';
   if(MODE==='feed'){ $('#desc').textContent='🍙 ご飯をあげよう'; $('#modeLabel').textContent='ご飯の部屋'; p.classList.add('food'); }
@@ -82,14 +100,18 @@ function setRoom(){
 function poop(){ const d=document.createElement('div'); d.className='poop'; d.textContent='💩'; d.style.left=(Math.random()*(innerWidth-60)+30)+'px'; d.style.top=(Math.random()*(innerHeight-260)+140)+'px'; document.body.appendChild(d); d.onclick=()=>{ d.remove(); toast('🧹 Clean!'); }; }
 function poopMany(n){ for(let i=0;i<n;i++) setTimeout(poop,i*500); }
 
-$('#actionBtn').onclick=()=>{ if(MODE==='feed'){ $('#hearts').textContent=inc(LS.HEARTS,1); toast('🍙 もぐもぐ！'); }
-  if(MODE==='water'){ $('#notes').textContent=inc(LS.NOTES,1); toast('💧 ごくごく！'); }
-  if(MODE==='pet'){ $('#hearts').textContent=inc(LS.HEARTS,2); toast('🤲 よしよし！'); }
+document.getElementById('actionBtn').onclick=()=>{ if(MODE==='feed'){ document.getElementById('hearts').textContent=inc(LS.HEARTS,1); toast('🍙 もぐもぐ！'); }
+  if(MODE==='water'){ document.getElementById('notes').textContent=inc(LS.NOTES,1); toast('💧 ごくごく！'); }
+  if(MODE==='pet'){ document.getElementById('hearts').textContent=inc(LS.HEARTS,2); toast('🤲 よしよし！'); }
   if(MODE==='clean'){ document.querySelectorAll('.poop').forEach(p=>p.remove()); toast('✨ ぴかぴか！'); } };
 
-$('#backBtn').onclick=()=>history.back();
+document.getElementById('backBtn').onclick=()=>history.back();
 
-document.addEventListener('DOMContentLoaded', ()=>{ $('#hearts').textContent=get(LS.HEARTS,0); $('#notes').textContent=get(LS.NOTES,0); setPet(); setRoom(); });
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('hearts').textContent=get(LS.HEARTS,0);
+  document.getElementById('notes').textContent=get(LS.NOTES,0);
+  setPet(); setRoom();
+});
 </script>
 </body>
 </html>
