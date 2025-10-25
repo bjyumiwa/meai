@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clean Room</title><style>
+html,body{height:100%;margin:0;background:#000 url("public/space_background.png") center/cover fixed no-repeat;color:#fff;font-family:"Noto Sans JP",system-ui}
+.btn{border:none;border-radius:999px;padding:10px 14px;background:#60a5fa;color:#fff;font-weight:700;cursor:pointer}
+.pill{background:rgba(255,255,255,.12);padding:6px 10px;border-radius:999px}
+.top{position:fixed;left:50%;top:14px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;z-index:10}
+.field{position:fixed;inset:0}
+.poop{position:absolute;font-size:40px;cursor:pointer;user-select:none;animation:float 1.8s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#171717;border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:999px}
+</style></head><body>
+<div class="top">
+  <button class="btn" onclick="location.href='index.html'">← 戻る</button>
+  <span class="pill">💩 10個片づけでクリア</span>
+  <span class="pill">♪ <span id="notes">0</span></span>
+</div>
+<div class="field" id="field"></div>
+<div id="msg" class="msg" style="display:none"></div>
+<script>
+const LS={NOTES:'meai_notes'};
+const $=q=>document.querySelector(q), get=(k,d)=>{const v=localStorage.getItem(k);return v===null?d:isNaN(v)?v:Number(v)}, set=(k,v)=>localStorage.setItem(k,String(v));
+$('#notes').textContent=get(LS.NOTES,0);
+let cleared=0, goal=10, timer; const f=$('#field');
+function spawn(){ const d=document.createElement('div'); d.className='poop'; d.textContent='💩'; d.style.left=(Math.random()*(innerWidth-60)+20)+'px'; d.style.top=(Math.random()*(innerHeight-160)+80)+'px'; d.onclick=()=>{ d.remove(); cleared++; if(cleared>=goal) win(); }; f.appendChild(d); }
+for(let i=0;i<6;i++) spawn(); timer=setInterval(()=>{ if(document.querySelectorAll('.poop').length<8) spawn(); },900);
+function win(){ clearInterval(timer); set(LS.NOTES, get(LS.NOTES,0)+1); $('#notes').textContent=get(LS.NOTES,0); const m=$('#msg'); m.textContent='ピカピカ！♪ +1　2秒後に戻ります'; m.style.display='block'; setTimeout(()=>location.href='index.html',2000); }
+</script></body></html>
