@@ -506,12 +506,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
     renderAll();
   });
 
-  // お世話コーナーが無い場合のフォールバック
-  $('#toCare').addEventListener('click', (e)=>{
-    // そのままリンクに飛ばす。存在しないと404になるので警告だけ先に
-    if (!confirm('「お世話コーナー（care.html）」に移動します。未作成の場合は404になります。今後、別タブで管理画面などを作る予定ならOKを押してください。')){
-      e.preventDefault();
-    }
+ <a id="toCare" class="btn" href="Room.html">お世話コーナーへ</a>
   });
 });
 
