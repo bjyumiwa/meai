@@ -6,46 +6,40 @@
 <title>MeAI | index</title>
 <link rel="icon" href="data:,">
 <style>
-  :root{ --glass-bg: rgba(255,255,255,.03); --glass-bd: rgba(255,255,255,.08); --ok:#5be37e; }
-  html,body{height:100%}
-  body{ margin:0; font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-        background:#000 url("public/space_background.png") center/cover fixed no-repeat; color:#fff; overflow:hidden; }
-  .hidden{display:none!important}
-  .stars,.stars::after{position:fixed;inset:0;content:"";pointer-events:none;background:radial-gradient(#fff 1px,transparent 1px) 0 0/3px 3px;opacity:.22;animation:twinkle 10s linear infinite}
-  .stars::after{animation-duration:15s;opacity:.15;filter:blur(.6px) brightness(1.2)}
+  :root{--glass-bg:rgba(255,255,255,0.03);--glass-bd:rgba(255,255,255,0.08);--ok:#5be37e;}
+  html,body{height:100%;margin:0;font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;background:#000 url("public/space_background.png") center/cover fixed no-repeat;color:#fff;overflow:hidden;}
+  .hidden{display:none!important;}
+  .stars,.stars::after{position:fixed;inset:0;content:"";background:radial-gradient(white 1px,transparent 1px) 0 0/3px 3px;opacity:.22;animation:twinkle 10s linear infinite;pointer-events:none;}
+  .stars::after{animation-duration:15s;opacity:.15;filter:blur(.6px) brightness(1.2);}
   @keyframes twinkle{0%{transform:translateY(0)}100%{transform:translateY(-3px)}}
-  .wrap{max-width:920px;margin:0 auto;padding:0 18px}
-  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 4px}
-  .pill{background:rgba(255,255,255,.10);border-radius:999px;padding:6px 10px}
-  select{background:rgba(255,255,255,.10);border:none;color:#fff;border-radius:12px;padding:6px 10px}
-  .row{display:grid;grid-template-columns:1fr;gap:14px}
-  @media(min-width:880px){.row{grid-template-columns:1.15fr .85fr}}
-  .card{background:var(--glass-bg);border:1px solid var(--glass-bd);border-radius:22px;padding:18px 20px;backdrop-filter:blur(14px) saturate(120%)}
-  .title{font-weight:800;margin:0 0 8px}
-  .muted{opacity:.85}
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;border:none;border-radius:999px;padding:10px 16px;color:#fff;font-weight:700;cursor:pointer}
-  .btn-ghost{background:rgba(255,255,255,.12)}
-  .btn-good{background:var(--ok)}
-  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .card{background:var(--glass-bg);border:1px solid var(--glass-bd);border-radius:20px;padding:18px 20px;backdrop-filter:blur(14px) saturate(120%);}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;border:none;border-radius:999px;padding:10px 16px;color:#fff;font-weight:700;cursor:pointer;}
+  .btn-ghost{background:rgba(255,255,255,0.1);}
+  .btn-good{background:var(--ok);}
+  .btn[disabled]{opacity:.5;cursor:not-allowed;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 4px;}
+  .pill{background:rgba(255,255,255,0.10);border-radius:999px;padding:6px 10px;}
+  select{background:rgba(255,255,255,0.1);color:#fff;border:none;border-radius:12px;padding:6px 10px;}
+  .wrap{max-width:920px;margin:0 auto;padding:0 18px;}
+  .row{display:grid;grid-template-columns:1fr;gap:14px;}
+  @media(min-width:880px){.row{grid-template-columns:1.15fr .85fr;}}
   /* pet */
-  #pet{position:fixed;left:50%;top:55%;transform:translate(-50%,-50%);width:150px;height:150px;z-index:30;
-       filter:drop-shadow(0 10px 24px rgba(0,0,0,.55));animation:yura 3.6s ease-in-out infinite;pointer-events:none}
-  #pet img{width:100%;height:100%;object-fit:contain}
+  #pet{position:fixed;left:50%;top:55%;transform:translate(-50%,-50%);width:150px;height:150px;z-index:30;filter:drop-shadow(0 10px 24px rgba(0,0,0,.55));animation:yura 3.6s ease-in-out infinite;pointer-events:none;}
+  #pet img{width:100%;height:100%;object-fit:contain;}
   @keyframes yura{0%,100%{transform:translate(-50%,-50%) rotate(-3deg)}50%{transform:translate(-50%,-52%) rotate(3deg)}}
   /* cover */
-  .cover{position:fixed;inset:0;display:grid;place-items:center;z-index:100;background:#000}
-  .cover .inner{text-align:center}
-  .input{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:#111;color:#fff;min-width:220px}
-  .nameRow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
-  /* modal */
-  .modal{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.55);z-index:80}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
-  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#171717;border:1px solid var(--glass-bd);padding:10px 14px;border-radius:999px;z-index:90}
+  .cover{position:fixed;inset:0;display:grid;place-items:center;z-index:100;background:#000;}
+  .cover .inner{text-align:center;}
+  .input{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:#111;color:#fff;min-width:220px;}
+  .nameRow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px;}
+  .modal{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.55);z-index:80;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#171717;border:1px solid var(--glass-bd);padding:10px 14px;border-radius:999px;z-index:90;}
 </style>
 </head>
 <body>
 <div class="stars"></div>
-<div id="pet"><img id="petImg" src="public/char/blue/calm.png" alt=""></div>
+<div id="pet"><img id="petImg" src="public/char/blue/calm.png" alt="pet"></div>
 
 <div class="wrap">
   <div class="topbar">
@@ -63,25 +57,25 @@
   <div class="row">
     <!-- Proposals -->
     <div class="card">
-      <div class="title" id="t_mission">今日のミッション</div>
-      <div class="muted" id="taskText">5秒だけ目を閉じて音を聞いてみよう。</div>
+      <h3>今日のミッション</h3>
+      <p id="taskText">5秒だけ目を閉じて音を聞いてみよう。</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
         <button id="doneBtn" class="btn btn-good">やった！</button>
         <button id="nextBtn" class="btn btn-ghost">次の提案</button>
         <span class="pill hidden" id="limitPill">⏳ 本日は終了</span>
       </div>
-      <p class="muted" style="margin-top:10px">※ 1日3つまで。<b>3回</b>でキャラ選択、<b>5回</b>で命名が解放されます。</p>
+      <p class="muted" style="margin-top:10px">※ 1日3つまで。3回でキャラ選択、5回で命名が解放されます。</p>
     </div>
 
-    <!-- Character & Care -->
+    <!-- Character -->
     <div class="card">
-      <div class="title">キャラ</div>
+      <h3>キャラ</h3>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <div class="pill" id="charLabel">（未選択）</div>
         <button class="btn btn-ghost" id="chooseBtn">キャラ選択</button>
         <button class="btn btn-ghost" id="renameBtn" disabled>名前</button>
       </div>
-      <div class="title" style="margin-top:14px">お世話コーナー</div>
+      <h3 style="margin-top:14px">お世話コーナー</h3>
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px">
         <button class="btn" onclick="goRoom('feed')">🍙 ご飯をあげる</button>
         <button class="btn" onclick="goRoom('water')">💧 お水をあげる</button>
@@ -92,12 +86,12 @@
   </div>
 </div>
 
-<!-- Cover (AKO) -->
+<!-- Cover -->
 <div class="cover" id="cover">
   <div class="inner">
     <img src="public/char/ako2.png" style="width:min(300px,60vw);border-radius:20px;filter:drop-shadow(0 20px 40px rgba(0,0,0,.45));">
-    <h1 style="margin:8px 0 0">アコ / AKO</h1>
-    <p class="muted">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
+    <h1>アコ / AKO</h1>
+    <p>小さな“やってみる”を、やさしく提案してくれる相棒。</p>
     <div class="nameRow">
       <input id="youName" class="input" placeholder="あなたの名前（例：みわ）">
       <button id="startBtn" class="btn btn-ghost">はじめる</button>
@@ -105,118 +99,58 @@
   </div>
 </div>
 
-<!-- Character select -->
+<!-- キャラ選択 -->
 <div class="modal hidden" id="charModal">
   <div class="card" style="width:min(780px,92vw)">
-    <div class="title">キャラを選ぼう（ピンク/ブルー/グリーン/パープル）</div>
+    <h3>キャラを選ぼう（ピンク/ブルー/グリーン/パープル）</h3>
     <div class="grid" id="charGrid" style="margin-top:10px"></div>
     <div style="text-align:right;margin-top:10px"><button class="btn btn-ghost" id="closeChar">閉じる</button></div>
-  </div>
-</div>
-
-<!-- Name modal -->
-<div class="modal hidden" id="nameModal">
-  <div class="card" style="width:min(560px,92vw)">
-    <div class="title">キャラに名前をつけよう（5回で解放）</div>
-    <input id="petName" class="input" placeholder="キャラの名前" style="width:100%;margin:10px 0 12px">
-    <div style="text-align:right"><button class="btn btn-ghost" id="cancelName">やめる</button> <button class="btn" id="saveName">保存</button></div>
   </div>
 </div>
 
 <div class="toast hidden" id="toast"></div>
 
 <script>
-/* ===== LS & helpers ===== */
-const LS={YOU:'meai_you',HEARTS:'meai_hearts',NOTES:'meai_notes',DAILY_COUNT:'meai_daily_count',DAILY_DATE:'meai_daily_date',TOTAL:'meai_total',LANG:'meai_lang',CHAR_COLOR:'meai_char_color',CHAR_ID:'meai_char_id',CHAR_LABEL:'meai_char_label',CHAR_NAME:'meai_char_name'};
-const $=q=>document.querySelector(q);
-const set=(k,v)=>localStorage.setItem(k,String(v));
-const get=(k,d)=>{const v=localStorage.getItem(k);return v===null?d:isNaN(v)?v:Number(v)};
-const inc=(k,by=1)=>{const v=get(k,0)+by; set(k,v); return v};
-function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.remove('hidden'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.add('hidden'),1400); }
+/* === LocalStorage === */
+const LS={YOU:'meai_you',HEARTS:'meai_hearts',CHAR_COLOR:'meai_char_color',CHAR_ID:'meai_char_id',CHAR_LABEL:'meai_char_label'};
+const $=q=>document.querySelector(q);const set=(k,v)=>localStorage.setItem(k,v);const get=(k,d)=>localStorage.getItem(k)||d;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.remove('hidden');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.add('hidden'),1200);}
 
-/* ===== i18n（簡易） ===== */
-const I18N={ja:{mission:'今日のミッション',done:'やった！',next:'次の提案'},en:{mission:"Today's Mission",done:'Done!',next:'Next'},ko:{mission:'오늘의 미션',done:'했어!',next:'다음'},zh:{mission:'今日任务',done:'完成！',next:'下一个'}};
-const langSel=document.getElementById('langSelect');
-function curLang(){ let l=localStorage.getItem(LS.LANG); if(!l){ const c=(navigator.language||'ja').slice(0,2); l=(c in I18N)?c:'ja'; set(LS.LANG,l);} return l; }
-function applyLang(){ const L=I18N[curLang()]; document.getElementById('t_mission').textContent=L.mission; document.getElementById('doneBtn').textContent=L.done; document.getElementById('nextBtn').textContent=L.next; langSel.value=curLang(); }
-langSel?.addEventListener('change',e=>{ set(LS.LANG,e.target.value); applyLang(); });
-
-/* ===== proposals（1日3つ） ===== */
-const PROPOSALS=['コップ一杯のお水を飲んでみよう。','背伸びをして深呼吸を3回。','5秒だけ目を閉じて音を聞いてみよう。','空の色を一言でメモ。','手のひらを温めてみよう。'];
-function newTask(){ document.getElementById('taskText').textContent=PROPOSALS[Math.floor(Math.random()*PROPOSALS.length)] }
-function syncDaily(){ const d=new Date().toISOString().slice(0,10); const last=localStorage.getItem(LS.DAILY_DATE); if(d!==last){ set(LS.DAILY_DATE,d); set(LS.DAILY_COUNT,0); } const c=get(LS.DAILY_COUNT,0); const ended=c>=3; document.getElementById('limitPill').classList.toggle('hidden',!ended); document.getElementById('doneBtn').disabled=ended; document.getElementById('nextBtn').disabled=ended; }
-document.getElementById('nextBtn').onclick=()=>{ newTask(); toast('📮 新しい提案！'); };
-document.getElementById('doneBtn').onclick=()=>{ inc(LS.DAILY_COUNT,1); inc(LS.TOTAL,1); document.getElementById('hearts').textContent=inc(LS.HEARTS,1); syncDaily(); newTask(); if(!get(LS.CHAR_ID,'') && get(LS.TOTAL,0)>=3){ showChoose(); toast('🎉 キャラ選択が解放されました'); } if(get(LS.TOTAL,0)>=5){ document.getElementById('renameBtn').disabled=false; } };
-
-/* ===== キャラ（4色×2） ===== */
+/* === キャラ選択 === */
 const CATALOG=[
-  {color:'pink',id:'calm',label:'ピンク（Calm）',path:'public/char/pink/calm.png'},
-  {color:'pink',id:'joy', label:'ピンク（Joy）', path:'public/char/pink/joy.png'},
-  {color:'blue',id:'calm',label:'ブルー（Calm）',path:'public/char/blue/calm.png'},
-  {color:'blue',id:'joy', label:'ブルー（Joy）', path:'public/char/blue/joy.png'},
-  {color:'green',id:'calm',label:'グリーン（Calm）',path:'public/char/green/calm.png'},
-  {color:'green',id:'joy', label:'グリーン（Joy）', path:'public/char/green/joy.png'},
-  {color:'purple',id:'calm',label:'パープル（Calm）',path:'public/char/purple/calm.png'},
-  {color:'purple',id:'joy', label:'パープル（Joy）', path:'public/char/purple/joy.png'}
+ {color:'blue',id:'calm',label:'ブルー（Calm）',path:'public/char/blue/calm.png'},
+ {color:'blue',id:'joy',label:'ブルー（Joy）',path:'public/char/blue/joy.png'},
+ {color:'pink',id:'calm',label:'ピンク（Calm）',path:'public/char/pink/calm.png'},
+ {color:'pink',id:'joy',label:'ピンク（Joy）',path:'public/char/pink/joy.png'},
+ {color:'green',id:'calm',label:'グリーン（Calm）',path:'public/char/green/calm.png'},
+ {color:'green',id:'joy',label:'グリーン（Joy）',path:'public/char/green/joy.png'},
+ {color:'purple',id:'calm',label:'パープル（Calm）',path:'public/char/purple/calm.png'},
+ {color:'purple',id:'joy',label:'パープル（Joy）',path:'public/char/purple/joy.png'}
 ];
-function loadImageWithFallback(targetEl, paths){
-  let i=0; const tmp=new Image();
-  tmp.onload=()=>{ targetEl.src=tmp.src; };
-  tmp.onerror=()=>{ i++; if(i<paths.length){ tmp.src=paths[i]; } };
-  tmp.src=paths[0];
-}
-function loadPetImage(color,id){
-  const el=document.getElementById('petImg');
-  loadImageWithFallback(el,[
-    `public/char/${color}/${id}.png`,
-    `./public/char/${color}/${id}.png`,
-    `char/${color}/${id}.png`,
-    `./char/${color}/${id}.png`,
-    `public/char/blue/calm.png`
-  ]);
-}
-function applyChar(){
-  const color=get(LS.CHAR_COLOR,'blue');
-  const id   =get(LS.CHAR_ID,'calm');
-  const label=get(LS.CHAR_LABEL,'（未選択）');
-  const nm   =get(LS.CHAR_NAME,'');
-  loadPetImage(color,id);
-  document.getElementById('charLabel').textContent = nm?`${nm}（${label}）`:label;
-}
-function buildGrid(){
-  const g=document.getElementById('charGrid'); g.innerHTML='';
-  CATALOG.forEach(c=>{
-    const b=document.createElement('button'); b.className='btn btn-ghost'; b.style.display='grid'; b.style.placeItems='center'; b.style.padding='8px';
-    b.innerHTML=`<img src="${c.path}" alt="${c.label}" style="width:120px;height:120px;object-fit:contain"><div class="muted" style="margin-top:6px">${c.label}</div>`;
-    b.onclick=()=>{ if(get(LS.TOTAL,0)<3){ toast('⚠ 3回達成で解放されます'); return; } set(LS.CHAR_COLOR,c.color); set(LS.CHAR_ID,c.id); set(LS.CHAR_LABEL,c.label); applyChar(); hideChoose(); toast(`${c.label} を選びました！`); };
-    g.appendChild(b);
-  });
-}
-function showChoose(){ buildGrid(); document.getElementById('charModal').classList.remove('hidden'); }
-function hideChoose(){ document.getElementById('charModal').classList.add('hidden'); }
-document.getElementById('chooseBtn').onclick=showChoose;
-document.getElementById('closeChar').onclick=hideChoose;
-/* naming */
-document.getElementById('renameBtn').onclick=()=>{ if(get(LS.TOTAL,0)>=5) document.getElementById('nameModal').classList.remove('hidden'); else toast('⚠ 5回達成で解放されます'); };
-document.getElementById('cancelName').onclick=()=> document.getElementById('nameModal').classList.add('hidden');
-document.getElementById('saveName').onclick=()=>{ const v=document.getElementById('petName').value.trim(); if(!v) return; set(LS.CHAR_NAME,v); document.getElementById('nameModal').classList.add('hidden'); applyChar(); toast('💾 名前を保存しました'); };
+function loadImageWithFallback(target, paths){let i=0;const tmp=new Image();tmp.onload=()=>target.src=tmp.src;tmp.onerror=()=>{i++;if(i<paths.length)tmp.src=paths[i];};tmp.src=paths[0];}
+function loadPetImage(color,id){const el=$('#petImg');loadImageWithFallback(el,[`public/char/${color}/${id}.png`,`./public/char/${color}/${id}.png`,`char/${color}/${id}.png`,`./char/${color}/${id}.png`,`public/char/blue/calm.png`]);}
+function applyChar(){const c=get(LS.CHAR_COLOR,'blue');const i=get(LS.CHAR_ID,'calm');const l=get(LS.CHAR_LABEL,'（未選択）');loadPetImage(c,i);$('#charLabel').textContent=l;}
+function showChoose(){const g=$('#charGrid');g.innerHTML='';CATALOG.forEach(c=>{const b=document.createElement('button');b.className='btn btn-ghost';b.innerHTML=`<img src='${c.path}' style='width:120px;height:120px'><div>${c.label}</div>`;b.onclick=()=>{set(LS.CHAR_COLOR,c.color);set(LS.CHAR_ID,c.id);set(LS.CHAR_LABEL,c.label);applyChar();$('#charModal').classList.add('hidden');toast(`${c.label} を選びました！`);};g.appendChild(b);});$('#charModal').classList.remove('hidden');}
+$('#chooseBtn').onclick=showChoose;$('#closeChar').onclick=()=>$('#charModal').classList.add('hidden');
 
-/* ===== other ===== */
-function goRoom(mode){ location.href=`room.html?mode=${mode}`; }
-function setHello(){ const nm=get(LS.YOU,''); document.getElementById('helloPill').textContent=nm?`👋 ${nm}さん、ようこそ！`:'👋 ようこそ'; }
-document.getElementById('startBtn').onclick=()=>{ const v=document.getElementById('youName').value.trim(); if(v) set(LS.YOU,v); sessionStorage.setItem('meai_cover_seen','1'); document.getElementById('cover').classList.add('hidden'); setHello(); };
-function wander(){ const pad=100; const x=pad+Math.random()*(innerWidth-pad*2); const y=pad+Math.random()*(innerHeight-pad*2); const r=(Math.random()*14-7); const p=document.getElementById('pet'); p.style.transition='transform 2.6s ease,left 2.6s ease,top 2.6s ease'; p.style.left=x+'px'; p.style.top=y+'px'; p.style.transform=`translate(-50%,-50%) rotate(${r}deg)`; }
+/* === お世話へ === */
+function goRoom(mode){location.href=`room.html?mode=${mode}`;}
+function setHello(){const n=get(LS.YOU,'');$('#helloPill').textContent=n?`👋 ${n}さん、ようこそ！`:'👋 ようこそ';}
+
+/* === Cover === */
+$('#startBtn').onclick=()=>{const v=$('#youName').value.trim();if(v)set(LS.YOU,v);sessionStorage.setItem('meai_cover_seen','1');$('#cover').classList.add('hidden');setHello();}
+
+/* === wander === */
+function wander(){const pad=100;const x=pad+Math.random()*(innerWidth-pad*2);const y=pad+Math.random()*(innerHeight-pad*2);const r=(Math.random()*14-7);const p=$('#pet');p.style.transition='2.6s ease';p.style.left=x+'px';p.style.top=y+'px';p.style.transform=`translate(-50%,-50%) rotate(${r}deg)`;}
 setInterval(wander,3000);
 
-/* ===== init ===== */
-document.addEventListener('DOMContentLoaded', ()=>{
-  document.getElementById('hearts').textContent=get(LS.HEARTS,0);
-  document.getElementById('notes').textContent=get(LS.NOTES,0);
-  setHello();
-  if(sessionStorage.getItem('meai_cover_seen')==='1') document.getElementById('cover').classList.add('hidden');
-  applyLang();
-  applyChar();
-  newTask(); syncDaily();
+/* === init === */
+document.addEventListener('DOMContentLoaded',()=>{
+ setHello();
+ applyChar();
+ if(sessionStorage.getItem('meai_cover_seen')==='1')$('#cover').classList.add('hidden');
+ // smile.png 対策：見つけたら calm.png に差し替え
+ document.querySelectorAll('img[src$=\"smile.png\"]').forEach(img=>img.src='public/char/blue/calm.png');
 });
 </script>
 </body>
