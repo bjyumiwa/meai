@@ -6,113 +6,82 @@
 <title>MeAI | index</title>
 <link rel="icon" href="data:,">
 <style>
-  :root{
-    --glass-bg: rgba(255,255,255,0.03);
-    --glass-border: rgba(255,255,255,0.08);
-    --blue:#60a5fa;
-    --ok:#5be37e;
-  }
+  :root{ --glass-bg: rgba(255,255,255,.03); --glass-bd: rgba(255,255,255,.08); --blue:#60a5fa; --ok:#5be37e; }
   html,body{height:100%}
-  body{
-    margin:0;
-    font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    background:#000 url("public/space_background.png") center/cover fixed no-repeat;
-    color:#fff; overflow:hidden;
-  }
+  body{ margin:0; font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+        background:#000 url("public/space_background.png") center/cover fixed no-repeat; color:#fff; overflow:hidden; }
   .hidden{display:none!important}
-  .stars,.stars::after{
-    position:fixed;inset:0;content:"";pointer-events:none;
-    background:radial-gradient(white 1px,transparent 1px) 0 0/3px 3px;
-    opacity:.22;animation:twinkle 10s linear infinite;
-  }
+  .stars,.stars::after{position:fixed;inset:0;content:"";pointer-events:none;background:radial-gradient(#fff 1px,transparent 1px) 0 0/3px 3px;opacity:.22;animation:twinkle 10s linear infinite}
   .stars::after{animation-duration:15s;opacity:.15;filter:blur(.6px) brightness(1.2)}
   @keyframes twinkle{0%{transform:translateY(0)}100%{transform:translateY(-3px)}}
-
-  .card{
-    background:var(--glass-bg);
-    border:1px solid var(--glass-border);
-    border-radius:22px;
-    padding:18px 20px;
-    backdrop-filter:blur(14px) saturate(120%);
-  }
-
-  .btn{
-    display:inline-flex;align-items:center;justify-content:center;
-    border:none;border-radius:999px;padding:10px 18px;
-    color:#fff;font-weight:700;cursor:pointer;
-    transition:.25s background;
-  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 18px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 4px}
+  .pill{background:rgba(255,255,255,.10);border-radius:999px;padding:6px 10px}
+  select{background:rgba(255,255,255,.10);border:none;color:#fff;border-radius:12px;padding:6px 10px}
+  .row{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:880px){.row{grid-template-columns:1.15fr .85fr}}
+  .card{background:var(--glass-bg);border:1px solid var(--glass-bd);border-radius:22px;padding:18px 20px;backdrop-filter:blur(14px) saturate(120%)}
+  .title{font-weight:800;margin:0 0 8px}
+  .muted{opacity:.85}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;border:none;border-radius:999px;padding:10px 16px;color:#fff;font-weight:700;cursor:pointer}
+  .btn-ghost{background:rgba(255,255,255,.12)}
   .btn-good{background:var(--ok)}
-  .btn-ghost{background:rgba(255,255,255,0.1)}
-  .btn:hover{filter:brightness(1.2)}
   .btn[disabled]{opacity:.5;cursor:not-allowed}
-  .title{font-weight:700;font-size:1.1rem}
-  .muted{opacity:.85;font-size:.9rem}
-  select{
-    background:rgba(255,255,255,0.1);color:#fff;border:none;
-    border-radius:12px;padding:6px 12px;
-  }
-  .topbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:10px 20px}
-  .pill{background:rgba(255,255,255,0.1);border-radius:999px;padding:6px 10px}
-  .wrap{max-width:880px;margin:0 auto;padding:0 20px}
-  .row{display:grid;grid-template-columns:1fr;gap:16px;margin-top:10px}
-  @media(min-width:880px){.row{grid-template-columns:1.1fr .9fr}}
-
-  #pet{position:fixed;left:50%;top:55%;transform:translate(-50%,-50%) rotate(0deg);
-    width:150px;height:150px;z-index:30;
-    animation:yura 3.6s ease-in-out infinite;
-    filter:drop-shadow(0 10px 24px rgba(0,0,0,.55));
-  }
+  /* pet */
+  #pet{position:fixed;left:50%;top:55%;transform:translate(-50%,-50%);width:150px;height:150px;z-index:30;filter:drop-shadow(0 10px 24px rgba(0,0,0,.55));animation:yura 3.6s ease-in-out infinite;pointer-events:none}
   #pet img{width:100%;height:100%;object-fit:contain}
   @keyframes yura{0%,100%{transform:translate(-50%,-50%) rotate(-3deg)}50%{transform:translate(-50%,-52%) rotate(3deg)}}
-
-  /* Cover */
+  /* cover */
   .cover{position:fixed;inset:0;display:grid;place-items:center;z-index:100;background:#000}
-  .cover-inner{text-align:center}
-  .input{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.2);background:#111;color:#fff;min-width:220px}
+  .cover .inner{text-align:center}
+  .input{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:#111;color:#fff;min-width:220px}
   .nameRow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
-
-  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
-         background:#171717;border:1px solid rgba(255,255,255,0.2);
-         padding:10px 14px;border-radius:999px;z-index:90}
+  /* modal */
+  .modal{position:fixed;inset:0;display:grid;place-items:center;background:rgba(0,0,0,.55);z-index:80}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#171717;border:1px solid var(--glass-bd);padding:10px 14px;border-radius:999px;z-index:90}
 </style>
 </head>
 <body>
 <div class="stars"></div>
-<div id="pet"><img id="petImg" src="public/char/blue/calm.png"></div>
-
-<div class="topbar">
-  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-    <div class="pill" id="helloPill">👋 ようこそ</div>
-    <select id="langSelect">
-      <option value="ja">日本語</option>
-      <option value="en">English</option>
-      <option value="ko">한국어</option>
-      <option value="zh">中文</option>
-    </select>
-    <a class="btn-ghost btn" href="research.html">📘 研究 / Research</a>
-  </div>
-  <div style="display:flex;align-items:center;gap:8px">
-    <div class="pill">❤️ <span id="hearts">0</span></div>
-    <div class="pill">♪ <span id="notes">0</span></div>
-  </div>
-</div>
+<div id="pet"><img id="petImg" src="public/char/blue/calm.png" alt=""></div>
 
 <div class="wrap">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="pill" id="helloPill">👋 ようこそ</div>
+      <select id="langSelect"><option value="ja">日本語</option><option value="en">English</option><option value="ko">한국어</option><option value="zh">中文</option></select>
+      <a class="btn btn-ghost" href="research.html">📘 研究 / Research</a>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="pill">❤️ <span id="hearts">0</span></div>
+      <div class="pill">♪ <span id="notes">0</span></div>
+    </div>
+  </div>
+
   <div class="row">
+    <!-- Proposals -->
     <div class="card">
-      <div class="title">今日のミッション</div>
-      <p id="taskText">5秒だけ目を閉じて音を聞いてみよう。</p>
+      <div class="title" id="t_mission">今日のミッション</div>
+      <div class="muted" id="taskText">5秒だけ目を閉じて音を聞いてみよう。</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
         <button id="doneBtn" class="btn btn-good">やった！</button>
         <button id="nextBtn" class="btn btn-ghost">次の提案</button>
+        <span class="pill hidden" id="limitPill">⏳ 本日は終了</span>
       </div>
-      <p class="muted" style="margin-top:10px">※ 1日3つまで。3回でキャラ選択、5回で命名が解放されます。</p>
+      <p class="muted" style="margin-top:10px">※ 1日3つまで。<b>3回</b>でキャラ選択、<b>5回</b>で命名が解放されます。</p>
     </div>
 
+    <!-- Character & Care -->
     <div class="card">
-      <div class="title">お世話コーナー</div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:10px">
+      <div class="title" id="t_char">キャラ</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="pill" id="charLabel">（未選択）</div>
+        <button class="btn btn-ghost" id="chooseBtn">キャラ選択</button>
+        <button class="btn btn-ghost" id="renameBtn" disabled>名前</button>
+      </div>
+      <div class="title" style="margin-top:14px">お世話コーナー</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px">
         <button class="btn" onclick="goRoom('feed')">🍙 ご飯をあげる</button>
         <button class="btn" onclick="goRoom('water')">💧 お水をあげる</button>
         <button class="btn" onclick="goRoom('pet')">🤲 なでる</button>
@@ -122,47 +91,110 @@
   </div>
 </div>
 
-<!-- Cover -->
+<!-- Cover (AKO) -->
 <div class="cover" id="cover">
-  <div class="cover-inner">
-    <img src="public/char/ako2.png" style="width:min(300px,60vw);border-radius:20px;filter:drop-shadow(0 20px 40px rgba(0,0,0,.45))">
-    <h1>アコ / AKO</h1>
-    <p>小さな“やってみる”を、やさしく提案してくれる相棒。</p>
+  <div class="inner">
+    <img src="public/char/ako2.png" style="width:min(300px,60vw);border-radius:20px;filter:drop-shadow(0 20px 40px rgba(0,0,0,.45));">
+    <h1 style="margin:8px 0 0">アコ / AKO</h1>
+    <p class="muted" id="coverLead">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
     <div class="nameRow">
-      <input id="youName" class="input" placeholder="あなたの名前">
-      <button id="startBtn" class="btn">はじめる</button>
+      <input id="youName" class="input" placeholder="あなたの名前（例：みわ）">
+      <button id="startBtn" class="btn btn-ghost">はじめる</button>
     </div>
+  </div>
+</div>
+
+<!-- Character select -->
+<div class="modal hidden" id="charModal">
+  <div class="card" style="width:min(780px,92vw)">
+    <div class="title" id="chooseTitle">キャラを選ぼう（ピンク/ブルー/グリーン/パープル）</div>
+    <div class="grid" id="charGrid" style="margin-top:10px"></div>
+    <div style="text-align:right;margin-top:10px"><button class="btn btn-ghost" id="closeChar">閉じる</button></div>
+  </div>
+</div>
+
+<!-- Name modal -->
+<div class="modal hidden" id="nameModal">
+  <div class="card" style="width:min(560px,92vw)">
+    <div class="title">キャラに名前をつけよう（5回で解放）</div>
+    <input id="petName" class="input" placeholder="キャラの名前" style="width:100%;margin:10px 0 12px">
+    <div style="text-align:right"><button class="btn btn-ghost" id="cancelName">やめる</button> <button class="btn" id="saveName">保存</button></div>
   </div>
 </div>
 
 <div class="toast hidden" id="toast"></div>
 
 <script>
-const LS={YOU:'meai_you',HEARTS:'meai_hearts',NOTES:'meai_notes',CHAR_COLOR:'meai_char_color',CHAR_ID:'meai_char_id'};
-function $(q){return document.querySelector(q)}
-function set(k,v){localStorage.setItem(k,v)};function get(k,d){return localStorage.getItem(k)||d}
-function inc(k,by=1){let v=Number(get(k,0))+by;set(k,v);return v}
+/* ===== LS & helpers ===== */
+const LS={YOU:'meai_you',HEARTS:'meai_hearts',NOTES:'meai_notes',DAILY_COUNT:'meai_daily_count',DAILY_DATE:'meai_daily_date',TOTAL:'meai_total',LANG:'meai_lang',CHAR_COLOR:'meai_char_color',CHAR_ID:'meai_char_id',CHAR_LABEL:'meai_char_label',CHAR_NAME:'meai_char_name'};
+const $=q=>document.querySelector(q);
+const set=(k,v)=>localStorage.setItem(k,String(v));
+const get=(k,d)=>{const v=localStorage.getItem(k);return v===null?d:isNaN(v)?v:Number(v)};
+const inc=(k,by=1)=>{const v=get(k,0)+by; set(k,v); return v};
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.remove('hidden'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.add('hidden'),1400); }
 
-const PROPOSALS=['コップ一杯のお水を飲んでみよう。','背伸びして深呼吸をしてみよう。','5秒だけ目を閉じて音を聞いてみよう。','今日の空を眺めて一言。','手を温めてみよう。'];
+/* ===== i18n (簡易) ===== */
+const I18N={
+  ja:{start:'はじめる', lead:'小さな“やってみる”を、やさしく提案してくれる相棒。', mission:'今日のミッション', done:'やった！', next:'次の提案', choose:'キャラ選択', rename:'名前'},
+  en:{start:'Start', lead:'A gentle buddy that suggests tiny try-it actions.', mission:"Today's Mission", done:'Done!', next:'Next', choose:'Choose', rename:'Name'},
+  ko:{start:'시작', lead:'작은 실천을 부드럽게 제안하는 동반자.', mission:'오늘의 미션', done:'했어!', next:'다음', choose:'선택', rename:'이름'},
+  zh:{start:'开始', lead:'温柔提出小小行动的伙伴。', mission:'今日任务', done:'完成！', next:'下一个', choose:'选择', rename:'命名'}
+};
+const langSel=$('#langSelect');
+function curLang(){ let l=localStorage.getItem(LS.LANG); if(!l){ const c=(navigator.language||'ja').slice(0,2); l=(c in I18N)?c:'ja'; set(LS.LANG,l);} return l; }
+function t(k){ return I18N[curLang()][k]||k; }
+function applyLang(){ $('#coverLead').textContent=t('lead'); $('#t_mission').textContent=t('mission'); $('#doneBtn').textContent=t('done'); $('#nextBtn').textContent=t('next'); $('#chooseTitle').textContent='キャラを選ぼう（ピンク/ブルー/グリーン/パープル）'; langSel.value=curLang(); }
+langSel.addEventListener('change',e=>{ set(LS.LANG,e.target.value); applyLang(); });
+
+/* ===== proposals (1日3つ) ===== */
+const PROPOSALS=['コップ一杯のお水を飲んでみよう。','背伸びをして深呼吸を3回。','5秒だけ目を閉じて音を聞いてみよう。','空の色を一言でメモ。','手のひらを温めてみよう。'];
 function newTask(){ $('#taskText').textContent=PROPOSALS[Math.floor(Math.random()*PROPOSALS.length)] }
-$('#nextBtn').onclick=newTask;
-$('#doneBtn').onclick=()=>{inc(LS.HEARTS,1);$('#hearts').textContent=get(LS.HEARTS,0);showToast('❤️ +1');}
+function syncDaily(){ const d=new Date().toISOString().slice(0,10); const last=localStorage.getItem(LS.DAILY_DATE); if(d!==last){ set(LS.DAILY_DATE,d); set(LS.DAILY_COUNT,0); } const c=get(LS.DAILY_COUNT,0); const ended=c>=3; $('#limitPill').classList.toggle('hidden',!ended); $('#doneBtn').disabled=ended; $('#nextBtn').disabled=ended; }
+$('#nextBtn').onclick=()=>{ newTask(); toast('📮 新しい提案！'); };
+$('#doneBtn').onclick=()=>{ const c=inc(LS.DAILY_COUNT,1); inc(LS.TOTAL,1); $('#hearts').textContent=inc(LS.HEARTS,1); syncDaily(); newTask(); if(!get(LS.CHAR_ID,'') && get(LS.TOTAL,0)>=3){ showChoose(); toast('🎉 キャラ選択が解放されました'); } if(get(LS.TOTAL,0)>=5){ $('#renameBtn').disabled=false; } };
 
-function goRoom(mode){location.href=`room.html?mode=${mode}`;}
-function showToast(m){const t=$('#toast');t.textContent=m;t.classList.remove('hidden');clearTimeout(showToast._t);showToast._t=setTimeout(()=>t.classList.add('hidden'),1200)}
+/* ===== character (4色×2表情) ===== */
+const CATALOG=[
+  {color:'pink',id:'calm',label:'ピンク（Calm）',path:'public/char/pink/calm.png'},
+  {color:'pink',id:'joy', label:'ピンク（Joy）', path:'public/char/pink/joy.png'},
+  {color:'blue',id:'calm',label:'ブルー（Calm）',path:'public/char/blue/calm.png'},
+  {color:'blue',id:'joy', label:'ブルー（Joy）', path:'public/char/blue/joy.png'},
+  {color:'green',id:'calm',label:'グリーン（Calm）',path:'public/char/green/calm.png'},
+  {color:'green',id:'joy', label:'グリーン（Joy）', path:'public/char/green/joy.png'},
+  {color:'purple',id:'calm',label:'パープル（Calm）',path:'public/char/purple/calm.png'},
+  {color:'purple',id:'joy', label:'パープル（Joy）', path:'public/char/purple/joy.png'}
+];
+function applyChar(){ const color=get(LS.CHAR_COLOR,''); const id=get(LS.CHAR_ID,''); const label=get(LS.CHAR_LABEL,'（未選択）'); const nm=get(LS.CHAR_NAME,''); $('#petImg').src=(color&&id)?`public/char/${color}/${id}.png`:'public/char/blue/calm.png'; $('#charLabel').textContent= nm?`${nm}（${label}）`:label; }
+function buildGrid(){ const g=$('#charGrid'); g.innerHTML=''; CATALOG.forEach(c=>{ const b=document.createElement('button'); b.className='btn btn-ghost'; b.style.display='grid'; b.style.placeItems='center'; b.style.padding='8px'; b.innerHTML=`<img src="${c.path}" alt="${c.label}" style="width:120px;height:120px;object-fit:contain"><div class="muted" style="margin-top:6px">${c.label}</div>`; b.onclick=()=>{ if(get(LS.TOTAL,0)<3){ toast('⚠ 3回達成で解放されます'); return; } set(LS.CHAR_COLOR,c.color); set(LS.CHAR_ID,c.id); set(LS.CHAR_LABEL,c.label); applyChar(); hideChoose(); toast(`${c.label} を選びました！`); }; g.appendChild(b); }); }
+function showChoose(){ buildGrid(); $('#charModal').classList.remove('hidden'); }
+function hideChoose(){ $('#charModal').classList.add('hidden'); }
+$('#chooseBtn').onclick=showChoose; $('#closeChar').onclick=hideChoose;
+/* naming */
+$('#renameBtn').onclick=()=>{ if(get(LS.TOTAL,0)>=5) $('#nameModal').classList.remove('hidden'); else toast('⚠ 5回達成で解放されます'); };
+$('#cancelName').onclick=()=> $('#nameModal').classList.add('hidden');
+$('#saveName').onclick=()=>{ const v=$('#petName').value.trim(); if(!v) return; set(LS.CHAR_NAME,v); $('#nameModal').classList.add('hidden'); applyChar(); toast('💾 名前を保存しました'); };
 
-function setHello(){const nm=get(LS.YOU,'');$('#helloPill').textContent=nm?`👋 ${nm}さん、ようこそ！`:'👋 ようこそ'}
-$('#startBtn').onclick=()=>{const v=$('#youName').value.trim();if(v)set(LS.YOU,v);sessionStorage.setItem('meai_cover_seen','1');$('#cover').classList.add('hidden');setHello();}
+/* ===== nav to care rooms ===== */
+function goRoom(mode){ location.href = `room.html?mode=${mode}`; }
 
-function wander(){const pad=100;const x=pad+Math.random()*(innerWidth-pad*2);const y=pad+Math.random()*(innerHeight-pad*2);const r=(Math.random()*14-7);const p=$('#pet');p.style.transition='2.6s ease';p.style.left=x+'px';p.style.top=y+'px';p.style.transform=`translate(-50%,-50%) rotate(${r}deg)`;}
+/* ===== cover & hello ===== */
+function setHello(){ const nm=get(LS.YOU,''); $('#helloPill').textContent=nm?`👋 ${nm}さん、ようこそ！`:'👋 ようこそ'; }
+$('#startBtn').onclick=()=>{ const v=$('#youName').value.trim(); if(v) set(LS.YOU,v); sessionStorage.setItem('meai_cover_seen','1'); $('#cover').classList.add('hidden'); setHello(); };
+
+/* ===== pet wandering ===== */
+function wander(){ const pad=100; const x=pad+Math.random()*(innerWidth-pad*2); const y=pad+Math.random()*(innerHeight-pad*2); const r=(Math.random()*14-7); const p=$('#pet'); p.style.transition='transform 2.6s ease,left 2.6s ease,top 2.6s ease'; p.style.left=x+'px'; p.style.top=y+'px'; p.style.transform=`translate(-50%,-50%) rotate(${r}deg)`; }
 setInterval(wander,3000);
 
-document.addEventListener('DOMContentLoaded',()=>{
-  $('#hearts').textContent=get(LS.HEARTS,0);
-  $('#notes').textContent=get(LS.NOTES,0);
+/* ===== init ===== */
+function init(){
+  applyLang();
+  $('#hearts').textContent=get(LS.HEARTS,0); $('#notes').textContent=get(LS.NOTES,0);
   setHello();
-  if(sessionStorage.getItem('meai_cover_seen')==='1')$('#cover').classList.add('hidden');
-});
+  if(sessionStorage.getItem('meai_cover_seen')==='1') $('#cover').classList.add('hidden');
+  applyChar();
+  newTask(); syncDaily();
+}
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
