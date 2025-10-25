@@ -101,7 +101,7 @@
     <div class="row" style="justify-content:space-between; margin-bottom:12px;">
       <h1>MeAI – 今日は何を提案してくれる？</h1>
       <div class="row">
-        <a id="toCare" class="btn" href="care.html">お世話コーナーへ</a>
+        <a id="toCare" class="btn" href="Room.html">お世話コーナーへ</a>
         <button id="exportCsv" class="btn">CSVを書き出す</button>
       </div>
     </div>
@@ -235,7 +235,6 @@ function setEmotion(st, emotion='calm'){
   const img = $('#charImg');
   img.src = `public/char/${color}/${EMOTIONS.includes(emotion)?emotion:'calm'}.png`;
 }
-
 function helloLine(st){
   const name = st.userName || 'あなた';
   const t = todayStr();
@@ -301,33 +300,20 @@ function completeTask(task){
   const today = todayStr();
   const prog = loadDayProgress();
 
-  // すでに今日このタスクを押していれば無効化
-  if (prog.doneIds.includes(task.id)) {
-    alert('この提案は今日はもう達成済みだよ！');
-    return;
-  }
-  // 本日3回達成済みなら上限
-  if (prog.count >= DAILY_LIMIT) {
-    alert('今日は3つ達成！また明日いっしょにやろう。');
-    return;
-  }
+  if (prog.doneIds.includes(task.id)) { alert('この提案は今日はもう達成済みだよ！'); return; }
+  if (prog.count >= DAILY_LIMIT) { alert('今日は3つ達成！また明日いっしょにやろう。'); return; }
 
-  // streak処理
   if (st.lastActionDate !== today) {
     const yest = new Date(); yest.setDate(yest.getDate()-1);
     if (st.lastActionDate === ymd(yest)) st.streakDays += 1;
     else st.streakDays = 1;
-    st.stamps += 1; // その日1回以上の実行で付与
+    st.stamps += 1;
   }
 
-  // 心 & ログ
   st.hearts += task.heart;
   st.lastActionDate = today;
-
   const prevStage = st.stage;
   st.stage = evalStage(st);
-
-  // ご褒美サンプル
   if (prevStage !== st.stage){
     if (st.stage==='S1') st.unlocked.lines.push('再会:短い挨拶');
     if (st.stage==='S2') st.unlocked.skins.push('scarf');
@@ -340,15 +326,12 @@ function completeTask(task){
   log.push({date: today, taskId: task.id, category: task.cat, done:true, deltaHeart: task.heart});
   saveLog(log);
 
-  // 進捗更新（ボタン制御用）
   prog.doneIds.push(task.id);
   prog.count += 1;
   saveDayProgress(prog);
 
-  // 表情演出
   setEmotion(st, 'joy');
   setTimeout(()=>setEmotion(st, 'calm'), 1400);
-
   renderAll();
 }
 
@@ -367,19 +350,15 @@ function renderStatus(st){
     b.style.fontSize = '20px';
     row.appendChild(b);
   }
-  // 本日の達成数
   const prog = loadDayProgress();
   $('#doneCount').textContent = prog.count;
 }
-
 function renderTasks(tasks){
   const ul = $('#tasks'); ul.innerHTML='';
   const prog = loadDayProgress();
-
   tasks.forEach(t=>{
     const disabled = prog.doneIds.includes(t.id) || prog.count >= DAILY_LIMIT;
     const label = prog.doneIds.includes(t.id) ? '済' : 'やったよ';
-
     const li = document.createElement('li');
     li.className='task glass';
     li.innerHTML = `
@@ -391,7 +370,6 @@ function renderTasks(tasks){
     `;
     ul.appendChild(li);
   });
-
   ul.querySelectorAll('.doBtn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       if (btn.disabled) return;
@@ -401,12 +379,10 @@ function renderTasks(tasks){
     });
   });
 }
-
 function renderChar(st){
   setEmotion(st, 'calm');
   $('#hello').textContent = helloLine(st);
 }
-
 function renderAll(){
   const st = loadState();
   renderStatus(st);
@@ -443,14 +419,12 @@ function saveProfile(){
   localStorage.setItem(LS_USER, st.userName);
   localStorage.setItem(LS_COLOR, st.charColor);
   saveState(st);
-  // 今日の提案は固定のまま。色だけ反映
   renderAll();
 }
 function resetAll(){
   if (!confirm('すべての記録（ハート/スタンプ/ログ/本日の進捗）を初期化します。よろしいですか？')) return;
   localStorage.removeItem(LS_STATE);
   localStorage.removeItem(LS_LOG);
-  // 日替わりキャッシュと本日の進捗もクリア
   Object.keys(localStorage).forEach(k=>{
     if (k.startsWith(LS_DAY_PREFIX) || k.startsWith(LS_DAY_PROGRESS_PREFIX)) localStorage.removeItem(k);
   });
@@ -461,28 +435,26 @@ function resetAll(){
 function showCoverIfNeeded(){
   const seen = localStorage.getItem(LS_SEEN_COVER);
   if (!seen){
-    $('#cover').classList.remove('hidden');
-    // 既存の保存値があれば反映
+    document.getElementById('cover').classList.remove('hidden');
     const st = loadState();
-    $('#coverName').value = st.userName || '';
-    $('#coverColor').value = COLORS.includes(st.charColor)? st.charColor : 'blue';
+    document.getElementById('coverName').value = st.userName || '';
+    document.getElementById('coverColor').value = COLORS.includes(st.charColor)? st.charColor : 'blue';
   }
 }
 function hideCoverAndSave(){
-  const name = $('#coverName').value.trim();
-  const color = $('#coverColor').value;
+  const name = document.getElementById('coverName').value.trim();
+  const color = document.getElementById('coverColor').value;
   const st = loadState();
   if (name) { st.userName = name; localStorage.setItem(LS_USER, name); }
   if (COLORS.includes(color)) { st.charColor = color; localStorage.setItem(LS_COLOR, color); }
   saveState(st);
   localStorage.setItem(LS_SEEN_COVER, '1');
-  $('#cover').classList.add('hidden');
+  document.getElementById('cover').classList.add('hidden');
   renderAll();
 }
 
 /* ================== 起動 ================== */
 document.addEventListener('DOMContentLoaded', ()=>{
-  // 旧キーからの移行（あれば）
   if (localStorage.getItem('MEAI_STATE_V2') && !localStorage.getItem(LS_STATE)){
     try{ localStorage.setItem(LS_STATE, localStorage.getItem('MEAI_STATE_V2')); }catch(e){}
   }
@@ -494,23 +466,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
   renderAll();
   showCoverIfNeeded();
 
-  // UIイベント
-  $('#saveProfile').addEventListener('click', saveProfile);
-  $('#resetAll').addEventListener('click', resetAll);
-  $('#exportCsv').addEventListener('click', exportCSV);
+  document.getElementById('saveProfile').addEventListener('click', saveProfile);
+  document.getElementById('resetAll').addEventListener('click', resetAll);
+  document.getElementById('exportCsv').addEventListener('click', exportCSV);
 
-  $('#coverStart').addEventListener('click', hideCoverAndSave);
-  $('#coverSkip').addEventListener('click', ()=>{
+  document.getElementById('coverStart').addEventListener('click', hideCoverAndSave);
+  document.getElementById('coverSkip').addEventListener('click', ()=>{
     localStorage.setItem(LS_SEEN_COVER, '1');
-    $('#cover').classList.add('hidden');
+    document.getElementById('cover').classList.add('hidden');
     renderAll();
-  });
-
- <a id="toCare" class="btn" href="Room.html">お世話コーナーへ</a>
   });
 });
 
-/* 小さなヘルパー：hiddenクラスを用意 */
+/* 小さなヘルパー：hiddenクラス */
 document.head.insertAdjacentHTML('beforeend', `<style>.hidden{display:none!important;}</style>`);
 </script>
 </body>
