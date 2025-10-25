@@ -6,106 +6,90 @@
 <title>MeAI | Room</title>
 <link rel="icon" href="data:,">
 <style>
-  :root{ --glass: rgba(255,255,255,.05); --glass-b: rgba(255,255,255,.12); --blue:#60a5fa; }
+  :root{ --glass: rgba(255,255,255,.04); --glass-b: rgba(255,255,255,.12); --blue:#60a5fa; }
   html,body{height:100%}
-  body{ margin:0; font-family:"Noto Sans JP",system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; color:#fff; background:#0a0f1a; overflow:hidden; }
+  body{ margin:0; font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif; color:#fff; background:#0a0f1a; overflow:hidden; }
   .room{position:fixed;inset:0;overflow:hidden}
-  .bg{position:absolute;inset:0;z-index:0;background: radial-gradient(60% 80% at 70% 30%, #1d2b53, transparent 60%), radial-gradient(70% 90% at 20% 70%, #0b5b5b55, transparent 60%), url('public/space_background.png') center/cover fixed no-repeat; filter:brightness(.9)}
-  .floor{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%);width:80vw;height:22vh;background: radial-gradient(ellipse at center, rgba(0,0,0,.5), rgba(0,0,0,0) 70%);z-index:1}
-  #pet{position:absolute;z-index:25;width:160px;height:160px;transform-origin:50% 60%;filter:drop-shadow(0 10px 24px rgba(0,0,0,.5));animation:yura 3.4s ease-in-out infinite;left:50%;top:55%;transform:translate(-50%,-50%);pointer-events:none}
+  .bg{position:absolute;inset:0;background: radial-gradient(60% 80% at 70% 30%, #1d2b53, transparent 60%), radial-gradient(70% 90% at 20% 70%, #0b5b5b55, transparent 60%), url('public/space_background.png') center/cover fixed no-repeat; filter:brightness(.9)}
+  .floor{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%);width:80vw;height:22vh;background: radial-gradient(ellipse at center, rgba(0,0,0,.5), rgba(0,0,0,0) 70%)}
+  #pet{position:absolute;z-index:25;width:160px;height:160px;left:50%;top:55%;transform:translate(-50%,-50%);filter:drop-shadow(0 10px 24px rgba(0,0,0,.5));animation:yura 3.4s ease-in-out infinite;pointer-events:none}
   #pet img{width:100%;height:100%;object-fit:contain}
   @keyframes yura{0%,100%{transform:translate(-50%,-50%) rotate(-3deg)}50%{transform:translate(-50%,-52%) rotate(3deg)}}
-  .wrap{position:relative;z-index:2;max-width:980px;margin:0 auto;padding:14px}
-  .top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .wrap{position:relative;z-index:2;max-width:920px;margin:0 auto;padding:14px}
   .btn{display:inline-flex;align-items:center;gap:.5em;border:none;border-radius:999px;padding:10px 14px;cursor:pointer;color:#fff;background:var(--blue);font-weight:700}
   .btn-ghost{background:transparent;border:1px solid var(--glass-b)}
-  .pill{display:inline-flex;align-items:center;gap:.5em;padding:6px 10px;border-radius:999px;background:var(--glass);border:1px solid var(--glass-b)}
-  .card{background:var(--glass);border:1px solid var(--glass-b);border-radius:18px;padding:12px 14px;backdrop-filter: blur(6px) saturate(120%)}
+  .pill{background:rgba(255,255,255,.10);border-radius:999px;padding:6px 10px}
+  .card{background:var(--glass);border:1px solid var(--glass-b);border-radius:18px;padding:12px 14px;backdrop-filter:blur(6px) saturate(120%)}
   .prop{position:absolute;z-index:28;filter:drop-shadow(0 8px 16px rgba(0,0,0,.5))}
   .food{width:120px;height:120px;left:55%;top:62%;background:url('public/props/rice_bowl.png') center/contain no-repeat}
   .water{width:120px;height:120px;left:45%;top:62%;background:url('public/props/water_drop.png') center/contain no-repeat}
   .broom{width:140px;height:140px;left:52%;top:58%;background:url('public/props/broom.png') center/contain no-repeat}
   .hand{width:140px;height:140px;left:48%;top:50%;background:url('public/props/hand.png') center/contain no-repeat;animation:petHand 2.4s ease-in-out infinite}
   @keyframes petHand{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-  .noteBurst{position:absolute;z-index:40;font-size:22px;pointer-events:none;animation: rise 900ms ease-out forwards}
-  @keyframes rise{to{transform: translateY(-60px);opacity:0}}
-  .poop{position:absolute;z-index:35;font-size:40px;cursor:pointer;user-select:none;animation: floaty 2.2s ease-in-out infinite;filter: drop-shadow(0 0 8px rgba(0,0,0,.6))}
-  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .poop{position:absolute;z-index:35;font-size:40px;cursor:pointer;user-select:none;animation:float 2.2s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(0,0,0,.6))}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:#171717;border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:999px;z-index:999}
 </style>
 </head>
 <body>
 <div class="room">
   <div class="bg" id="bg"></div>
   <div class="floor"></div>
-  <div id="pet"><img id="petImg" src="public/char/blue/calm.png" alt="pet"></div>
+  <div id="pet"><img id="petImg" src="public/char/blue/calm.png" alt=""></div>
   <div id="prop" class="prop"></div>
 </div>
 
 <div class="wrap">
-  <div class="top">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <button class="btn-ghost btn" id="backBtn">← 戻る</button>
-      <div class="pill" id="modeLabel">room</div>
+      <span class="pill" id="modeLabel">room</span>
     </div>
     <div style="display:flex;align-items:center;gap:8px">
-      <div class="pill">❤️ <span id="hearts">0</span></div>
-      <div class="pill">♪ <span id="notes">0</span></div>
+      <span class="pill">❤️ <span id="hearts">0</span></span>
+      <span class="pill">♪ <span id="notes">0</span></span>
     </div>
   </div>
 
   <div class="card" style="margin-top:10px">
-    <div id="roomDesc" class="muted">お世話部屋へようこそ。</div>
+    <div id="desc" class="muted">お世話部屋へようこそ。</div>
   </div>
 </div>
 
-<div class="hud" style="position:fixed;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:8px;z-index:30">
+<div style="position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:30">
   <button class="btn" id="actionBtn">実行</button>
 </div>
 
+<div class="toast hidden" id="toast"></div>
+
 <script>
 const LS={HEARTS:'meai_hearts',NOTES:'meai_notes',CHAR_COLOR:'meai_char_color',CHAR_ID:'meai_char_id'};
-const get=(k,d)=>{const v=localStorage.getItem(k);return v===null?d:isNaN(v)?v:Number(v)};
+const $=q=>document.querySelector(q);
 const set=(k,v)=>localStorage.setItem(k,String(v));
+const get=(k,d)=>{const v=localStorage.getItem(k);return v===null?d:isNaN(v)?v:Number(v)};
 const inc=(k,by=1)=>{const v=get(k,0)+by; set(k,v); return v};
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.remove('hidden'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.add('hidden'),1200); }
 
-const q=new URLSearchParams(location.search);
-const MODE=q.get('mode')||'feed';
-
-const heartsEl=document.getElementById('hearts'), notesEl=document.getElementById('notes');
-const petImg=document.getElementById('petImg'), prop=document.getElementById('prop');
-const modeLabel=document.getElementById('modeLabel'), roomDesc=document.getElementById('roomDesc');
-const actionBtn=document.getElementById('actionBtn'), bg=document.getElementById('bg');
-
-function setPetImage(){ const color=get(LS.CHAR_COLOR,'blue'), id=get(LS.CHAR_ID,'calm'); petImg.src=`public/char/${color}/${id}.png`; }
-function toast(m){ const t=document.createElement('div'); t.textContent=m; Object.assign(t.style,{position:'fixed',left:'50%',top:'14px',transform:'translateX(-50%)',background:'#171717',border:'1px solid rgba(255,255,255,.2)',padding:'8px 12px',borderRadius:'999px',zIndex:'999'}); document.body.appendChild(t); setTimeout(()=>t.remove(),1400); }
-function burstNote(x,y){ const b=document.createElement('div'); b.className='noteBurst'; b.textContent='♪'; b.style.left=x+'px'; b.style.top=y+'px'; document.body.appendChild(b); setTimeout(()=>b.remove(),900); }
-
+const MODE=new URLSearchParams(location.search).get('mode')||'feed';
+function setPet(){ const color=get(LS.CHAR_COLOR,'blue'), id=get(LS.CHAR_ID,'calm'); $('#petImg').src=`public/char/${color}/${id}.png`; }
 function setRoom(){
-  prop.className='prop';
-  switch(MODE){
-    case 'feed': modeLabel.textContent='ご飯の部屋'; roomDesc.textContent='🍙 ご飯をあげよう'; prop.classList.add('food'); bg.style.filter='hue-rotate(-10deg) brightness(.9)'; break;
-    case 'water': modeLabel.textContent='お水の部屋'; roomDesc.textContent='💧 お水をあげよう'; prop.classList.add('water'); bg.style.filter='hue-rotate(-60deg) brightness(.95)'; break;
-    case 'pet': modeLabel.textContent='なでなでの部屋'; roomDesc.textContent='🤲 なでてあげよう'; prop.classList.add('hand'); bg.style.filter='hue-rotate(40deg) brightness(.95)'; break;
-    case 'clean': modeLabel.textContent='お掃除の部屋'; roomDesc.textContent='🧹 お片づけしよう'; prop.classList.add('broom'); bg.style.filter='hue-rotate(180deg) brightness(.9)'; spawnPoops(3); break;
-  }
+  const p=$('#prop'); p.className='prop';
+  if(MODE==='feed'){ $('#desc').textContent='🍙 ご飯をあげよう'; $('#modeLabel').textContent='ご飯の部屋'; p.classList.add('food'); }
+  if(MODE==='water'){ $('#desc').textContent='💧 お水をあげよう'; $('#modeLabel').textContent='お水の部屋'; p.classList.add('water'); }
+  if(MODE==='pet'){ $('#desc').textContent='🤲 なでてあげよう'; $('#modeLabel').textContent='なでなでの部屋'; p.classList.add('hand'); }
+  if(MODE==='clean'){ $('#desc').textContent='🧹 お片づけしよう'; $('#modeLabel').textContent='お掃除の部屋'; p.classList.add('broom'); poopMany(3); }
 }
-function spawnPoop(){ const el=document.createElement('div'); el.className='poop'; el.textContent='💩'; el.style.left=(Math.random()*(innerWidth-60)+30)+'px'; el.style.top=(Math.random()*(innerHeight-260)+140)+'px'; document.body.appendChild(el); el.onclick=()=>{ el.remove(); burstNote(innerWidth/2,innerHeight/2); toast('🧹 Clean!'); }; }
-function spawnPoops(n){ for(let i=0;i<n;i++) setTimeout(spawnPoop,i*600); }
+function poop(){ const d=document.createElement('div'); d.className='poop'; d.textContent='💩'; d.style.left=(Math.random()*(innerWidth-60)+30)+'px'; d.style.top=(Math.random()*(innerHeight-260)+140)+'px'; document.body.appendChild(d); d.onclick=()=>{ d.remove(); toast('🧹 Clean!'); }; }
+function poopMany(n){ for(let i=0;i<n;i++) setTimeout(poop,i*500); }
 
-function act(){
-  switch(MODE){
-    case 'feed': heartsEl.textContent=inc(LS.HEARTS,1); toast('🍙 もぐもぐ！'); break;
-    case 'water': notesEl.textContent=inc(LS.NOTES,1); toast('💧 ごくごく！'); break;
-    case 'pet': heartsEl.textContent=inc(LS.HEARTS,2); toast('🤲 よしよし！'); break;
-    case 'clean': toast('🧹 ぴかぴか！'); document.querySelectorAll('.poop').forEach(p=>p.remove()); break;
-  }
-}
+$('#actionBtn').onclick=()=>{ if(MODE==='feed'){ $('#hearts').textContent=inc(LS.HEARTS,1); toast('🍙 もぐもぐ！'); }
+  if(MODE==='water'){ $('#notes').textContent=inc(LS.NOTES,1); toast('💧 ごくごく！'); }
+  if(MODE==='pet'){ $('#hearts').textContent=inc(LS.HEARTS,2); toast('🤲 よしよし！'); }
+  if(MODE==='clean'){ document.querySelectorAll('.poop').forEach(p=>p.remove()); toast('✨ ぴかぴか！'); } };
 
-document.getElementById('backBtn').onclick=()=>history.back();
-actionBtn.onclick=act;
+$('#backBtn').onclick=()=>history.back();
 
-function init(){ heartsEl.textContent=get(LS.HEARTS,0); notesEl.textContent=get(LS.NOTES,0); setPetImage(); setRoom(); }
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', ()=>{ $('#hearts').textContent=get(LS.HEARTS,0); $('#notes').textContent=get(LS.NOTES,0); setPet(); setRoom(); });
 </script>
 </body>
 </html>
