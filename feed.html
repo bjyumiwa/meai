@@ -1,0 +1,58 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Feed Room</title><style>
+html,body{height:100%;margin:0;background:#000 url("public/space_background.png") center/cover fixed no-repeat;color:#fff;font-family:"Noto Sans JP",system-ui}
+.btn{border:none;border-radius:999px;padding:10px 14px;background:#60a5fa;color:#fff;font-weight:700;cursor:pointer}
+.pill{background:rgba(255,255,255,.12);padding:6px 10px;border-radius:999px}
+.top{position:fixed;left:50%;top:14px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;z-index:10}
+#pet{position:fixed;left:50%;top:62%;transform:translate(-50%,-50%);width:140px;height:140px;z-index:4;pointer-events:none;filter:drop-shadow(0 10px 24px rgba(0,0,0,.6))}
+#pet img{width:100%;height:100%;object-fit:contain;animation:yura 3.4s ease-in-out infinite}
+@keyframes yura{0%,100%{transform:translate(0,-6px)}50%{transform:translate(0,6px)}}
+.canvasWrap{position:fixed;inset:0;display:grid;place-items:center}
+canvas{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:18px;backdrop-filter:blur(10px)}
+.msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#171717;border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:999px}
+</style></head><body>
+<div class="top">
+  <button class="btn" onclick="location.href='index.html'">← 戻る</button>
+  <span class="pill">🍙 ご飯キャッチ：5個でクリア</span>
+  <span class="pill">❤️ <span id="hearts">0</span></span>
+</div>
+<div id="pet"><img id="petImg" src="public/char/blue/calm.png" alt=""></div>
+<div class="canvasWrap"><canvas id="cv" width="420" height="560"></canvas></div>
+<div id="msg" class="msg" style="display:none"></div>
+
+<script>
+const LS={HEARTS:'meai_hearts',CHAR_COLOR:'meai_char_color',CHAR_ID:'meai_char_id'};
+const $=q=>document.querySelector(q), get=(k,d)=>{const v=localStorage.getItem(k);return v===null?d:isNaN(v)?v:Number(v)}, set=(k,v)=>localStorage.setItem(k,String(v));
+$('#hearts').textContent=get(LS.HEARTS,0);
+(function loadPet(){const c=get(LS.CHAR_COLOR,'blue'),i=get(LS.CHAR_ID,'calm');const el=$('#petImg');const p=[`public/char/${c}/${i}.png`,`./public/char/${c}/${i}.png`,`public/char/blue/calm.png`];let n=0;const t=new Image();t.onload=()=>el.src=t.src;t.onerror=()=>{n++;if(n<p.length)t.src=p[n]};t.src=p[0]})();
+
+const cv=$('#cv'), ctx=cv.getContext('2d'); let x=cv.width/2, target=5, caught=0, objs=[], running=true;
+function drop(){ return {x:Math.random()*(cv.width-40)+20,y:-20,s:2+Math.random()*2}; }
+for(let i=0;i<4;i++)objs.push(drop());
+cv.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect();x=e.clientX-r.left});
+cv.addEventListener('touchmove',e=>{const r=cv.getBoundingClientRect();x=e.touches[0].clientX-r.left},{passive:true});
+
+function draw(){
+  if(!running) return;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // player plate
+  ctx.fillStyle='rgba(255,255,255,.25)'; ctx.fillRect(x-40,cv.height-28,80,10);
+  // falling onigiri
+  ctx.font='26px system-ui'; ctx.textAlign='center';
+  objs.forEach(o=>{
+    o.y+=o.s; ctx.fillText('🍙',o.x,o.y);
+    if(o.y>cv.height-40 && Math.abs(o.x-x)<50){ caught++; o.y=cv.height+99; }
+    if(o.y>cv.height+40){ Object.assign(o,drop()); }
+  });
+  // HUD
+  ctx.fillStyle='rgba(255,255,255,.6)'; ctx.fillText(`🍙 ${caught}/${target}`, cv.width-60, 30);
+  if(caught>=target){ running=false; win(); return; }
+  requestAnimationFrame(draw);
+}
+function win(){
+  set(LS.HEARTS, get(LS.HEARTS,0)+1); $('#hearts').textContent=get(LS.HEARTS,0);
+  const m=$('#msg'); m.textContent='クリア！❤️ +1　3秒後に戻ります'; m.style.display='block';
+  setTimeout(()=>location.href='index.html',3000);
+}
+draw();
+</script></body></html>
