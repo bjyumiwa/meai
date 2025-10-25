@@ -1,0 +1,30 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Petting Room</title><style>
+html,body{height:100%;margin:0;background:#000 url("public/space_background.png") center/cover fixed no-repeat;color:#fff;font-family:"Noto Sans JP",system-ui}
+.btn{border:none;border-radius:999px;padding:10px 14px;background:#60a5fa;color:#fff;font-weight:700;cursor:pointer}
+.pill{background:rgba(255,255,255,.12);padding:6px 10px;border-radius:999px}
+.top{position:fixed;left:50%;top:14px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;z-index:10}
+#pet{position:fixed;left:50%;top:55%;transform:translate(-50%,-50%);width:220px;height:220px;z-index:4;filter:drop-shadow(0 10px 24px rgba(0,0,0,.6))}
+#pet img{width:100%;height:100%;object-fit:contain}
+#zone{position:fixed;inset:0}
+.msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#171717;border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:999px}
+</style></head><body>
+<div class="top">
+  <button class="btn" onclick="location.href='index.html'">← 戻る</button>
+  <span class="pill">🤲 こすり 20回でクリア</span>
+  <span class="pill">❤️ <span id="hearts">0</span></span>
+</div>
+<div id="pet"><img id="petImg" src="public/char/blue/joy.png" alt=""></div>
+<div id="zone"></div>
+<div id="msg" class="msg" style="display:none"></div>
+<script>
+const LS={HEARTS:'meai_hearts',CHAR_COLOR:'meai_char_color',CHAR_ID:'meai_char_id'};
+const $=q=>document.querySelector(q), get=(k,d)=>{const v=localStorage.getItem(k);return v===null?d:isNaN(v)?v:Number(v)}, set=(k,v)=>localStorage.setItem(k,String(v));
+$('#hearts').textContent=get(LS.HEARTS,0);
+(function loadPet(){const c=get(LS.CHAR_COLOR,'blue'),i=get(LS.CHAR_ID,'joy');const el=$('#petImg');const p=[`public/char/${c}/${i}.png`,`./public/char/${c}/${i}.png`,`public/char/blue/joy.png`];let n=0;const t=new Image();t.onload=()=>el.src=t.src;t.onerror=()=>{n++;if(n<p.length)t.src=p[n]};t.src=p[0]})();
+let last=null, sum=0, goal=20; const z=$('#zone');
+function onMove(e){const p=e.touches?e.touches[0]:e; const now=[p.clientX,p.clientY]; if(last){ const dx=now[0]-last[0], dy=now[1]-last[1]; const d=Math.hypot(dx,dy); sum+=d; const count=Math.floor(sum/30); document.title='Pet '+count; if(count>=goal){ win(); z.removeEventListener('mousemove',onMove); z.removeEventListener('touchmove',onMove); } } last=now;}
+function stop(){last=null}
+z.addEventListener('mousemove',onMove); z.addEventListener('touchmove',onMove,{passive:true}); z.addEventListener('mouseleave',stop); z.addEventListener('touchend',stop);
+function win(){ set(LS.HEARTS, get(LS.HEARTS,0)+1); $('#hearts').textContent=get(LS.HEARTS,0); const m=$('#msg'); m.textContent='クリア！❤️ +1　2秒後に戻ります'; m.style.display='block'; setTimeout(()=>location.href='index.html',2000); }
+</script></body></html>
