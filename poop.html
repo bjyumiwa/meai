@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MeAI – うんち片付け</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{ --fg:#fff; --glass:rgba(255,255,255,.07); --glass-border:rgba(255,255,255,.16); }
+  body{margin:0;color:var(--fg);background:#000 url("public/space_background.png") center/cover fixed no-repeat;
+       font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;}
+  .wrap{max-width:720px;margin:0 auto;padding:24px}
+  .glass{background:var(--glass);border:1px solid var(--glass-border);border-radius:16px;backdrop-filter:blur(8px)}
+  .pad{padding:16px}
+  .btn{border:none;border-radius:999px;padding:10px 16px;cursor:pointer;color:#fff;background:rgba(255,255,255,.18)}
+  .btn:hover{background:rgba(255,255,255,.28)} .btn[disabled]{opacity:.55;cursor:not-allowed}
+  #char{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:12px}
+  #char img{width:220px;height:auto;animation:sway 5s ease-in-out infinite;transform-origin:50% 0%}
+  @keyframes sway{0%{transform:rotate(0)}25%{transform:rotate(1.2deg)}50%{transform:rotate(0)}75%{transform:rotate(-1.2deg)}100%{transform:rotate(0)}}
+  #field{position:relative;height:320px}
+  .poo{position:absolute;font-size:28px;cursor:pointer;user-select:none;transition:transform .15s}
+  .poo:hover{transform:scale(1.2)}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <h1 style="margin:0;font-size:22px">うんち片付け 💩</h1>
+    <div style="display:flex;gap:8px">
+      <a class="btn" href="Room.html">← お世話コーナー</a>
+      <a class="btn" href="index.html">ホーム</a>
+    </div>
+  </div>
+
+  <div id="char" class="glass pad">
+    <img id="charImg" src="public/char/blue/calm.png" alt="char">
+    <div id="line" style="opacity:.95"></div>
+  </div>
+
+  <div class="glass pad">
+    <div id="field"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+      <button id="again" class="btn">💫 ならべ直す</button>
+      <button id="finishBtn" class="btn">✅ 片付けた！</button>
+    </div>
+    <div class="note" style="opacity:.9;font-size:13px;margin-top:8px">※1日1回だけ。全部拾ってから「片付けた！」→ ❤️+1</div>
+  </div>
+</div>
+
+<script>
+const LS_STATE='MEAI_STATE_V3', LS_CARE='MEAI_CARE_PROGRESS_V1';
+const COLORS=['blue','pink','green','purple'], EMOTIONS=['calm','joy','sad','sleep'];
+const today=()=>new Date().toISOString().slice(0,10);
+function loadState(){return JSON.parse(localStorage.getItem(LS_STATE)||'{"userName":"","charColor":"blue","hearts":0,"streakDays":0,"stamps":0,"lastActionDate":null,"stage":"S0","unlocked":{"skins":[],"bg":[],"lines":[]}}');}
+function saveState(s){localStorage.setItem(LS_STATE,JSON.stringify(s));}
+function loadCare(){return JSON.parse(localStorage.getItem(LS_CARE)||'{}');}
+function saveCare(c){localStorage.setItem(LS_CARE,JSON.stringify(c));}
+function setEmotion(st,emo='calm'){const c=COLORS.includes(st.charColor)?st.charColor:'blue';document.getElementById('charImg').src=`public/char/${c}/${EMOTIONS.includes(emo)?emo:'calm'}.png`;}
+
+const field=document.getElementById('field');
+function scatter(n=6){
+  field.innerHTML='';
+  const rect=field.getBoundingClientRect();
+  for(let i=0;i<n;i++){
+    const span=document.createElement('span'); span.className='poo'; span.textContent='💩';
+    const x=Math.random()*(rect.width-32), y=Math.random()*(rect.height-32);
+    span.style.left=`${x}px`; span.style.top=`${y}px`;
+    span.addEventListener('click', ()=>{ span.remove(); });
+    field.appendChild(span);
+  }
+}
+function allCleared(){ return field.querySelectorAll('.poo').length===0; }
+
+function setDoneUI(){
+  document.getElementById('finishBtn').textContent='今日は済み';
+  document.getElementById('finishBtn').disabled=true;
+  document.getElementById('again').disabled=true;
+}
+
+function init(){
+  const st=loadState(); setEmotion(st,'calm');
+  document.getElementById('line').textContent=`${st.userName||'あなた'}さん、ポチッと拾ってきれいにしよう！`;
+  scatter(6);
+
+  const care=loadCare(); const key=today();
+  if(care[key]?.poopDone){ setDoneUI(); }
+
+  document.getElementById('again').addEventListener('click', ()=>scatter(6));
+
+  document.getElementById('finishBtn').addEventListener('click', ()=>{
+    const c=loadCare(); const k=today();
+    if(c[k]?.poopDone){ setDoneUI(); return; }
+    if(!allCleared()){ alert('まだ残ってるよ！💩を全部クリックしてね。'); return; }
+
+    c[k]=Object.assign({feedDone:false, cleanDone:false, poopDone:false, ringDone:false}, c[k]);
+    c[k].poopDone=true; saveCare(c);
+
+    const s=loadState(); s.hearts+=1; s.lastActionDate=today(); saveState(s);
+    setEmotion(s,'joy'); setTimeout(()=>setEmotion(s,'calm'),1200);
+    setDoneUI();
+  });
+}
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
