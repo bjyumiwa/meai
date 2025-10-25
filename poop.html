@@ -57,6 +57,41 @@ function saveState(s){localStorage.setItem(LS_STATE,JSON.stringify(s));}
 function loadCare(){return JSON.parse(localStorage.getItem(LS_CARE)||'{}');}
 function saveCare(c){localStorage.setItem(LS_CARE,JSON.stringify(c));}
 function setEmotion(st,emo='calm'){const c=COLORS.includes(st.charColor)?st.charColor:'blue';document.getElementById('charImg').src=`public/char/${c}/${EMOTIONS.includes(emo)?emo:'calm'}.png`;}
+/* ==== 視認性アップ（共通パッチ） ==== */
+:root{
+  /* 濃いめの共通色 */
+  --btn-bg: rgba(0,0,0,.55);
+  --btn-bg-hover: rgba(0,0,0,.70);
+  --btn-border: rgba(255,255,255,.22);
+  --tile-bg: rgba(0,0,0,.22);
+  --tile-border: rgba(255,255,255,.20);
+}
+
+/* ボタン：背景を暗く、文字は白＋薄い影で読みやすく */
+.btn{
+  background: var(--btn-bg) !important;
+  color:#fff;
+  border:1px solid var(--btn-border);
+  text-shadow:0 1px 2px rgba(0,0,0,.7);
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+.btn:hover{ background: var(--btn-bg-hover) !important; transform: translateY(-1px); }
+.btn:focus-visible{ outline:2px solid #93c5fd; outline-offset:2px; }
+.btn[disabled]{ background: rgba(0,0,0,.35) !important; color:#e5e7eb; opacity:1; }
+
+/* タイル（Roomのカード等）も少し暗くして背景の虹/星に負けないように */
+.tile{ 
+  background: var(--tile-bg) !important; 
+  border:1px solid var(--tile-border);
+  backdrop-filter: blur(8px);
+}
+
+/* 右ペイン全体を少しだけ濃くしたい時（任意）
+   <div class="glass pad panel-contrast"> ... </div> のようにクラスを足す */
+.panel-contrast{ 
+  background: linear-gradient(rgba(0,0,0,.18), rgba(0,0,0,.18)), var(--glass) !important; 
+  border-color: rgba(255,255,255,.22) !important;
+}
 
 const field=document.getElementById('field');
 function scatter(n=6){
