@@ -6,7 +6,7 @@
 <title>MeAI | index</title>
 <link rel="icon" href="data:,">
 <style>
-  :root{ --glass-bg: rgba(255,255,255,.03); --glass-bd: rgba(255,255,255,.08); --blue:#60a5fa; --ok:#5be37e; }
+  :root{ --glass-bg: rgba(255,255,255,.03); --glass-bd: rgba(255,255,255,.08); --ok:#5be37e; }
   html,body{height:100%}
   body{ margin:0; font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
         background:#000 url("public/space_background.png") center/cover fixed no-repeat; color:#fff; overflow:hidden; }
@@ -28,7 +28,8 @@
   .btn-good{background:var(--ok)}
   .btn[disabled]{opacity:.5;cursor:not-allowed}
   /* pet */
-  #pet{position:fixed;left:50%;top:55%;transform:translate(-50%,-50%);width:150px;height:150px;z-index:30;filter:drop-shadow(0 10px 24px rgba(0,0,0,.55));animation:yura 3.6s ease-in-out infinite;pointer-events:none}
+  #pet{position:fixed;left:50%;top:55%;transform:translate(-50%,-50%);width:150px;height:150px;z-index:30;
+       filter:drop-shadow(0 10px 24px rgba(0,0,0,.55));animation:yura 3.6s ease-in-out infinite;pointer-events:none}
   #pet img{width:100%;height:100%;object-fit:contain}
   @keyframes yura{0%,100%{transform:translate(-50%,-50%) rotate(-3deg)}50%{transform:translate(-50%,-52%) rotate(3deg)}}
   /* cover */
@@ -74,7 +75,7 @@
 
     <!-- Character & Care -->
     <div class="card">
-      <div class="title" id="t_char">キャラ</div>
+      <div class="title">キャラ</div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <div class="pill" id="charLabel">（未選択）</div>
         <button class="btn btn-ghost" id="chooseBtn">キャラ選択</button>
@@ -96,7 +97,7 @@
   <div class="inner">
     <img src="public/char/ako2.png" style="width:min(300px,60vw);border-radius:20px;filter:drop-shadow(0 20px 40px rgba(0,0,0,.45));">
     <h1 style="margin:8px 0 0">アコ / AKO</h1>
-    <p class="muted" id="coverLead">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
+    <p class="muted">小さな“やってみる”を、やさしく提案してくれる相棒。</p>
     <div class="nameRow">
       <input id="youName" class="input" placeholder="あなたの名前（例：みわ）">
       <button id="startBtn" class="btn btn-ghost">はじめる</button>
@@ -107,7 +108,7 @@
 <!-- Character select -->
 <div class="modal hidden" id="charModal">
   <div class="card" style="width:min(780px,92vw)">
-    <div class="title" id="chooseTitle">キャラを選ぼう（ピンク/ブルー/グリーン/パープル）</div>
+    <div class="title">キャラを選ぼう（ピンク/ブルー/グリーン/パープル）</div>
     <div class="grid" id="charGrid" style="margin-top:10px"></div>
     <div style="text-align:right;margin-top:10px"><button class="btn btn-ghost" id="closeChar">閉じる</button></div>
   </div>
@@ -131,29 +132,23 @@ const $=q=>document.querySelector(q);
 const set=(k,v)=>localStorage.setItem(k,String(v));
 const get=(k,d)=>{const v=localStorage.getItem(k);return v===null?d:isNaN(v)?v:Number(v)};
 const inc=(k,by=1)=>{const v=get(k,0)+by; set(k,v); return v};
-function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.remove('hidden'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.add('hidden'),1400); }
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.remove('hidden'); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.add('hidden'),1400); }
 
-/* ===== i18n (簡易) ===== */
-const I18N={
-  ja:{start:'はじめる', lead:'小さな“やってみる”を、やさしく提案してくれる相棒。', mission:'今日のミッション', done:'やった！', next:'次の提案', choose:'キャラ選択', rename:'名前'},
-  en:{start:'Start', lead:'A gentle buddy that suggests tiny try-it actions.', mission:"Today's Mission", done:'Done!', next:'Next', choose:'Choose', rename:'Name'},
-  ko:{start:'시작', lead:'작은 실천을 부드럽게 제안하는 동반자.', mission:'오늘의 미션', done:'했어!', next:'다음', choose:'선택', rename:'이름'},
-  zh:{start:'开始', lead:'温柔提出小小行动的伙伴。', mission:'今日任务', done:'完成！', next:'下一个', choose:'选择', rename:'命名'}
-};
-const langSel=$('#langSelect');
+/* ===== i18n（簡易） ===== */
+const I18N={ja:{mission:'今日のミッション',done:'やった！',next:'次の提案'},en:{mission:"Today's Mission",done:'Done!',next:'Next'},ko:{mission:'오늘의 미션',done:'했어!',next:'다음'},zh:{mission:'今日任务',done:'完成！',next:'下一个'}};
+const langSel=document.getElementById('langSelect');
 function curLang(){ let l=localStorage.getItem(LS.LANG); if(!l){ const c=(navigator.language||'ja').slice(0,2); l=(c in I18N)?c:'ja'; set(LS.LANG,l);} return l; }
-function t(k){ return I18N[curLang()][k]||k; }
-function applyLang(){ $('#coverLead').textContent=t('lead'); $('#t_mission').textContent=t('mission'); $('#doneBtn').textContent=t('done'); $('#nextBtn').textContent=t('next'); $('#chooseTitle').textContent='キャラを選ぼう（ピンク/ブルー/グリーン/パープル）'; langSel.value=curLang(); }
-langSel.addEventListener('change',e=>{ set(LS.LANG,e.target.value); applyLang(); });
+function applyLang(){ const L=I18N[curLang()]; document.getElementById('t_mission').textContent=L.mission; document.getElementById('doneBtn').textContent=L.done; document.getElementById('nextBtn').textContent=L.next; langSel.value=curLang(); }
+langSel?.addEventListener('change',e=>{ set(LS.LANG,e.target.value); applyLang(); });
 
-/* ===== proposals (1日3つ) ===== */
+/* ===== proposals（1日3つ） ===== */
 const PROPOSALS=['コップ一杯のお水を飲んでみよう。','背伸びをして深呼吸を3回。','5秒だけ目を閉じて音を聞いてみよう。','空の色を一言でメモ。','手のひらを温めてみよう。'];
-function newTask(){ $('#taskText').textContent=PROPOSALS[Math.floor(Math.random()*PROPOSALS.length)] }
-function syncDaily(){ const d=new Date().toISOString().slice(0,10); const last=localStorage.getItem(LS.DAILY_DATE); if(d!==last){ set(LS.DAILY_DATE,d); set(LS.DAILY_COUNT,0); } const c=get(LS.DAILY_COUNT,0); const ended=c>=3; $('#limitPill').classList.toggle('hidden',!ended); $('#doneBtn').disabled=ended; $('#nextBtn').disabled=ended; }
-$('#nextBtn').onclick=()=>{ newTask(); toast('📮 新しい提案！'); };
-$('#doneBtn').onclick=()=>{ const c=inc(LS.DAILY_COUNT,1); inc(LS.TOTAL,1); $('#hearts').textContent=inc(LS.HEARTS,1); syncDaily(); newTask(); if(!get(LS.CHAR_ID,'') && get(LS.TOTAL,0)>=3){ showChoose(); toast('🎉 キャラ選択が解放されました'); } if(get(LS.TOTAL,0)>=5){ $('#renameBtn').disabled=false; } };
+function newTask(){ document.getElementById('taskText').textContent=PROPOSALS[Math.floor(Math.random()*PROPOSALS.length)] }
+function syncDaily(){ const d=new Date().toISOString().slice(0,10); const last=localStorage.getItem(LS.DAILY_DATE); if(d!==last){ set(LS.DAILY_DATE,d); set(LS.DAILY_COUNT,0); } const c=get(LS.DAILY_COUNT,0); const ended=c>=3; document.getElementById('limitPill').classList.toggle('hidden',!ended); document.getElementById('doneBtn').disabled=ended; document.getElementById('nextBtn').disabled=ended; }
+document.getElementById('nextBtn').onclick=()=>{ newTask(); toast('📮 新しい提案！'); };
+document.getElementById('doneBtn').onclick=()=>{ inc(LS.DAILY_COUNT,1); inc(LS.TOTAL,1); document.getElementById('hearts').textContent=inc(LS.HEARTS,1); syncDaily(); newTask(); if(!get(LS.CHAR_ID,'') && get(LS.TOTAL,0)>=3){ showChoose(); toast('🎉 キャラ選択が解放されました'); } if(get(LS.TOTAL,0)>=5){ document.getElementById('renameBtn').disabled=false; } };
 
-/* ===== character (4色×2表情) ===== */
+/* ===== キャラ（4色×2） ===== */
 const CATALOG=[
   {color:'pink',id:'calm',label:'ピンク（Calm）',path:'public/char/pink/calm.png'},
   {color:'pink',id:'joy', label:'ピンク（Joy）', path:'public/char/pink/joy.png'},
@@ -164,37 +159,65 @@ const CATALOG=[
   {color:'purple',id:'calm',label:'パープル（Calm）',path:'public/char/purple/calm.png'},
   {color:'purple',id:'joy', label:'パープル（Joy）', path:'public/char/purple/joy.png'}
 ];
-function applyChar(){ const color=get(LS.CHAR_COLOR,''); const id=get(LS.CHAR_ID,''); const label=get(LS.CHAR_LABEL,'（未選択）'); const nm=get(LS.CHAR_NAME,''); $('#petImg').src=(color&&id)?`public/char/${color}/${id}.png`:'public/char/blue/calm.png'; $('#charLabel').textContent= nm?`${nm}（${label}）`:label; }
-function buildGrid(){ const g=$('#charGrid'); g.innerHTML=''; CATALOG.forEach(c=>{ const b=document.createElement('button'); b.className='btn btn-ghost'; b.style.display='grid'; b.style.placeItems='center'; b.style.padding='8px'; b.innerHTML=`<img src="${c.path}" alt="${c.label}" style="width:120px;height:120px;object-fit:contain"><div class="muted" style="margin-top:6px">${c.label}</div>`; b.onclick=()=>{ if(get(LS.TOTAL,0)<3){ toast('⚠ 3回達成で解放されます'); return; } set(LS.CHAR_COLOR,c.color); set(LS.CHAR_ID,c.id); set(LS.CHAR_LABEL,c.label); applyChar(); hideChoose(); toast(`${c.label} を選びました！`); }; g.appendChild(b); }); }
-function showChoose(){ buildGrid(); $('#charModal').classList.remove('hidden'); }
-function hideChoose(){ $('#charModal').classList.add('hidden'); }
-$('#chooseBtn').onclick=showChoose; $('#closeChar').onclick=hideChoose;
+function loadImageWithFallback(targetEl, paths){
+  let i=0; const tmp=new Image();
+  tmp.onload=()=>{ targetEl.src=tmp.src; };
+  tmp.onerror=()=>{ i++; if(i<paths.length){ tmp.src=paths[i]; } };
+  tmp.src=paths[0];
+}
+function loadPetImage(color,id){
+  const el=document.getElementById('petImg');
+  loadImageWithFallback(el,[
+    `public/char/${color}/${id}.png`,
+    `./public/char/${color}/${id}.png`,
+    `char/${color}/${id}.png`,
+    `./char/${color}/${id}.png`,
+    `public/char/blue/calm.png`
+  ]);
+}
+function applyChar(){
+  const color=get(LS.CHAR_COLOR,'blue');
+  const id   =get(LS.CHAR_ID,'calm');
+  const label=get(LS.CHAR_LABEL,'（未選択）');
+  const nm   =get(LS.CHAR_NAME,'');
+  loadPetImage(color,id);
+  document.getElementById('charLabel').textContent = nm?`${nm}（${label}）`:label;
+}
+function buildGrid(){
+  const g=document.getElementById('charGrid'); g.innerHTML='';
+  CATALOG.forEach(c=>{
+    const b=document.createElement('button'); b.className='btn btn-ghost'; b.style.display='grid'; b.style.placeItems='center'; b.style.padding='8px';
+    b.innerHTML=`<img src="${c.path}" alt="${c.label}" style="width:120px;height:120px;object-fit:contain"><div class="muted" style="margin-top:6px">${c.label}</div>`;
+    b.onclick=()=>{ if(get(LS.TOTAL,0)<3){ toast('⚠ 3回達成で解放されます'); return; } set(LS.CHAR_COLOR,c.color); set(LS.CHAR_ID,c.id); set(LS.CHAR_LABEL,c.label); applyChar(); hideChoose(); toast(`${c.label} を選びました！`); };
+    g.appendChild(b);
+  });
+}
+function showChoose(){ buildGrid(); document.getElementById('charModal').classList.remove('hidden'); }
+function hideChoose(){ document.getElementById('charModal').classList.add('hidden'); }
+document.getElementById('chooseBtn').onclick=showChoose;
+document.getElementById('closeChar').onclick=hideChoose;
 /* naming */
-$('#renameBtn').onclick=()=>{ if(get(LS.TOTAL,0)>=5) $('#nameModal').classList.remove('hidden'); else toast('⚠ 5回達成で解放されます'); };
-$('#cancelName').onclick=()=> $('#nameModal').classList.add('hidden');
-$('#saveName').onclick=()=>{ const v=$('#petName').value.trim(); if(!v) return; set(LS.CHAR_NAME,v); $('#nameModal').classList.add('hidden'); applyChar(); toast('💾 名前を保存しました'); };
+document.getElementById('renameBtn').onclick=()=>{ if(get(LS.TOTAL,0)>=5) document.getElementById('nameModal').classList.remove('hidden'); else toast('⚠ 5回達成で解放されます'); };
+document.getElementById('cancelName').onclick=()=> document.getElementById('nameModal').classList.add('hidden');
+document.getElementById('saveName').onclick=()=>{ const v=document.getElementById('petName').value.trim(); if(!v) return; set(LS.CHAR_NAME,v); document.getElementById('nameModal').classList.add('hidden'); applyChar(); toast('💾 名前を保存しました'); };
 
-/* ===== nav to care rooms ===== */
-function goRoom(mode){ location.href = `room.html?mode=${mode}`; }
-
-/* ===== cover & hello ===== */
-function setHello(){ const nm=get(LS.YOU,''); $('#helloPill').textContent=nm?`👋 ${nm}さん、ようこそ！`:'👋 ようこそ'; }
-$('#startBtn').onclick=()=>{ const v=$('#youName').value.trim(); if(v) set(LS.YOU,v); sessionStorage.setItem('meai_cover_seen','1'); $('#cover').classList.add('hidden'); setHello(); };
-
-/* ===== pet wandering ===== */
-function wander(){ const pad=100; const x=pad+Math.random()*(innerWidth-pad*2); const y=pad+Math.random()*(innerHeight-pad*2); const r=(Math.random()*14-7); const p=$('#pet'); p.style.transition='transform 2.6s ease,left 2.6s ease,top 2.6s ease'; p.style.left=x+'px'; p.style.top=y+'px'; p.style.transform=`translate(-50%,-50%) rotate(${r}deg)`; }
+/* ===== other ===== */
+function goRoom(mode){ location.href=`room.html?mode=${mode}`; }
+function setHello(){ const nm=get(LS.YOU,''); document.getElementById('helloPill').textContent=nm?`👋 ${nm}さん、ようこそ！`:'👋 ようこそ'; }
+document.getElementById('startBtn').onclick=()=>{ const v=document.getElementById('youName').value.trim(); if(v) set(LS.YOU,v); sessionStorage.setItem('meai_cover_seen','1'); document.getElementById('cover').classList.add('hidden'); setHello(); };
+function wander(){ const pad=100; const x=pad+Math.random()*(innerWidth-pad*2); const y=pad+Math.random()*(innerHeight-pad*2); const r=(Math.random()*14-7); const p=document.getElementById('pet'); p.style.transition='transform 2.6s ease,left 2.6s ease,top 2.6s ease'; p.style.left=x+'px'; p.style.top=y+'px'; p.style.transform=`translate(-50%,-50%) rotate(${r}deg)`; }
 setInterval(wander,3000);
 
 /* ===== init ===== */
-function init(){
-  applyLang();
-  $('#hearts').textContent=get(LS.HEARTS,0); $('#notes').textContent=get(LS.NOTES,0);
+document.addEventListener('DOMContentLoaded', ()=>{
+  document.getElementById('hearts').textContent=get(LS.HEARTS,0);
+  document.getElementById('notes').textContent=get(LS.NOTES,0);
   setHello();
-  if(sessionStorage.getItem('meai_cover_seen')==='1') $('#cover').classList.add('hidden');
+  if(sessionStorage.getItem('meai_cover_seen')==='1') document.getElementById('cover').classList.add('hidden');
+  applyLang();
   applyChar();
   newTask(); syncDaily();
-}
-document.addEventListener('DOMContentLoaded', init);
+});
 </script>
 </body>
 </html>
