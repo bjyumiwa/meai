@@ -7,19 +7,35 @@
 <link rel="icon" href="data:,">
 <style>
   :root{ --fg:#fff; --glass:rgba(255,255,255,.07); --glass-border:rgba(255,255,255,.16); }
-  body{margin:0;color:var(--fg);background:#000 url("public/space_background.png") center/cover fixed no-repeat;
-       font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;}
+  body{
+    margin:0; color:var(--fg);
+    background:#000 url("public/space_background.png") center/cover fixed no-repeat;
+    font-family:"Noto Sans JP",system-ui,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  }
   .wrap{max-width:720px;margin:0 auto;padding:24px}
   .glass{background:var(--glass);border:1px solid var(--glass-border);border-radius:16px;backdrop-filter:blur(8px)}
   .pad{padding:16px}
   .btn{border:none;border-radius:999px;padding:10px 16px;cursor:pointer;color:#fff;background:rgba(255,255,255,.18)}
-  .btn:hover{background:rgba(255,255,255,.28)} .btn[disabled]{opacity:.55;cursor:not-allowed}
+  .btn:hover{background:rgba(255,255,255,.28)}
+  .btn[disabled]{opacity:.55;cursor:not-allowed}
   #char{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:12px}
   #char img{width:220px;height:auto;animation:sway 5s ease-in-out infinite;transform-origin:50% 0%}
   @keyframes sway{0%{transform:rotate(0)}25%{transform:rotate(1.2deg)}50%{transform:rotate(0)}75%{transform:rotate(-1.2deg)}100%{transform:rotate(0)}}
-  #field{position:relative;height:320px}
-  .poo{position:absolute;font-size:28px;cursor:pointer;user-select:none;transition:transform .15s}
-  .poo:hover{transform:scale(1.2)}
+  #field{
+    position:relative;
+    height:320px;
+    width:100%;
+    overflow:hidden;
+  }
+  .poo{
+    position:absolute;
+    font-size:28px;
+    cursor:pointer;
+    user-select:none;
+    transition:transform .15s, opacity .15s;
+  }
+  .poo:hover{transform:scale(1.25);}
+  .poo.vanish{transform:scale(0);opacity:0;}
   .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 </style>
 </head>
@@ -52,60 +68,35 @@
 const LS_STATE='MEAI_STATE_V3', LS_CARE='MEAI_CARE_PROGRESS_V1';
 const COLORS=['blue','pink','green','purple'], EMOTIONS=['calm','joy','sad','sleep'];
 const today=()=>new Date().toISOString().slice(0,10);
-function loadState(){return JSON.parse(localStorage.getItem(LS_STATE)||'{"userName":"","charColor":"blue","hearts":0,"streakDays":0,"stamps":0,"lastActionDate":null,"stage":"S0","unlocked":{"skins":[],"bg":[],"lines":[]}}');}
+function loadState(){return JSON.parse(localStorage.getItem(LS_STATE)||'{"userName":"","charColor":"blue","hearts":0,"streakDays":0,"stamps":0,"lastActionDate":null}');}
 function saveState(s){localStorage.setItem(LS_STATE,JSON.stringify(s));}
 function loadCare(){return JSON.parse(localStorage.getItem(LS_CARE)||'{}');}
 function saveCare(c){localStorage.setItem(LS_CARE,JSON.stringify(c));}
-function setEmotion(st,emo='calm'){const c=COLORS.includes(st.charColor)?st.charColor:'blue';document.getElementById('charImg').src=`public/char/${c}/${EMOTIONS.includes(emo)?emo:'calm'}.png`;}
-/* ==== 視認性アップ（共通パッチ） ==== */
-:root{
-  /* 濃いめの共通色 */
-  --btn-bg: rgba(0,0,0,.55);
-  --btn-bg-hover: rgba(0,0,0,.70);
-  --btn-border: rgba(255,255,255,.22);
-  --tile-bg: rgba(0,0,0,.22);
-  --tile-border: rgba(255,255,255,.20);
+function setEmotion(st,emo='calm'){
+  const c=COLORS.includes(st.charColor)?st.charColor:'blue';
+  document.getElementById('charImg').src=`public/char/${c}/${EMOTIONS.includes(emo)?emo:'calm'}.png`;
 }
 
-/* ボタン：背景を暗く、文字は白＋薄い影で読みやすく */
-.btn{
-  background: var(--btn-bg) !important;
-  color:#fff;
-  border:1px solid var(--btn-border);
-  text-shadow:0 1px 2px rgba(0,0,0,.7);
-  box-shadow:0 2px 8px rgba(0,0,0,.25);
-}
-.btn:hover{ background: var(--btn-bg-hover) !important; transform: translateY(-1px); }
-.btn:focus-visible{ outline:2px solid #93c5fd; outline-offset:2px; }
-.btn[disabled]{ background: rgba(0,0,0,.35) !important; color:#e5e7eb; opacity:1; }
-
-/* タイル（Roomのカード等）も少し暗くして背景の虹/星に負けないように */
-.tile{ 
-  background: var(--tile-bg) !important; 
-  border:1px solid var(--tile-border);
-  backdrop-filter: blur(8px);
-}
-
-/* 右ペイン全体を少しだけ濃くしたい時（任意）
-   <div class="glass pad panel-contrast"> ... </div> のようにクラスを足す */
-.panel-contrast{ 
-  background: linear-gradient(rgba(0,0,0,.18), rgba(0,0,0,.18)), var(--glass) !important; 
-  border-color: rgba(255,255,255,.22) !important;
-}
-
-const field=document.getElementById('field');
+// 💩を散らす
 function scatter(n=6){
+  const field=document.getElementById('field');
   field.innerHTML='';
   const rect=field.getBoundingClientRect();
   for(let i=0;i<n;i++){
-    const span=document.createElement('span'); span.className='poo'; span.textContent='💩';
-    const x=Math.random()*(rect.width-32), y=Math.random()*(rect.height-32);
+    const span=document.createElement('span');
+    span.className='poo'; span.textContent='💩';
+    const x=Math.random()*(rect.width-32);
+    const y=Math.random()*(rect.height-32);
     span.style.left=`${x}px`; span.style.top=`${y}px`;
-    span.addEventListener('click', ()=>{ span.remove(); });
+    span.addEventListener('click', ()=>{
+      span.classList.add('vanish');
+      setTimeout(()=>span.remove(),150);
+    });
     field.appendChild(span);
   }
 }
-function allCleared(){ return field.querySelectorAll('.poo').length===0; }
+
+function allCleared(){ return document.querySelectorAll('.poo').length===0; }
 
 function setDoneUI(){
   document.getElementById('finishBtn').textContent='今日は済み';
@@ -114,9 +105,12 @@ function setDoneUI(){
 }
 
 function init(){
-  const st=loadState(); setEmotion(st,'calm');
+  const st=loadState();
+  setEmotion(st,'calm');
   document.getElementById('line').textContent=`${st.userName||'あなた'}さん、ポチッと拾ってきれいにしよう！`;
-  scatter(6);
+
+  // レイアウト確定後に💩を出す
+  requestAnimationFrame(()=>scatter(6));
 
   const care=loadCare(); const key=today();
   if(care[key]?.poopDone){ setDoneUI(); }
@@ -128,11 +122,16 @@ function init(){
     if(c[k]?.poopDone){ setDoneUI(); return; }
     if(!allCleared()){ alert('まだ残ってるよ！💩を全部クリックしてね。'); return; }
 
-    c[k]=Object.assign({feedDone:false, cleanDone:false, poopDone:false, ringDone:false}, c[k]);
-    c[k].poopDone=true; saveCare(c);
+    c[k]=Object.assign({poopDone:true}, c[k]);
+    saveCare(c);
 
-    const s=loadState(); s.hearts+=1; s.lastActionDate=today(); saveState(s);
-    setEmotion(s,'joy'); setTimeout(()=>setEmotion(s,'calm'),1200);
+    const s=loadState();
+    s.hearts += 1;
+    s.lastActionDate = today();
+    saveState(s);
+
+    setEmotion(s,'joy');
+    setTimeout(()=>setEmotion(s,'calm'),1200);
     setDoneUI();
   });
 }
