@@ -128,6 +128,7 @@
           </select>
         </div>
         <button id="saveProfile" class="btn">保存</button>
+        <!-- ★ 初期化（スタートに戻す） -->
         <button id="resetAll" class="btn">初期化</button>
         <span id="dailyInfo" class="chip" title="今日の達成回数">本日の達成: <b id="doneCount">0</b>/3</span>
       </div>
@@ -182,6 +183,9 @@
   </div>
 
 <script type="module">
+/* ================== ページ遷移設定（★変更点） ================== */
+const START_PAGE = 'index.html'; // ← スタート画面のファイル名（必要なら変更）
+
 /* ================== ストレージキー ================== */
 const LS_STATE = 'MEAI_STATE_V3';
 const LS_LOG   = 'MEAI_LOG_V3';
@@ -431,7 +435,7 @@ function saveTodayGoods(){
   const d = todayStr();
   saveGood(d, [v1,v2,v3]);
 
-  // ← ここがポイント：寝顔フラグを立てて、その日はずっと sleep.png
+  // 寝顔フラグを立てて、その日はずっと sleep.png
   setSleepFlag(d);
   const st = loadState();
   setEmotion(st, 'sleep');
@@ -559,15 +563,29 @@ function saveProfile(){
   saveState(st);
   renderAll();
 }
+
+/* ================== 初期化 → スタートに戻る（★ここが主目的） ================== */
 function resetAll(){
-  if (!confirm('すべての記録（ハート/スタンプ/ログ/本日の進捗/いいこと/就寝）を初期化します。よろしいですか？')) return;
-  localStorage.removeItem(LS_STATE);
-  localStorage.removeItem(LS_LOG);
-  Object.keys(localStorage).forEach(k=>{
-    if (k.startsWith(LS_DAY_PREFIX) || k.startsWith(LS_DAY_PROGRESS_PREFIX) || k.startsWith(LS_GOOD_PREFIX) || k.startsWith(LS_PENALIZED_PREFIX)) localStorage.removeItem(k);
+  if (!confirm('すべての記録（ハート/スタンプ/ログ/本日の進捗/いいこと/就寝/カバー表示）を初期化し、スタート画面へ戻ります。よろしいですか？')) return;
+
+  // 既知キーの削除
+  const knownKeys = [
+    LS_STATE, LS_LOG, LS_USER, LS_COLOR, LS_SEEN_COVER, LS_SLEEP_DATE
+  ];
+  knownKeys.forEach(k=> localStorage.removeItem(k));
+
+  // プレフィックス系（デイリー・進捗・いいこと・ペナルティ）の一括削除
+  const prefixes = [LS_DAY_PREFIX, LS_DAY_PROGRESS_PREFIX, LS_GOOD_PREFIX, LS_PENALIZED_PREFIX, 'MEAI_STATE_V2', 'MEAI_LOG_V2'];
+  const keys = Object.keys(localStorage);
+  keys.forEach(k=>{
+    if (prefixes.some(p=>k.startsWith(p))) localStorage.removeItem(k);
   });
+
+  // 念のため就寝フラグ解除
   clearSleepFlag();
-  renderAll();
+
+  // スタートページへ遷移（ページ分割前提）
+  location.href = START_PAGE;
 }
 
 /* ================== 表紙（はじめる） ================== */
