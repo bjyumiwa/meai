@@ -1,38 +1,34 @@
-<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Water Room</title><style>
-html,body{height:100%;margin:0;background:#000 url("public/space_background.png") center/cover fixed no-repeat;color:#fff;font-family:"Noto Sans JP",system-ui}
-.btn{border:none;border-radius:999px;padding:10px 14px;background:#60a5fa;color:#fff;font-weight:700;cursor:pointer}
-.pill{background:rgba(255,255,255,.12);padding:6px 10px;border-radius:999px}
-.top{position:fixed;left:50%;top:14px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;z-index:10}
-#pet{position:fixed;left:50%;top:62%;transform:translate(-50%,-50%);width:140px;height:140px;z-index:4;pointer-events:none;filter:drop-shadow(0 10px 24px rgba(0,0,0,.6))}
-#pet img{width:100%;height:100%;object-fit:contain;animation:yura 3.4s ease-in-out infinite}
-@keyframes yura{0%,100%{transform:translate(0,-6px)}50%{transform:translate(0,6px)}}
-.box{position:fixed;inset:0;display:grid;place-items:center}
-.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:18px 20px;backdrop-filter:blur(12px)}
-.btn2{border:none;border-radius:12px;padding:10px 16px;background:#34d399;color:#001;cursor:pointer;font-weight:800}
-</style></head><body>
-<div class="top">
-  <button class="btn" onclick="location.href='index.html'">← 戻る</button>
-  <span class="pill">💧 タイミング成功 3回でクリア</span>
-  <span class="pill">♪ <span id="notes">0</span></span>
+<!DOCTYPE html><html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MeAI – おみず</title>
+<link rel="stylesheet" href="styles.css">
+</head><body>
+<div class="glass topbar">
+  <div class="row"><a href="Room.html" class="btn">← お世話へ</a><span>💧 おみず</span></div>
+  <div class="row"><a href="#" class="btn reset-all">初期化</a></div>
 </div>
-<div id="pet"><img id="petImg" src="public/char/blue/calm.png" alt=""></div>
-<div class="box"><div class="card">
-  <div style="width:360px;height:16px;background:#111;border-radius:999px;overflow:hidden;position:relative;border:1px solid rgba(255,255,255,.2)">
-    <div id="bar" style="position:absolute;left:0;top:0;height:100%;width:40px;background:#60a5fa;border-radius:999px"></div>
-    <div style="position:absolute;left:150px;top:0;width:60px;height:100%;background:#34d39955;border:1px solid #34d39988"></div>
+
+<div class="wrap">
+  <div class="glass pad" id="charWrap">
+    <img id="charImg" alt="char">
+    <div id="msg" style="margin-top:8px;"></div>
+    <div class="row" style="justify-content:center; margin-top:8px;">
+      <button id="waterBtn" class="btn">のませる</button>
+    </div>
   </div>
-  <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
-    <button class="btn2" id="hit">ここだ！</button><span id="state">0/3</span>
-  </div>
-</div></div>
+</div>
+
 <script>
-const LS={NOTES:'meai_notes',CHAR_COLOR:'meai_char_color',CHAR_ID:'meai_char_id'};
-const $=q=>document.querySelector(q), get=(k,d)=>{const v=localStorage.getItem(k);return v===null?d:isNaN(v)?v:Number(v)}, set=(k,v)=>localStorage.setItem(k,String(v));
-$('#notes').textContent=get(LS.NOTES,0);
-(function loadPet(){const c=get(LS.CHAR_COLOR,'blue'),i=get(LS.CHAR_ID,'calm');const el=$('#petImg');const p=[`public/char/${c}/${i}.png`,`./public/char/${c}/${i}.png`,`public/char/blue/calm.png`];let n=0;const t=new Image();t.onload=()=>el.src=t.src;t.onerror=()=>{n++;if(n<p.length)t.src=p[n]};t.src=p[0]})();
-const bar=$('#bar'); let x=0, dir=2, ok=0, w=360;
-function loop(){x+=dir; if(x<0||x>w-40){dir*=-1;x+=dir;} bar.style.left=x+'px'; requestAnimationFrame(loop);}
-loop();
-$('#hit').onclick=()=>{ if(x>150 && x<210){ ok++; $('#state').textContent=ok+'/3'; if(ok>=3){ set(LS.NOTES, get(LS.NOTES,0)+1); $('#state').textContent='クリア！♪ +1（2秒後に戻る）'; setTimeout(()=>location.href='index.html',2000);} } else { ok=Math.max(0,ok-1); $('#state').textContent=ok+'/3'; } };
-</script></body></html>
+const color = localStorage.getItem('MEAI_CHAR_COLOR')||'blue';
+const img = document.getElementById('charImg');
+const msg = document.getElementById('msg');
+img.src = `public/char/${color}/calm.png`;
+
+document.getElementById('waterBtn').addEventListener('click', ()=>{
+  img.src = `public/char/${color}/joy.png`;
+  msg.textContent = 'ごくごく…元気でた！';
+  setTimeout(()=>{ img.src = `public/char/${color}/calm.png`; msg.textContent=''; }, 1200);
+});
+</script>
+<script src="public/js/meai-reset.js"></script>
+</body></html>
