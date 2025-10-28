@@ -1,126 +1,37 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MeAI – 輪投げ</title>
-<link rel="icon" href="data:,">
-<style>
-  :root{ --fg:#fff; --glass:rgba(255,255,255,.07); --glass-border:rgba(255,255,255,.16); }
-  body{margin:0;color:var(--fg);background:#000 url("public/space_background.png") center/cover fixed no-repeat;
-       font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;}
-  .wrap{max-width:720px;margin:0 auto;padding:24px}
-  .glass{background:var(--glass);border:1px solid var(--glass-border);border-radius:16px;backdrop-filter:blur(8px)}
-  .pad{padding:16px}
-  .btn{border:none;border-radius:999px;padding:10px 16px;cursor:pointer;color:#fff;background:rgba(255,255,255,.18)}
-  .btn:hover{background:rgba(255,255,255,.28)} .btn[disabled]{opacity:.55;cursor:not-allowed}
-  #char{display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:12px}
-  #char img{width:220px;height:auto;animation:sway 5s ease-in-out infinite;transform-origin:50% 0%}
-  @keyframes sway{0%{transform:rotate(0)}25%{transform:rotate(1.2deg)}50%{transform:rotate(0)}75%{transform:rotate(-1.2deg)}100%{transform:rotate(0)}}
+<!DOCTYPE html><html lang="ja"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MeAI – 輪なげ</title>
+<link rel="stylesheet" href="styles.css">
+</head><body>
+<div class="glass topbar">
+  <div class="row"><a href="Room.html" class="btn">← お世話へ</a><span>🪀 輪なげ</span></div>
+  <div class="row"><a href="#" class="btn reset-all">初期化</a></div>
+</div>
 
-  /* ゲーム */
-  #area{position:relative;height:220px}
-  .line{position:absolute;left:0;right:0;height:4px;background:rgba(255,255,255,.25);top:120px;border-radius:4px}
-  .cursor{position:absolute;top:110px;width:6px;height:24px;background:#fff;border-radius:3px}
-  .target{position:absolute;top:104px;width:40px;height:36px;border:2px dashed #fff;border-radius:8px;left:calc(50% - 20px);opacity:.85}
-  .msg{margin-top:10px;min-height:1.4em}
-</style>
-</head>
-<body>
 <div class="wrap">
-  <div class="pad" style="display:flex;justify-content:space-between;align-items:center">
-    <h1 style="margin:0;font-size:22px">輪投げ</h1>
-    <div style="display:flex;gap:8px">
-      <a class="btn" href="Room.html">← お世話コーナー</a>
-      <a class="btn" href="index.html">ホーム</a>
-    </div>
-  </div>
-
-  <div id="char" class="glass pad">
-    <img id="charImg" src="public/char/blue/calm.png" alt="char">
-    <div id="line" style="opacity:.95"></div>
-  </div>
-
   <div class="glass pad">
-    <div id="area">
-      <div class="line"></div>
-      <div class="target"></div>
-      <div id="cursor" class="cursor"></div>
+    <div id="charWrap">
+      <img id="charImg" alt="char">
     </div>
-    <div class="msg" id="msg"></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:8px">
-      <button id="throwBtn" class="btn">🎯 投げる</button>
-      <button id="resetBtn" class="btn">💫 リセット</button>
+    <div class="row" style="justify-content:center; margin-top:10px;">
+      <button id="playBtn" class="btn">投げる</button>
+      <span id="score" class="row" style="margin-left:8px;">スコア: <b id="sc">0</b></span>
     </div>
-    <div class="note" style="opacity:.9;font-size:13px;margin-top:8px">※1日1回だけ。カーソルが中央の点線枠に近ければ<strong>クリア</strong> → ❤️+1</div>
   </div>
 </div>
 
 <script>
-const LS_STATE='MEAI_STATE_V3', LS_CARE='MEAI_CARE_PROGRESS_V1';
-const COLORS=['blue','pink','green','purple'], EMOTIONS=['calm','joy','sad','sleep'];
-const today=()=>new Date().toISOString().slice(0,10);
-function loadState(){return JSON.parse(localStorage.getItem(LS_STATE)||'{"userName":"","charColor":"blue","hearts":0,"streakDays":0,"stamps":0,"lastActionDate":null,"stage":"S0","unlocked":{"skins":[],"bg":[],"lines":[]}}');}
-function saveState(s){localStorage.setItem(LS_STATE,JSON.stringify(s));}
-function loadCare(){return JSON.parse(localStorage.getItem(LS_CARE)||'{}');}
-function saveCare(c){localStorage.setItem(LS_CARE,JSON.stringify(c));}
-function setEmotion(st,emo='calm'){const c=COLORS.includes(st.charColor)?st.charColor:'blue';document.getElementById('charImg').src=`public/char/${c}/${EMOTIONS.includes(emo)?emo:'calm'}.png`;}
-
-let dir=1, x=0, animId=null, speed=2.2; // px/frame
-const cursor=document.getElementById('cursor');
-function loop(){
-  const area=document.getElementById('area').getBoundingClientRect();
-  const max=area.width-6;
-  x+=dir*speed;
-  if(x<0){x=0;dir=1}
-  if(x>max){x=max;dir=-1}
-  cursor.style.left=x+'px';
-  animId=requestAnimationFrame(loop);
-}
-function start(){ cancelAnimationFrame(animId); x=0; dir=1; loop(); }
-function stop(){ cancelAnimationFrame(animId); }
-
-function setDoneUI(){
-  document.getElementById('throwBtn').textContent='今日は済み';
-  document.getElementById('throwBtn').disabled=true;
-  document.getElementById('resetBtn').disabled=true;
-}
-
-function init(){
-  const st=loadState(); setEmotion(st,'calm');
-  document.getElementById('line').textContent=`${st.userName||'あなた'}さん、タイミングを合わせて狙ってみよう！`;
-  start();
-
-  const care=loadCare(); const key=today();
-  if(care[key]?.ringDone){ setDoneUI(); }
-
-  document.getElementById('resetBtn').addEventListener('click', ()=>{ start(); document.getElementById('msg').textContent=''; });
-
-  document.getElementById('throwBtn').addEventListener('click', ()=>{
-    const c=loadCare(); const k=today();
-    if(c[k]?.ringDone){ setDoneUI(); return; }
-
-    stop();
-    const area=document.getElementById('area').getBoundingClientRect();
-    const center=area.width/2;
-    const curCenter=x+3; // cursor center
-    const dist=Math.abs(center-curCenter);
-    const msg=document.getElementById('msg');
-
-    if(dist<=24){ // しきい値
-      msg.textContent='ナイス！クリア！❤️+1';
-      c[k]=Object.assign({feedDone:false, cleanDone:false, poopDone:false, ringDone:false}, c[k]);
-      c[k].ringDone=true; saveCare(c);
-
-      const s=loadState(); s.hearts+=1; s.lastActionDate=today(); saveState(s);
-      setEmotion(s,'joy'); setTimeout(()=>setEmotion(s,'calm'),1200);
-      setDoneUI();
-    }else{
-      msg.textContent='おしい！もう一度リセットで挑戦してみよう。';
-    }
-  });
-}
-document.addEventListener('DOMContentLoaded',init);
+const color = localStorage.getItem('MEAI_CHAR_COLOR')||'blue';
+const img = document.getElementById('charImg');
+img.src = `public/char/${color}/calm.png`;
+let s=0;
+document.getElementById('playBtn').addEventListener('click', ()=>{
+  const hit = Math.random() < 0.5;
+  if (hit){ s++; img.src = `public/char/${color}/joy.png`; }
+  else { img.src = `public/char/${color}/sad.png`; }
+  document.getElementById('sc').textContent = s;
+  setTimeout(()=>{ img.src = `public/char/${color}/calm.png`; }, 900);
+});
 </script>
-</body>
-</html>
+<script src="public/js/meai-reset.js"></script>
+</body></html>
