@@ -1,4 +1,4 @@
-// ファイル: public/js/meai-reset.js
+<script>
 (function(){
   const START_PAGE = 'index.html'; // ← スタートページ名（必要なら変更）
 
@@ -22,15 +22,17 @@
   function resetAllGlobal(){
     if (!confirm('すべての記録を初期化し、スタート画面へ戻ります。よろしいですか？')) return;
     clearAll();
-    location.href = START_PAGE;
+    location.href = START_PAGE; // ← index.html に戻る
   }
 
-  // グローバル公開 & 自動バインド（#resetAll / .reset-all どちらでもOK）
+  // どのページでも効く共通フック
   window.MeAI = window.MeAI || {};
   window.MeAI.resetAll = resetAllGlobal;
 
+  // #resetAll または .reset-all のクリックを拾う
   document.addEventListener('click', (e)=>{
     const t = e.target.closest('#resetAll, .reset-all');
     if (t){ e.preventDefault(); resetAllGlobal(); }
   });
 })();
+</script>
