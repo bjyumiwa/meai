@@ -7,11 +7,10 @@
   <div class="row"><a href="Room.html" class="btn">← お世話へ</a><span>🍚 ごはん</span></div>
   <div class="row"><a href="#" class="btn reset-all">初期化</a></div>
 </div>
-
 <div class="wrap">
   <div class="glass pad">
     <div id="charWrap">
-      <img id="charImg" alt="char">
+      <img id="charImg" alt="char" src="">
       <div id="msg" style="margin-top:8px;"></div>
     </div>
     <div class="row" style="justify-content:center; margin-top:8px;">
@@ -19,19 +18,14 @@
     </div>
   </div>
 </div>
-
 <script>
-const color = localStorage.getItem('MEAI_CHAR_COLOR')||'blue';
-const name  = localStorage.getItem('MEAI_USER_NAME')||'あなた';
-const img   = document.getElementById('charImg');
-const msg   = document.getElementById('msg');
-img.src = `public/char/${color}/calm.png`;
-msg.textContent = `${name}さん、いつもありがとう。`;
-
+const color=localStorage.getItem('MEAI_CHAR_COLOR')||'blue';
+const img=document.getElementById('charImg'); const msg=document.getElementById('msg');
+img.onerror=()=>{ img.src=`public/char/${color}/calm.png`; };
+img.src=`public/char/${color}/calm.png`;
 document.getElementById('feedBtn').addEventListener('click', ()=>{
-  img.src = `public/char/${color}/joy.png`;
-  msg.textContent = 'もぐもぐ…おいしい！';
-  setTimeout(()=>{ img.src = `public/char/${color}/calm.png`; }, 1200);
+  img.src=`public/char/${color}/joy.png`; msg.textContent='もぐもぐ…おいしい！';
+  setTimeout(()=>{ img.src=`public/char/${color}/calm.png`; msg.textContent=''; }, 1200);
 });
 </script>
 <script src="public/js/meai-reset.js"></script>
