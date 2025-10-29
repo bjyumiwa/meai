@@ -7,30 +7,25 @@
   <div class="row"><a href="Room.html" class="btn">← お世話へ</a><span>🪀 輪なげ</span></div>
   <div class="row"><a href="#" class="btn reset-all">初期化</a></div>
 </div>
-
 <div class="wrap">
   <div class="glass pad">
-    <div id="charWrap">
-      <img id="charImg" alt="char">
-    </div>
+    <div id="charWrap"><img id="charImg" alt="char" src=""></div>
     <div class="row" style="justify-content:center; margin-top:10px;">
       <button id="playBtn" class="btn">投げる</button>
       <span id="score" class="row" style="margin-left:8px;">スコア: <b id="sc">0</b></span>
     </div>
   </div>
 </div>
-
 <script>
-const color = localStorage.getItem('MEAI_CHAR_COLOR')||'blue';
-const img = document.getElementById('charImg');
-img.src = `public/char/${color}/calm.png`;
+const color=localStorage.getItem('MEAI_CHAR_COLOR')||'blue';
+const img=document.getElementById('charImg'); img.onerror=()=>{ img.src=`public/char/${color}/calm.png`; };
+img.src=`public/char/${color}/calm.png`;
 let s=0;
 document.getElementById('playBtn').addEventListener('click', ()=>{
-  const hit = Math.random() < 0.5;
-  if (hit){ s++; img.src = `public/char/${color}/joy.png`; }
-  else { img.src = `public/char/${color}/sad.png`; }
-  document.getElementById('sc').textContent = s;
-  setTimeout(()=>{ img.src = `public/char/${color}/calm.png`; }, 900);
+  const hit=Math.random()<0.5;
+  if(hit){ s++; img.src=`public/char/${color}/joy.png`; } else { img.src=`public/char/${color}/sad.png`; }
+  document.getElementById('sc').textContent=s;
+  setTimeout(()=>{ img.src=`public/char/${color}/calm.png`; },900);
 });
 </script>
 <script src="public/js/meai-reset.js"></script>
