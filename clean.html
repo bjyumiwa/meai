@@ -26,5 +26,13 @@ document.getElementById('cleanBtn').addEventListener('click', ()=>{
   setTimeout(()=>{ img.src=`public/char/${color}/calm.png`; msg.textContent=''; }, 1200);
 });
 </script>
+<script src="public/js/meai-reset.js"></script><script>
+const color = MeAI.getColor();
+const img = document.getElementById('charImg');
+img.src = `public/char/${color}/calm.png`; // ページ初期表示
+// ボタンのイベントはそのまま（emotionだけ差し替えればOK）
+</script>
+<script src="public/js/meai-common.js"></script>
 <script src="public/js/meai-reset.js"></script>
+
 </body></html>
