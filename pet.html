@@ -16,13 +16,12 @@
   </div>
 </div>
 <script>
-const color=localStorage.getItem('MEAI_CHAR_COLOR')||'blue';
-const img=document.getElementById('charImg'); img.onerror=()=>{ img.src=`public/char/${color}/calm.png`; };
-img.src=`public/char/${color}/calm.png`;
-document.getElementById('petBtn').addEventListener('click', ()=>{
-  img.src=`public/char/${color}/joy.png`;
-  setTimeout(()=>{ img.src=`public/char/${color}/calm.png`; },900);
-});
+const color = MeAI.getColor();
+const img = document.getElementById('charImg');
+img.src = `public/char/${color}/calm.png`; // ページ初期表示
+// ボタンのイベントはそのまま（emotionだけ差し替えればOK）
 </script>
+<script src="public/js/meai-common.js"></script>
 <script src="public/js/meai-reset.js"></script>
+
 </body></html>
