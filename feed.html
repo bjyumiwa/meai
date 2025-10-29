@@ -19,14 +19,12 @@
   </div>
 </div>
 <script>
-const color=localStorage.getItem('MEAI_CHAR_COLOR')||'blue';
-const img=document.getElementById('charImg'); const msg=document.getElementById('msg');
-img.onerror=()=>{ img.src=`public/char/${color}/calm.png`; };
-img.src=`public/char/${color}/calm.png`;
-document.getElementById('feedBtn').addEventListener('click', ()=>{
-  img.src=`public/char/${color}/joy.png`; msg.textContent='もぐもぐ…おいしい！';
-  setTimeout(()=>{ img.src=`public/char/${color}/calm.png`; msg.textContent=''; }, 1200);
-});
+const color = MeAI.getColor();
+const img = document.getElementById('charImg');
+img.src = `public/char/${color}/calm.png`; // ページ初期表示
+// ボタンのイベントはそのまま（emotionだけ差し替えればOK）
 </script>
+<script src="public/js/meai-common.js"></script>
 <script src="public/js/meai-reset.js"></script>
+
 </body></html>
