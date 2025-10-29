@@ -40,14 +40,16 @@
 
 <script>
 (function(){
-  const color = localStorage.getItem('MEAI_CHAR_COLOR') || 'blue';
-  const name  = localStorage.getItem('MEAI_USER_NAME') || 'あなた';
+  const color = MeAI.getColor();
+  const name  = MeAI.getUserName() || 'あなた';
+  const cname = MeAI.getCharName();
   const img = document.getElementById('charImg');
-  img.onerror = ()=>{ img.src = `public/char/${color}/calm.png`; };
   img.src = `public/char/${color}/calm.png`;
-  document.getElementById('hello').textContent = `ようこそ、${name}さん。何をする？`;
+  document.getElementById('hello').textContent = cname ? `(${cname}) と何をする？` : `ようこそ、${name}さん。何をする？`;
 })();
 </script>
+<script src="public/js/meai-common.js"></script>
 <script src="public/js/meai-reset.js"></script>
+
 </body>
 </html>
