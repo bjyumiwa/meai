@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -7,265 +6,207 @@
 <title>MeAI – 愛着成長ミニ版（3提案/日）</title>
 <link rel="icon" href="data:,">
 <style>
-  :root{
-    --fg:#fff; --bg:#000;
-    --glass: rgba(255,255,255,.07);
-    --glass-border: rgba(255,255,255,.16);
-    --accent: #7dd3fc;
-  }
-  html, body { height:100%; }
-  body{
-    margin:0;
-    font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
-    background:#000 url("public/space_background.png") center/cover fixed no-repeat;
-    color:var(--fg);
-  }
+  :root{ --fg:#fff; --bg:#000; --glass:rgba(255,255,255,.07); --glass-border:rgba(255,255,255,.16); --accent:#7dd3fc; }
+  html,body{height:100%}
+  body{margin:0;color:var(--fg);background:#000 url("public/space_background.png") center/cover fixed no-repeat;
+       font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;}
   .wrap{ max-width:960px; margin:0 auto; padding:24px; }
   .grid{ display:grid; grid-template-columns: 280px 1fr; gap:20px; }
   .glass{ background:var(--glass); border:1px solid var(--glass-border); border-radius:16px; backdrop-filter:blur(8px); }
   .pad{ padding:16px; }
-  h1{ font-size:22px; margin:0 0 10px; }
-  h3{ margin:0 0 10px; font-size:18px; }
-  small{ opacity:.9 }
-  #charWrap{ text-align:center; }
-  #charWrap img{ width:240px; height:auto; image-rendering:auto; animation:sway 5s ease-in-out infinite; transform-origin:50% 0%; }
-  @keyframes sway{
-    0%{ transform:rotate(0deg) translateY(0); }
-    25%{ transform:rotate(1.2deg) translateY(-1px); }
-    50%{ transform:rotate(0deg) translateY(0); }
-    75%{ transform:rotate(-1.2deg) translateY(-1px); }
-    100%{ transform:rotate(0deg) translateY(0); }
-  }
-  #status > div{ margin:6px 0; }
-  #tasks{ list-style:none; padding:0; margin:0; display:grid; gap:10px; }
-  .task{ padding:12px; border-radius:12px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
   .btn{ border:none; border-radius:999px; padding:8px 14px; cursor:pointer; color:#fff; background:rgba(255,255,255,.18); }
   .btn:hover{ background:rgba(255,255,255,.26); }
   .btn[disabled]{ opacity:.55; cursor:not-allowed; }
   .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   .field{ display:flex; gap:8px; align-items:center; }
-  input[type="text"], select, textarea{
-    background:rgba(255,255,255,.08); color:#fff; border:1px solid var(--glass-border);
-    padding:8px 10px; border-radius:10px; outline:none; min-width:0;
-  }
-  .note{ opacity:.9; font-size:13px; }
+  input[type="text"],select,textarea{ background:rgba(255,255,255,.08); color:#fff; border:1px solid var(--glass-border); padding:8px 10px; border-radius:10px; outline:none; min-width:0; }
   .chip{ display:inline-flex; align-items:center; gap:.4em; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid var(--glass-border); font-size:12px; }
-  .divider{ border:none;border-top:1px solid var(--glass-border); margin:14px 0; }
-
-  /* ====== 表紙（カバー） ====== */
-  #cover{
-    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-    background: radial-gradient(ellipse at 50% -10%, rgba(125,211,252,.18), transparent 60%) , rgba(0,0,0,.85);
-    z-index:9999;
-  }
-  .cover-card{
-    width:min(680px, 92vw); padding:24px; text-align:center;
-    box-shadow:0 8px 40px rgba(0,0,0,.45);
-  }
-  .cover-title{ font-size:28px; font-weight:800; letter-spacing:.03em; margin:8px 0 2px; }
-  .cover-lead{ opacity:.9; margin:0 0 16px; }
-  .cover-row{ display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; margin:10px 0 18px; }
-  .cover-name{ width:200px; }
-
-  /* ====== おやすみ前チェック ====== */
-  #goodCard .good-grid{ display:grid; grid-template-columns:1fr; gap:8px; }
-  #goodCard .saved-list{ margin-top:6px; display:grid; gap:6px; }
-  #goodCard .saved-item{ background:rgba(255,255,255,.07); border:1px solid var(--glass-border); border-radius:10px; padding:8px 10px; }
-
-  @media (max-width:820px){
-    .grid{ grid-template-columns: 1fr; }
-    #charWrap img{ width:200px; }
-  }
+  .divider{ border:none; border-top:1px solid var(--glass-border); margin:14px 0; }
+  #charWrap{ text-align:center; }
+  #charWrap img{ width:240px; height:auto; animation:sway 5s ease-in-out infinite; transform-origin:50% 0%; }
+  @keyframes sway{0%{transform:rotate(0) translateY(0)}25%{transform:rotate(1.2deg) translateY(-1px)}50%{transform:rotate(0)}75%{transform:rotate(-1.2deg) translateY(-1px)}100%{transform:rotate(0)}}
+  .name-badge{ display:inline-flex; gap:.4em; align-items:center; padding:4px 10px; border-radius:999px; border:1px solid var(--glass-border); background:rgba(255,255,255,.10); font-size:12px; margin-top:6px;}
+  /* Cover */
+  #cover{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+          background: radial-gradient(ellipse at 50% -10%, rgba(125,211,252,.18), transparent 60%), rgba(0,0,0,.85); z-index:9999; }
+  .cover-card{ width:min(680px, 92vw); padding:24px; text-align:center; box-shadow:0 8px 40px rgba(0,0,0,.45); }
+  .cover-title{ font-size:28px; font-weight:800; margin:8px 0 2px; }
+  /* 命名モーダル */
+  #nameModal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:10000;
+              background:rgba(0,0,0,.6); }
+  .modal-card{ width:min(520px,92vw); padding:18px; }
+  .hidden{display:none!important;}
+  @media (max-width:820px){ .grid{grid-template-columns:1fr} #charWrap img{width:200px} }
 </style>
 </head>
 <body>
 
-  <!-- ====== 表紙（はじめる） ====== -->
-  <div id="cover" class="hidden">
-    <div class="glass cover-card">
-      <div style="font-size:12px; letter-spacing:.12em; opacity:.9;">MeAI MINI</div>
-      <div class="cover-title">小さな“やってみる”を、いっしょに。</div>
-      <p class="cover-lead">1日に3つだけ。できたらハートが貯まって、キャラが喜ぶよ。</p>
-      <div class="cover-row">
-        <input id="coverName" class="cover-name" type="text" placeholder="あなたの名前（例：みわ）">
-        <select id="coverColor">
-          <option value="blue">blue</option>
-          <option value="pink">pink</option>
-          <option value="green">green</option>
-          <option value="purple">purple</option>
+<!-- 表紙（初回） -->
+<div id="cover" class="hidden">
+  <div class="glass cover-card">
+    <div style="font-size:12px; opacity:.9;">MeAI MINI</div>
+    <div class="cover-title">小さな“やってみる”を、いっしょに。</div>
+    <p style="opacity:.9;">1日に3つだけ。できたらハートが貯まって、キャラが喜ぶよ。</p>
+    <div class="row" style="justify-content:center;">
+      <input id="coverName" class="cover-name" type="text" placeholder="あなたの名前（例：みわ）" style="width:200px;">
+      <select id="coverColor">
+        <option value="blue">blue</option><option value="pink">pink</option>
+        <option value="green">green</option><option value="purple">purple</option>
+      </select>
+    </div>
+    <div class="row" style="justify-content:center; margin-top:10px;">
+      <button id="coverStart" class="btn" style="background:rgba(125,211,252,.25); border:1px solid rgba(125,211,252,.5);">はじめる</button>
+      <button id="coverSkip" class="btn">あとで設定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 命名モーダル（3回達成で一度だけ） -->
+<div id="nameModal">
+  <div class="glass modal-card">
+    <h3 style="margin:4px 0 8px;">キャラの名前をつけよう！</h3>
+    <div class="row">
+      <input id="charNameInput" type="text" placeholder="例）そら / みるく" style="width:220px;">
+      <button id="charNameSave" class="btn">決定</button>
+      <button id="charNameLater" class="btn">あとで</button>
+    </div>
+    <div style="font-size:12px; opacity:.85; margin-top:6px;">※あとからも設定できます（キャラ下のバッジをクリック）。</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="row" style="justify-content:space-between; margin-bottom:12px;">
+    <h1>MeAI – 今日は何を提案してくれる？</h1>
+    <div class="row">
+      <a id="toCare" class="btn" href="Room.html">お世話コーナーへ</a>
+      <button id="exportCsv" class="btn">CSVを書き出す</button>
+      <button id="resetAll" class="btn">初期化</button>
+    </div>
+  </div>
+
+  <!-- 設定 -->
+  <div class="glass pad" style="margin-bottom:16px;">
+    <div class="row">
+      <div class="field">
+        <label for="userName">あなたの名前</label>
+        <input id="userName" type="text" placeholder="例）みわ" style="width:160px;">
+      </div>
+      <div class="field">
+        <label for="charColor">キャラ色</label>
+        <select id="charColor">
+          <option value="blue">blue</option><option value="pink">pink</option>
+          <option value="green">green</option><option value="purple">purple</option>
         </select>
       </div>
-      <div class="cover-row">
-        <button id="coverStart" class="btn" style="background:rgba(125,211,252,.25); border:1px solid rgba(125,211,252,.5);">はじめる</button>
-        <button id="coverSkip" class="btn">あとで設定</button>
-      </div>
-      <div class="note">※あとから画面上部の「保存」で変更できます。</div>
+      <button id="saveProfile" class="btn">保存</button>
+      <span id="dailyInfo" class="chip">本日の達成: <b id="doneCount">0</b>/3</span>
+    </div>
+    <div class="row" style="margin-top:6px; font-size:12px; opacity:.9;">
+      画像は <code>public/char/{color}/{emotion}.png</code>（emotion: calm / joy / sad / sleep）
     </div>
   </div>
 
-  <div class="wrap">
-    <div class="row" style="justify-content:space-between; margin-bottom:12px;">
-      <h1>MeAI – 今日は何を提案してくれる？</h1>
-      <div class="row">
-        <a id="toCare" class="btn" href="Room.html">お世話コーナーへ</a>
-        <button id="exportCsv" class="btn">CSVを書き出す</button>
+  <div class="grid">
+    <!-- 左：キャラ -->
+    <div class="glass pad">
+      <div id="charWrap">
+        <img id="charImg" alt="char" src="">
+        <div id="hello" style="margin-top:8px; opacity:.95;"></div>
+        <button id="charNameBadge" class="name-badge" title="クリックで変更">
+          <span>🐣 なまえ：<b id="charNameLabel">（未設定）</b></span>
+        </button>
+      </div>
+      <hr class="divider">
+      <div id="status">
+        <div>❤️ <span id="hearts">0</span>　／　ステージ: <span id="stage">S0</span>　／　連続: <span id="streak">0</span>日</div>
+        <div>🎖️ スタンプ: <span id="stamps">0</span></div>
+        <div id="stampsRow" class="row" style="margin-top:6px;"></div>
       </div>
     </div>
 
-    <!-- 設定（名前・色） -->
-    <div class="glass pad" style="margin-bottom:16px;">
-      <div class="row">
-        <div class="field">
-          <label for="userName">あなたの名前</label>
-          <input id="userName" type="text" placeholder="例）みわ" style="width:160px;">
-        </div>
-        <div class="field">
-          <label for="charColor">キャラ色</label>
-          <select id="charColor">
-            <option value="blue">blue</option>
-            <option value="pink">pink</option>
-            <option value="green">green</option>
-            <option value="purple">purple</option>
-          </select>
-        </div>
-        <button id="saveProfile" class="btn">保存</button>
-        <!-- ★ 初期化（スタートに戻す） -->
-        <button id="resetAll" class="btn">初期化</button>
-        <span id="dailyInfo" class="chip" title="今日の達成回数">本日の達成: <b id="doneCount">0</b>/3</span>
-      </div>
-      <div class="note" style="margin-top:6px;">※画像は <code>public/char/{color}/{emotion}.png</code>（emotion: calm / joy / sad / sleep）。</div>
-    </div>
-
-    <div class="grid">
-      <!-- 左：キャラとステータス -->
-      <div class="glass pad">
-        <div id="charWrap">
-          <img id="charImg" alt="char" src="public/char/blue/calm.png" onerror="this.src=''; this.alt='画像が見つかりません（public/char/... を確認）'">
-          <div id="hello" style="margin-top:8px; opacity:.95;"></div>
-        </div>
-        <hr class="divider">
-        <div id="status">
-          <div>❤️ <span id="hearts">0</span>　／　ステージ: <span id="stage">S0</span>　／　連続: <span id="streak">0</span>日</div>
-          <div>🎖️ スタンプ: <span id="stamps">0</span></div>
-          <div id="stampsRow" class="row" style="margin-top:6px;"></div>
-        </div>
-      </div>
-
-      <!-- 右：今日の提案 & おやすみ前チェック -->
-      <div class="glass pad">
-        <h3>📬 今日の提案（3つ）</h3>
-        <ul id="tasks"></ul>
-        <div class="note" style="margin-top:10px;">
-          同じ日は同じ3件が表示されます（安定性のため）。各タスクは<strong>1日1回だけ</strong>押せます。合計<strong>3回まで</strong>達成できます。
-        </div>
-
-        <hr class="divider" />
-
-        <!-- 🌙 おやすみ前チェック -->
-        <div id="goodCard">
-          <h3>🌙 おやすみ前チェック（今日あったいいこと ×3）</h3>
-          <div id="goodInputArea" class="good-grid">
-            <input id="good1" type="text" placeholder="いいこと①">
-            <input id="good2" type="text" placeholder="いいこと②">
-            <input id="good3" type="text" placeholder="いいこと③">
-            <div class="row" style="margin-top:6px;">
-              <button id="goodSave" class="btn">今日をしめる</button>
-              <span id="goodStatus" class="chip">未登録</span>
-            </div>
+    <!-- 右：提案 & おやすみ -->
+    <div class="glass pad">
+      <h3>📬 今日の提案（3つ）</h3>
+      <ul id="tasks" style="list-style:none; padding:0; display:grid; gap:10px;"></ul>
+      <div style="opacity:.9; font-size:13px;">同じ日は同じ3件。各タスクは<strong>1日1回</strong>、合計<strong>3回まで</strong>。</div>
+      <hr class="divider" />
+      <div id="goodCard">
+        <h3>🌙 おやすみ前チェック（今日あったいいこと ×3）</h3>
+        <div id="goodInputArea" style="display:grid; gap:8px;">
+          <input id="good1" type="text" placeholder="いいこと①">
+          <input id="good2" type="text" placeholder="いいこと②">
+          <input id="good3" type="text" placeholder="いいこと③">
+          <div class="row" style="margin-top:6px;">
+            <button id="goodSave" class="btn">今日をしめる</button>
+            <span id="goodStatus" class="chip">未登録</span>
           </div>
-          <div id="goodSavedArea" class="hidden">
-            <div class="note">※登録済み（再編集不可）</div>
-            <div id="goodSavedList" class="saved-list"></div>
-          </div>
-          <div class="note" style="margin-top:8px;">※登録しないと翌朝に❤️が<strong>2こ減少</strong>します（自動）。</div>
         </div>
+        <div id="goodSavedArea" class="hidden">
+          <div class="row" id="goodSavedList" style="gap:6px; flex-direction:column;"></div>
+          <div style="opacity:.9; font-size:12px;">※登録済み（再編集不可）</div>
+        </div>
+        <div style="opacity:.9; font-size:13px; margin-top:8px;">※登録しないと翌朝に❤️が<strong>2こ減少</strong>（自動）</div>
       </div>
     </div>
   </div>
+</div>
 
 <script type="module">
-/* ================== ページ遷移設定（★変更点） ================== */
-const START_PAGE = 'index.html'; // ← スタート画面のファイル名（必要なら変更）
+/* ====== 設定 ====== */
+const LS_STATE='MEAI_STATE_V3', LS_LOG='MEAI_LOG_V3';
+const LS_DAY_PREFIX='MEAI_DAILY_V3:', LS_DAY_PROGRESS_PREFIX='MEAI_DAY_PROGRESS_V3:';
+const LS_USER='MEAI_USER_NAME', LS_COLOR='MEAI_CHAR_COLOR', LS_SEEN='MEAI_SEEN_COVER_V1';
+const LS_GOOD_PREFIX='MEAI_GOOD_V1:', LS_PENALTY_PREFIX='MEAI_PENALTY_V1:', LS_SLEEP='MEAI_SLEEP_DATE_V1';
+const LS_CNAME='MEAI_CHAR_NAME_V1';
 
-/* ================== ストレージキー ================== */
-const LS_STATE = 'MEAI_STATE_V3';
-const LS_LOG   = 'MEAI_LOG_V3';
-const LS_DAY_PREFIX = 'MEAI_DAILY_V3:'; // タスク固定
-const LS_DAY_PROGRESS_PREFIX = 'MEAI_DAY_PROGRESS_V3:'; // 達成状況 {doneIds:[], count:number}
-const LS_USER  = 'MEAI_USER_NAME';
-const LS_COLOR = 'MEAI_CHAR_COLOR';
-const LS_SEEN_COVER = 'MEAI_SEEN_COVER_V1';
-
-/* === いいことメモ & 就寝管理 === */
-const LS_GOOD_PREFIX = 'MEAI_GOOD_V1:';           // 値: {items:[a,b,c], savedAt:ISO}
-const LS_PENALIZED_PREFIX = 'MEAI_PENALTY_V1:';   // フラグ: '1' 二重適用防止
-const LS_SLEEP_DATE = 'MEAI_SLEEP_DATE_V1';       // 値: 'YYYY-MM-DD'（その日は寝顔で固定）
-
-/* ================== マスタ ================== */
-const COLORS = ['blue','pink','green','purple'];
-const EMOTIONS = ['calm','joy','sad','sleep'];
-
-const TASK_POOL = [
-  {id:'H1', cat:'health',  text:'お水をコップ1杯のもう', heart:1},
-  {id:'H2', cat:'health',  text:'3分だけ深呼吸してみよう', heart:2},
-  {id:'L1', cat:'life',    text:'机の上を1分だけ片付ける', heart:1},
-  {id:'L2', cat:'life',    text:'窓を開けて外の空気を吸う', heart:1},
-  {id:'S1', cat:'social',  text:'誰かに「ありがとう」を1回伝える', heart:2},
-  {id:'A1', cat:'art',     text:'写真を1枚とってお気に入りに追加', heart:2},
-  {id:'A2', cat:'art',     text:'1分落書きしてみよう', heart:2},
-  {id:'E1', cat:'learn',   text:'気になる言葉を1つ調べる', heart:2},
-  {id:'E2', cat:'learn',   text:'今日あった発見を1行メモ', heart:2},
+const COLORS=['blue','pink','green','purple'];
+const EMOTIONS=['calm','joy','sad','sleep'];
+const TASK_POOL=[
+  {id:'H1',cat:'health',text:'お水をコップ1杯のもう',heart:1},
+  {id:'H2',cat:'health',text:'3分だけ深呼吸してみよう',heart:2},
+  {id:'L1',cat:'life',text:'机の上を1分だけ片付ける',heart:1},
+  {id:'L2',cat:'life',text:'窓を開けて外の空気を吸う',heart:1},
+  {id:'S1',cat:'social',text:'誰かに「ありがとう」を1回伝える',heart:2},
+  {id:'A1',cat:'art',text:'写真を1枚とってお気に入りに追加',heart:2},
+  {id:'A2',cat:'art',text:'1分落書きしてみよう',heart:2},
+  {id:'E1',cat:'learn',text:'気になる言葉を1つ調べる',heart:2},
+  {id:'E2',cat:'learn',text:'今日あった発見を1行メモ',heart:2},
 ];
-const CAT_WEIGHT = { health:3, life:3, social:2, art:2, learn:2 };
-const DAILY_LIMIT = 3;
+const CAT_WEIGHT={health:3,life:3,social:2,art:2,learn:2};
+const DAILY_LIMIT=3;
+const $=sel=>document.querySelector(sel);
+const todayStr=()=>new Date().toISOString().slice(0,10);
+const ymd=d=>d.toISOString().slice(0,10);
+const goodKey=d=>LS_GOOD_PREFIX+d, penKey=d=>LS_PENALTY_PREFIX+d;
 
-/* ================== ユーティリティ ================== */
-const $ = sel => document.querySelector(sel);
-const todayStr = () => new Date().toISOString().slice(0,10);
-const ymd = (d)=> d.toISOString().slice(0,10);
-
-/* === いいことキー/IO === */
-const goodKey = (d) => LS_GOOD_PREFIX + d;
-const penKey  = (d) => LS_PENALIZED_PREFIX + d;
-function loadGood(d){ const raw = localStorage.getItem(goodKey(d)); return raw ? JSON.parse(raw) : null; }
-function saveGood(d, items){
-  localStorage.setItem(goodKey(d), JSON.stringify({items, savedAt:new Date().toISOString()}));
-}
-
-/* ================== ステートIO ================== */
+/* ====== IO ====== */
 function loadState(){
-  const s = localStorage.getItem(LS_STATE);
+  const s=localStorage.getItem(LS_STATE);
   if (s) return JSON.parse(s);
-  const init = {
-    userName: localStorage.getItem(LS_USER) || '',
-    charColor: localStorage.getItem(LS_COLOR) || 'blue',
-    hearts: 0, streakDays: 0, stamps: 0,
-    lastActionDate: null,
-    stage: 'S0',
-    unlocked: {skins:[], bg:[], lines:[]}
-  };
+  const init={ userName:localStorage.getItem(LS_USER)||'', charColor:localStorage.getItem(LS_COLOR)||'blue',
+               hearts:0, streakDays:0, stamps:0, lastActionDate:null, stage:'S0', unlocked:{skins:[],bg:[],lines:[]} };
   localStorage.setItem(LS_STATE, JSON.stringify(init));
   if (!localStorage.getItem(LS_LOG)) localStorage.setItem(LS_LOG, JSON.stringify([]));
   return init;
 }
 function saveState(st){ localStorage.setItem(LS_STATE, JSON.stringify(st)); }
-function loadLog(){ return JSON.parse(localStorage.getItem(LS_LOG) || '[]'); }
-function saveLog(log){ localStorage.setItem(LS_LOG, JSON.stringify(log)); }
+function loadLog(){ return JSON.parse(localStorage.getItem(LS_LOG)||'[]'); }
+function saveLog(l){ localStorage.setItem(LS_LOG, JSON.stringify(l)); }
+function loadGood(d){ const raw=localStorage.getItem(goodKey(d)); return raw?JSON.parse(raw):null }
+function saveGood(d,items){ localStorage.setItem(goodKey(d), JSON.stringify({items, savedAt:new Date().toISOString()})); }
 
-/* ===== 日次進捗 ===== */
-function dayKey(){ return LS_DAY_PROGRESS_PREFIX + todayStr(); }
+/* ====== 日次進捗 ====== */
+const dayKey=()=>LS_DAY_PROGRESS_PREFIX+todayStr();
 function loadDayProgress(){
-  const raw = localStorage.getItem(dayKey());
+  const raw=localStorage.getItem(dayKey());
   if (raw) return JSON.parse(raw);
-  const init = { doneIds:[], count:0 };
-  localStorage.setItem(dayKey(), JSON.stringify(init));
-  return init;
+  const init={doneIds:[],count:0}; localStorage.setItem(dayKey(), JSON.stringify(init)); return init;
 }
 function saveDayProgress(p){ localStorage.setItem(dayKey(), JSON.stringify(p)); }
 
-/* ================== ステージ判定 ================== */
+/* ====== ステージ判定 ====== */
 function evalStage(st){
-  const h = st.hearts, streak = st.streakDays, stamps = st.stamps;
+  const h=st.hearts, streak=st.streakDays, stamps=st.stamps;
   if (h>=40 && stamps>=10) return 'S4';
   if (h>=24 && streak>=7)  return 'S3';
   if (h>=12 && stamps>=5)  return 'S2';
@@ -273,382 +214,216 @@ function evalStage(st){
   return 'S0';
 }
 
-/* ================== 画像・挨拶 ================== */
+/* ====== 画像・挨拶 ====== */
 function setEmotion(st, emotion='calm'){
-  const color = COLORS.includes(st.charColor) ? st.charColor : 'blue';
-  const img = $('#charImg');
-  img.src = `public/char/${color}/${EMOTIONS.includes(emotion)?emotion:'calm'}.png`;
+  const color = COLORS.includes(st.charColor)? st.charColor : 'blue';
+  $('#charImg').src = `public/char/${color}/${EMOTIONS.includes(emotion)?emotion:'calm'}.png`;
 }
 function helloLine(st){
-  const name = st.userName || 'あなた';
-  const t = todayStr();
-  if (!st.lastActionDate) return `はじめまして、${name}さん。今日からよろしくね。`;
-  if (st.lastActionDate === t) return getSleepFlagIsToday()? `おやすみ中…。静かに見守るね。` : `また会えたね、${name}さん。`;
-  const last = new Date(st.lastActionDate+'T00:00:00');
-  const now  = new Date(t+'T00:00:00');
-  const diff = Math.round((now - last)/(1000*60*60*24));
-  if (diff===1) return `おかえり、${name}さん。昨日の続き、いい感じ！`;
-  if (diff<=3)  return `おかえり、${name}さん。${diff}日ぶりだね。`;
-  return `会えてうれしいよ、${name}さん。`;
+  const uname = st.userName || 'あなた';
+  const cname = localStorage.getItem(LS_CNAME) || '';
+  const t=todayStr();
+  const who = cname ? `${cname}と` : '';
+  if (!st.lastActionDate) return `はじめまして、${uname}さん。今日から${who}よろしくね。`;
+  if (st.lastActionDate===t) return getSleepIsToday()? `おやすみ中…。静かに見守るね。` : `また会えたね、${uname}さん。`;
+  const last=new Date(st.lastActionDate+'T00:00:00'), now=new Date(t+'T00:00:00'); const diff=Math.round((now-last)/86400000);
+  if (diff===1) return `おかえり、${uname}さん。昨日の続き、いい感じ！`;
+  if (diff<=3)  return `おかえり、${uname}さん。${diff}日ぶりだね。`;
+  return `会えてうれしいよ、${uname}さん。`;
 }
 
-/* === 就寝フラグ管理 === */
-function getSleepFlag(){ return localStorage.getItem(LS_SLEEP_DATE); }
-function setSleepFlag(dateStr){ localStorage.setItem(LS_SLEEP_DATE, dateStr); }
-function clearSleepFlag(){ localStorage.removeItem(LS_SLEEP_DATE); }
-function getSleepFlagIsToday(){ return getSleepFlag() === todayStr(); }
-function refreshSleepFlagForNewDay(){
-  const flag = getSleepFlag();
-  if (flag && flag !== todayStr()){
-    // 新しい日になったら解除
-    clearSleepFlag();
-  }
+/* ====== 就寝フラグ ====== */
+const getSleep=()=>localStorage.getItem(LS_SLEEP);
+const setSleep=d=>localStorage.setItem(LS_SLEEP,d);
+const clearSleep=()=>localStorage.removeItem(LS_SLEEP);
+const getSleepIsToday=()=>getSleep()===todayStr();
+function refreshForNewDay(){
+  const flag=getSleep();
+  if (flag && flag!==todayStr()) clearSleep();
 }
 
-/* ================== デイリー提案 ================== */
-function seededRandom(seedStr){
-  let h=0; for (let i=0;i<seedStr.length;i++){ h = (h*31 + seedStr.charCodeAt(i))>>>0; }
-  return ()=>{ h^=h<<13; h^=h>>>17; h^=h<<5; return (h>>>0)/0xFFFFFFFF; };
-}
-function weightedPick(arr, weights, n, excludeIds=new Set()){
-  const out = [];
-  const pool = arr.filter(x=>!excludeIds.has(x.id));
+/* ====== デイリー提案 ====== */
+function seededRandom(seedStr){ let h=0; for(let i=0;i<seedStr.length;i++) h=(h*31+seedStr.charCodeAt(i))>>>0;
+  return ()=>{ h^=h<<13; h^=h>>>17; h^=h<<5; return (h>>>0)/0xFFFFFFFF; }; }
+function weightedPick(arr,weights,n,excludeIds=new Set()){
+  const out=[], pool=arr.filter(x=>!excludeIds.has(x.id));
   while(out.length<n && pool.length){
-    const total = Object.values(weights).reduce((a,b)=>a+b,0);
-    const r = Math.random()*total;
-    let acc=0, pickCat=null;
-    for (const [k,w] of Object.entries(weights)){ acc+=w; if (r<=acc){ pickCat=k; break; } }
-    const cand = pool.filter(x=>x.cat===pickCat);
-    if (cand.length){
-      const item = cand[Math.floor(Math.random()*cand.length)];
-      if (!out.find(o=>o.id===item.id)) out.push(item);
-    }else{
-      const item = pool[Math.floor(Math.random()*pool.length)];
-      if (!out.find(o=>o.id===item.id)) out.push(item);
-    }
+    const total=Object.values(weights).reduce((a,b)=>a+b,0), r=Math.random()*total; let acc=0, pick=null;
+    for(const [k,w] of Object.entries(weights)){ acc+=w; if(r<=acc){ pick=k; break; } }
+    const cand=pool.filter(x=>x.cat===pick);
+    const item=(cand.length?cand:pool)[Math.floor(Math.random()* (cand.length?cand.length:pool.length))];
+    if (!out.find(o=>o.id===item.id)) out.push(item);
   }
   while(out.length<n && pool.length){
-    const item = pool.splice(Math.floor(Math.random()*pool.length),1)[0];
+    const item=pool.splice(Math.floor(Math.random()*pool.length),1)[0];
     if (!out.find(o=>o.id===item.id)) out.push(item);
   }
   return out;
 }
 function getTodayTasks(st){
-  const key = LS_DAY_PREFIX + todayStr();
-  const cached = localStorage.getItem(key);
+  const key=LS_DAY_PREFIX+todayStr(); const cached=localStorage.getItem(key);
   if (cached) return JSON.parse(cached);
-
-  const log = loadLog().slice(-50);
-  const recentDone = new Set(log.filter(x=>x.done).slice(-9).map(x=>x.taskId));
-
-  const seed = seededRandom(todayStr() + (st.userName||'') + st.charColor);
-  const bak = Math.random;
-  Math.random = seed;
-  const tasks = weightedPick(TASK_POOL, CAT_WEIGHT, 3, recentDone);
-  Math.random = bak;
-
-  localStorage.setItem(key, JSON.stringify(tasks));
-  return tasks;
+  const recentDone=new Set(loadLog().filter(x=>x.done).slice(-9).map(x=>x.taskId));
+  const seed=seededRandom(todayStr()+(st.userName||'')+st.charColor); const bak=Math.random; Math.random=seed;
+  const tasks=weightedPick(TASK_POOL, CAT_WEIGHT, 3, recentDone); Math.random=bak;
+  localStorage.setItem(key, JSON.stringify(tasks)); return tasks;
 }
 
-/* ================== 完了処理 ================== */
+/* ====== 完了処理（★3回で命名） ====== */
+function maybeOpenNameModal(){
+  if (localStorage.getItem(LS_CNAME)) return; // 既に命名済み
+  $('#nameModal').style.display='flex';
+  $('#charNameInput').focus();
+}
 function completeTask(task){
-  const st = loadState();
-  const today = todayStr();
-  const prog = loadDayProgress();
-
+  const st=loadState(), today=todayStr(), prog=loadDayProgress();
   if (prog.doneIds.includes(task.id)) { alert('この提案は今日はもう達成済みだよ！'); return; }
-  if (prog.count >= DAILY_LIMIT) { alert('今日は3つ達成！また明日いっしょにやろう。'); return; }
+  if (prog.count>=DAILY_LIMIT) { alert('今日は3つ達成！また明日いっしょにやろう。'); return; }
 
-  if (st.lastActionDate !== today) {
-    const yest = new Date(); yest.setDate(yest.getDate()-1);
-    if (st.lastActionDate === ymd(yest)) st.streakDays += 1;
-    else st.streakDays = 1;
+  if (st.lastActionDate!==today){
+    const y=new Date(); y.setDate(y.getDate()-1);
+    st.streakDays = (st.lastActionDate===ymd(y)) ? (st.streakDays+1) : 1;
     st.stamps += 1;
   }
-
   st.hearts += task.heart;
   st.lastActionDate = today;
-  const prevStage = st.stage;
-  st.stage = evalStage(st);
-  if (prevStage !== st.stage){
-    if (st.stage==='S1') st.unlocked.lines.push('再会:短い挨拶');
-    if (st.stage==='S2') st.unlocked.skins.push('scarf');
-    if (st.stage==='S3') st.unlocked.bg.push('space_milky');
-    if (st.stage==='S4') st.unlocked.skins.push('festival');
-  }
+  const p=st.stage; st.stage=evalStage(st); if (p!==st.stage){ /* アンロック演出は省略 */ }
   saveState(st);
 
-  const log = loadLog();
-  log.push({date: today, taskId: task.id, category: task.cat, done:true, deltaHeart: task.heart});
-  saveLog(log);
+  const log=loadLog(); log.push({date:today, taskId:task.id, category:task.cat, done:true, deltaHeart:task.heart}); saveLog(log);
 
-  prog.doneIds.push(task.id);
-  prog.count += 1;
-  saveDayProgress(prog);
+  prog.doneIds.push(task.id); prog.count += 1; saveDayProgress(prog);
 
-  // 寝顔固定日は joy にしない
-  if (!getSleepFlagIsToday()){
-    setEmotion(st, 'joy');
-    setTimeout(()=>setEmotion(st, 'calm'), 1400);
-  }
+  if (!getSleepIsToday()){ setEmotion(st,'joy'); setTimeout(()=>setEmotion(st,'calm'), 1200); }
   renderAll();
+
+  // ★ 本日3回達成した瞬間に命名モーダル
+  if (prog.count===3) maybeOpenNameModal();
 }
 
-/* ================== おやすみ前チェック（UI & ロジック） ================== */
+/* ====== おやすみ ====== */
 function renderGoodCard(){
-  const t = todayStr();
-  const saved = loadGood(t);
-
-  const inputArea = $('#goodInputArea');
-  const savedArea = $('#goodSavedArea');
-  const statusEl  = $('#goodStatus');
-
+  const t=todayStr(), saved=loadGood(t);
+  const inputArea=$('#goodInputArea'), savedArea=$('#goodSavedArea'), status=$('#goodStatus');
   if (saved){
-    inputArea.classList.add('hidden');
-    savedArea.classList.remove('hidden');
-    statusEl.textContent = '登録済み';
-    const list = $('#goodSavedList');
-    list.innerHTML = '';
-    saved.items.forEach((txt,i)=>{
-      const div = document.createElement('div');
-      div.className = 'saved-item';
-      div.textContent = `いいこと${i+1}：${txt}`;
-      list.appendChild(div);
-    });
+    inputArea.classList.add('hidden'); savedArea.classList.remove('hidden'); status.textContent='登録済み';
+    const list=$('#goodSavedList'); list.innerHTML=''; saved.items.forEach((txt,i)=>{ const div=document.createElement('div'); div.textContent=`いいこと${i+1}：${txt}`; list.appendChild(div); });
   }else{
-    inputArea.classList.remove('hidden');
-    savedArea.classList.add('hidden');
-    statusEl.textContent = '未登録';
+    inputArea.classList.remove('hidden'); savedArea.classList.add('hidden'); status.textContent='未登録';
   }
 }
-
 function saveTodayGoods(){
-  const v1 = $('#good1').value.trim();
-  const v2 = $('#good2').value.trim();
-  const v3 = $('#good3').value.trim();
-  const arr = [v1,v2,v3].filter(Boolean);
-
-  if (arr.length < 3){
-    alert('3つすべて入力してね！');
-    return;
-  }
-  const d = todayStr();
-  saveGood(d, [v1,v2,v3]);
-
-  // 寝顔フラグを立てて、その日はずっと sleep.png
-  setSleepFlag(d);
-  const st = loadState();
-  setEmotion(st, 'sleep');
-
-  renderGoodCard();
-  renderStatus(st);
+  const v1=$('#good1').value.trim(), v2=$('#good2').value.trim(), v3=$('#good3').value.trim();
+  if (![v1,v2,v3].every(Boolean)) return alert('3つすべて入力してね！');
+  const d=todayStr(); saveGood(d,[v1,v2,v3]); setSleep(d); const st=loadState(); setEmotion(st,'sleep'); renderGoodCard(); renderStatus(st);
 }
-
-/* === 翌朝のペナルティ適用 === */
+/* 翌朝ペナルティ */
 function checkAndApplyPenalty(){
-  const today = new Date();
-  const y = new Date(today); y.setDate(y.getDate()-1);
-  const yStr = ymd(y);
-
-  // すでに適用済みならスキップ
+  const today=new Date(), y=new Date(today); y.setDate(y.getDate()-1); const yStr=ymd(y);
   if (localStorage.getItem(penKey(yStr))) return;
-
-  // 昨日の「いいこと」未登録ならペナルティ
   if (!loadGood(yStr)){
-    const st = loadState();
-    const before = st.hearts;
-    st.hearts = Math.max(0, st.hearts - 2);
-    saveState(st);
-
-    const log = loadLog();
-    log.push({date: todayStr(), taskId:'PENALTY_NO_GOOD', category:'penalty', done:false, deltaHeart: st.hearts - before});
-    saveLog(log);
-
-    localStorage.setItem(penKey(yStr), '1');
-
-    // 寝顔日は演出しない。通常日はしょんぼり
-    if (!getSleepFlagIsToday()){
-      setEmotion(st, 'sad');
-      setTimeout(()=>setEmotion(st, 'calm'), 1600);
-    }
+    const st=loadState(); const before=st.hearts; st.hearts=Math.max(0, st.hearts-2); saveState(st);
+    const log=loadLog(); log.push({date:todayStr(), taskId:'PENALTY_NO_GOOD', category:'penalty', done:false, deltaHeart: st.hearts-before}); saveLog(log);
+    localStorage.setItem(penKey(yStr),'1');
+    if (!getSleepIsToday()){ setEmotion(st,'sad'); setTimeout(()=>setEmotion(st,'calm'), 1400); }
   }
 }
 
-/* ================== UI描画 ================== */
+/* ====== UI描画 ====== */
 function renderStatus(st){
-  $('#hearts').textContent = st.hearts;
-  $('#stage').textContent  = st.stage;
-  $('#streak').textContent = st.streakDays;
-  $('#stamps').textContent = st.stamps;
-
-  const row = $('#stampsRow'); row.innerHTML='';
-  const n = Math.min(st.stamps, 12);
-  for (let i=0;i<n;i++){
-    const b = document.createElement('span');
-    b.textContent = '🌟';
-    b.style.fontSize = '20px';
-    row.appendChild(b);
-  }
-  const prog = loadDayProgress();
-  $('#doneCount').textContent = prog.count;
+  $('#hearts').textContent=st.hearts; $('#stage').textContent=st.stage; $('#streak').textContent=st.streakDays; $('#stamps').textContent=st.stamps;
+  const row=$('#stampsRow'); row.innerHTML=''; const n=Math.min(st.stamps,12); for(let i=0;i<n;i++){ const b=document.createElement('span'); b.textContent='🌟'; b.style.fontSize='20px'; row.appendChild(b); }
+  const prog=loadDayProgress(); $('#doneCount').textContent=prog.count;
 }
 function renderTasks(tasks){
-  const ul = $('#tasks'); ul.innerHTML='';
-  const prog = loadDayProgress();
+  const ul=$('#tasks'); ul.innerHTML=''; const prog=loadDayProgress();
   tasks.forEach(t=>{
-    const disabled = prog.doneIds.includes(t.id) || prog.count >= DAILY_LIMIT;
-    const label = prog.doneIds.includes(t.id) ? '済' : 'やったよ';
-    const li = document.createElement('li');
-    li.className='task glass';
-    li.innerHTML = `
-      <div>
-        <div style="font-weight:700;">${t.text}</div>
-        <small>カテゴリ: ${t.cat} ／ ❤️ +${t.heart}</small>
-      </div>
-      <button class="btn doBtn" data-id="${t.id}" ${disabled?'disabled':''}>${label}</button>
-    `;
+    const disabled=prog.doneIds.includes(t.id)||prog.count>=DAILY_LIMIT; const label=prog.doneIds.includes(t.id)?'済':'やったよ';
+    const li=document.createElement('li'); li.className='glass pad'; li.innerHTML=`
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
+        <div><div style="font-weight:700;">${t.text}</div><small>カテゴリ: ${t.cat} ／ ❤️ +${t.heart}</small></div>
+        <button class="btn doBtn" data-id="${t.id}" ${disabled?'disabled':''}>${label}</button>
+      </div>`;
     ul.appendChild(li);
   });
   ul.querySelectorAll('.doBtn').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       if (btn.disabled) return;
-      const id = btn.getAttribute('data-id');
-      const task = TASK_POOL.find(x=>x.id===id);
-      if (task) completeTask(task);
+      const id=btn.getAttribute('data-id'); const task=TASK_POOL.find(x=>x.id===id); if (task) completeTask(task);
     });
   });
 }
 function renderChar(st){
-  // 寝顔の日は sleep 固定、それ以外は calm
-  if (getSleepFlagIsToday()) setEmotion(st, 'sleep');
-  else setEmotion(st, 'calm');
+  const cname = localStorage.getItem(LS_CNAME) || '（未設定）';
+  $('#charNameLabel').textContent = cname;
+  setEmotion(st, getSleepIsToday() ? 'sleep' : 'calm');
   $('#hello').textContent = helloLine(st);
 }
 function renderAll(){
-  const st = loadState();
+  const st=loadState();
   renderStatus(st);
-  renderTasks( getTodayTasks(st) );
+  renderTasks(getTodayTasks(st));
   renderChar(st);
   renderGoodCard();
 }
 
-/* ================== CSV出力 ================== */
+/* ====== CSV ====== */
 function exportCSV(){
-  const log = loadLog();
-  if (!log.length){ alert('ログがありません'); return; }
-  const header = ['date','taskId','category','done','deltaHeart'];
-  const rows = [header.join(',')].concat(
-    log.map(r=>[r.date,r.taskId,r.category,r.done,r.deltaHeart].join(','))
-  );
-  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `meai_log_${todayStr()}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  const log=loadLog(); if(!log.length) return alert('ログがありません');
+  const header=['date','taskId','category','done','deltaHeart'], rows=[header.join(',')].concat(log.map(r=>[r.date,r.taskId,r.category,r.done,r.deltaHeart].join(',')));
+  const blob=new Blob([rows.join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`meai_log_${todayStr()}.csv`; a.click(); URL.revokeObjectURL(a.href);
 }
 
-/* ================== 設定UI ================== */
-function applyProfileFields(){
-  const st = loadState();
-  $('#userName').value = st.userName || '';
-  $('#charColor').value = COLORS.includes(st.charColor)? st.charColor : 'blue';
-}
-function saveProfile(){
-  const st = loadState();
-  st.userName = $('#userName').value.trim();
-  st.charColor = $('#charColor').value;
-  localStorage.setItem(LS_USER, st.userName);
-  localStorage.setItem(LS_COLOR, st.charColor);
-  saveState(st);
-  renderAll();
-}
+/* ====== 設定UI ====== */
+function applyProfileFields(){ const st=loadState(); $('#userName').value=st.userName||''; $('#charColor').value=COLORS.includes(st.charColor)?st.charColor:'blue'; }
+function saveProfile(){ const st=loadState(); st.userName=$('#userName').value.trim(); st.charColor=$('#charColor').value; localStorage.setItem(LS_USER,st.userName); localStorage.setItem(LS_COLOR,st.charColor); saveState(st); renderAll(); }
 
-/* ================== 初期化 → スタートに戻る（★ここが主目的） ================== */
+/* ====== 初期化 ====== */
 function resetAll(){
-  if (!confirm('すべての記録（ハート/スタンプ/ログ/本日の進捗/いいこと/就寝/カバー表示）を初期化し、スタート画面へ戻ります。よろしいですか？')) return;
-
-  // 既知キーの削除
-  const knownKeys = [
-    LS_STATE, LS_LOG, LS_USER, LS_COLOR, LS_SEEN_COVER, LS_SLEEP_DATE
-  ];
-  knownKeys.forEach(k=> localStorage.removeItem(k));
-
-  // プレフィックス系（デイリー・進捗・いいこと・ペナルティ）の一括削除
-  const prefixes = [LS_DAY_PREFIX, LS_DAY_PROGRESS_PREFIX, LS_GOOD_PREFIX, LS_PENALIZED_PREFIX, 'MEAI_STATE_V2', 'MEAI_LOG_V2'];
-  const keys = Object.keys(localStorage);
-  keys.forEach(k=>{
-    if (prefixes.some(p=>k.startsWith(p))) localStorage.removeItem(k);
-  });
-
-  // 念のため就寝フラグ解除
-  clearSleepFlag();
-
-  // スタートページへ遷移（ページ分割前提）
-  location.href = START_PAGE;
+  if(!confirm('すべての記録を初期化し、スタート画面へ戻ります。よろしいですか？')) return;
+  [LS_STATE,LS_LOG,LS_USER,LS_COLOR,LS_SEEN,LS_SLEEP,LS_CNAME].forEach(k=>localStorage.removeItem(k));
+  Object.keys(localStorage).forEach(k=>{ if([LS_DAY_PREFIX,LS_DAY_PROGRESS_PREFIX,LS_GOOD_PREFIX,LS_PENALTY_PREFIX,'MEAI_STATE_V2','MEAI_LOG_V2'].some(p=>k.startsWith(p))) localStorage.removeItem(k); });
+  location.href='index.html';
 }
 
-/* ================== 表紙（はじめる） ================== */
-function showCoverIfNeeded(){
-  const seen = localStorage.getItem(LS_SEEN_COVER);
-  if (!seen){
-    document.getElementById('cover').classList.remove('hidden');
-    const st = loadState();
-    document.getElementById('coverName').value = st.userName || '';
-    document.getElementById('coverColor').value = COLORS.includes(st.charColor)? st.charColor : 'blue';
-  }
-}
-function hideCoverAndSave(){
-  const name = document.getElementById('coverName').value.trim();
-  const color = document.getElementById('coverColor').value;
-  const st = loadState();
-  if (name) { st.userName = name; localStorage.setItem(LS_USER, name); }
-  if (COLORS.includes(color)) { st.charColor = color; localStorage.setItem(LS_COLOR, color); }
-  saveState(st);
-  localStorage.setItem(LS_SEEN_COVER, '1');
-  document.getElementById('cover').classList.add('hidden');
-  renderAll();
-}
-
-/* ================== 起動 ================== */
+/* ====== 起動 ====== */
 document.addEventListener('DOMContentLoaded', ()=>{
-  // 旧V2 → V3 マイグレーション
-  if (localStorage.getItem('MEAI_STATE_V2') && !localStorage.getItem(LS_STATE)){
-    try{ localStorage.setItem(LS_STATE, localStorage.getItem('MEAI_STATE_V2')); }catch(e){}
+  refreshForNewDay(); checkAndApplyPenalty();
+  applyProfileFields(); renderAll();
+
+  // カバー表示
+  if (!localStorage.getItem(LS_SEEN)){
+    $('#cover').classList.remove('hidden');
+    $('#coverName').value = (loadState().userName || '');
+    $('#coverColor').value = (loadState().charColor || 'blue');
   }
-  if (localStorage.getItem('MEAI_LOG_V2') && !localStorage.getItem(LS_LOG)){
-    try{ localStorage.setItem(LS_LOG, localStorage.getItem('MEAI_LOG_V2')); }catch(e){}
-  }
+  // カバー操作
+  $('#coverStart').addEventListener('click', ()=>{
+    const name=$('#coverName').value.trim(); const color=$('#coverColor').value; const st=loadState();
+    if(name){ st.userName=name; localStorage.setItem(LS_USER,name); }
+    st.charColor=color; localStorage.setItem(LS_COLOR,color);
+    saveState(st); localStorage.setItem(LS_SEEN,'1'); $('#cover').classList.add('hidden'); renderAll();
+  });
+  $('#coverSkip').addEventListener('click', ()=>{ localStorage.setItem(LS_SEEN,'1'); $('#cover').classList.add('hidden'); renderAll(); });
 
-  // 新しい日になっていたら寝顔フラグを解除
-  refreshSleepFlagForNewDay();
+  // UIイベント
+  $('#saveProfile').addEventListener('click', saveProfile);
+  $('#exportCsv').addEventListener('click', exportCSV);
+  $('#resetAll').addEventListener('click', resetAll);
+  $('#goodSave').addEventListener('click', saveTodayGoods);
 
-  // 翌朝のペナルティ判定（最初に実施）
-  checkAndApplyPenalty();
-
-  applyProfileFields();
-  renderAll();
-  showCoverIfNeeded();
-
-  // ボタン類
-  document.getElementById('saveProfile').addEventListener('click', saveProfile);
-  document.getElementById('resetAll').addEventListener('click', resetAll);
-  document.getElementById('exportCsv').addEventListener('click', exportCSV);
-
-  document.getElementById('coverStart').addEventListener('click', hideCoverAndSave);
-  document.getElementById('coverSkip').addEventListener('click', ()=>{
-    localStorage.setItem(LS_SEEN_COVER, '1');
-    document.getElementById('cover').classList.add('hidden');
+  // 命名モーダル
+  $('#charNameBadge').addEventListener('click', ()=>{ $('#nameModal').style.display='flex'; $('#charNameInput').value=localStorage.getItem(LS_CNAME)||''; $('#charNameInput').focus(); });
+  $('#charNameLater').addEventListener('click', ()=>{ $('#nameModal').style.display='none'; });
+  $('#charNameSave').addEventListener('click', ()=>{
+    const v=$('#charNameInput').value.trim(); if(!v) return alert('名前を入力してね');
+    localStorage.setItem(LS_CNAME, v); $('#nameModal').style.display='none'; $('#charNameLabel').textContent=v;
     renderAll();
   });
-
-  // おやすみ前チェック
-  document.getElementById('goodSave').addEventListener('click', saveTodayGoods);
 });
-
-/* 小さなヘルパー：hiddenクラス */
-document.head.insertAdjacentHTML('beforeend', `<style>.hidden{display:none!important;}</style>`);
 </script>
+
+<!-- 共通ユーティリティ（ゲーム側でも使用） -->
+<script src="public/js/meai-common.js"></script>
 </body>
 </html>
