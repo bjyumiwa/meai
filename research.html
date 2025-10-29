@@ -7,11 +7,9 @@
   <div class="row"><a href="Room.html" class="btn">← お世話へ</a><span>🔬 研究ノート</span></div>
   <div class="row"><a href="#" class="btn reset-all">初期化</a></div>
 </div>
-
 <div class="wrap">
   <div class="glass pad">
     <h2>CSVエクスポート</h2>
-    <p>手動ログ（簡易）を CSV 出力します。※必要なら index の本格版ロガーに差し替え可。</p>
     <div class="row">
       <input id="memo" type="text" placeholder="メモを入力" style="width:260px;">
       <button id="save" class="btn">保存</button>
@@ -20,38 +18,26 @@
     <div id="list" style="margin-top:10px;"></div>
   </div>
 </div>
-
 <script>
 const LS_LOG='MEAI_LOG_V3';
 function loadLog(){ return JSON.parse(localStorage.getItem(LS_LOG) || '[]'); }
 function saveLog(log){ localStorage.setItem(LS_LOG, JSON.stringify(log)); }
-
 function render(){
-  const div = document.getElementById('list');
-  const log = loadLog();
-  if (!log.length){ div.textContent='（記録なし）'; return; }
+  const div=document.getElementById('list'); const log=loadLog();
+  if(!log.length){ div.textContent='（記録なし）'; return; }
   div.innerHTML = log.map(r=>`${r.date} / ${r.taskId||'MEMO'} / ${r.category||'-'} / ${r.note||''}`).join('<br>');
 }
 document.getElementById('save').addEventListener('click', ()=>{
-  const note = document.getElementById('memo').value.trim();
-  if (!note) return;
-  const log = loadLog();
-  log.push({date: new Date().toISOString().slice(0,10), taskId:'MEMO', category:'note', done:false, deltaHeart:0, note});
+  const note=document.getElementById('memo').value.trim(); if(!note) return;
+  const log=loadLog(); log.push({date:new Date().toISOString().slice(0,10), taskId:'MEMO', category:'note', done:false, deltaHeart:0, note});
   saveLog(log); document.getElementById('memo').value=''; render();
 });
 document.getElementById('export').addEventListener('click', ()=>{
-  const log = loadLog();
-  if (!log.length){ alert('ログがありません'); return; }
-  const header = ['date','taskId','category','done','deltaHeart','note'];
-  const rows = [header.join(',')].concat(
-    log.map(r=>[r.date,r.taskId||'',r.category||'',r.done||'',r.deltaHeart||0, (r.note||'').replace(/,/g,';')].join(','))
-  );
-  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `meai_log_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(a.href);
+  const log=loadLog(); if(!log.length){ alert('ログがありません'); return; }
+  const header=['date','taskId','category','done','deltaHeart','note'];
+  const rows=[header.join(',')].concat(log.map(r=>[r.date,r.taskId||'',r.category||'',r.done||'',r.deltaHeart||0,(r.note||'').replace(/,/g,';')].join(',')));
+  const blob=new Blob([rows.join('\n')],{type:'text/csv'}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=`meai_log_${new Date().toISOString().slice(0,10)}.csv`; a.click(); URL.revokeObjectURL(a.href);
 });
 render();
 </script>
