@@ -1,429 +1,861 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MeAI – 愛着成長ミニ版（3提案/日）</title>
-<link rel="icon" href="data:,">
-<style>
-  :root{ --fg:#fff; --bg:#000; --glass:rgba(255,255,255,.07); --glass-border:rgba(255,255,255,.16); --accent:#7dd3fc; }
-  html,body{height:100%}
-  body{margin:0;color:var(--fg);background:#000 url("public/space_background.png") center/cover fixed no-repeat;
-       font-family:"Noto Sans JP",system-ui,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;}
-  .wrap{ max-width:960px; margin:0 auto; padding:24px; }
-  .grid{ display:grid; grid-template-columns: 280px 1fr; gap:20px; }
-  .glass{ background:var(--glass); border:1px solid var(--glass-border); border-radius:16px; backdrop-filter:blur(8px); }
-  .pad{ padding:16px; }
-  .btn{ border:none; border-radius:999px; padding:8px 14px; cursor:pointer; color:#fff; background:rgba(255,255,255,.18); }
-  .btn:hover{ background:rgba(255,255,255,.26); }
-  .btn[disabled]{ opacity:.55; cursor:not-allowed; }
-  .row{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  .field{ display:flex; gap:8px; align-items:center; }
-  input[type="text"],select,textarea{ background:rgba(255,255,255,.08); color:#fff; border:1px solid var(--glass-border); padding:8px 10px; border-radius:10px; outline:none; min-width:0; }
-  .chip{ display:inline-flex; align-items:center; gap:.4em; padding:4px 10px; border-radius:999px; background:rgba(255,255,255,.12); border:1px solid var(--glass-border); font-size:12px; }
-  .divider{ border:none; border-top:1px solid var(--glass-border); margin:14px 0; }
-  #charWrap{ text-align:center; }
-  #charWrap img{ width:240px; height:auto; animation:sway 5s ease-in-out infinite; transform-origin:50% 0%; }
-  @keyframes sway{0%{transform:rotate(0) translateY(0)}25%{transform:rotate(1.2deg) translateY(-1px)}50%{transform:rotate(0)}75%{transform:rotate(-1.2deg) translateY(-1px)}100%{transform:rotate(0)}}
-  .name-badge{ display:inline-flex; gap:.4em; align-items:center; padding:4px 10px; border-radius:999px; border:1px solid var(--glass-border); background:rgba(255,255,255,.10); font-size:12px; margin-top:6px;}
-  /* Cover */
-  #cover{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-          background: radial-gradient(ellipse at 50% -10%, rgba(125,211,252,.18), transparent 60%), rgba(0,0,0,.85); z-index:9999; }
-  .cover-card{ width:min(680px, 92vw); padding:24px; text-align:center; box-shadow:0 8px 40px rgba(0,0,0,.45); }
-  .cover-title{ font-size:28px; font-weight:800; margin:8px 0 2px; }
-  /* 命名モーダル */
-  #nameModal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:10000;
-              background:rgba(0,0,0,.6); }
-  .modal-card{ width:min(520px,92vw); padding:18px; }
-  .hidden{display:none!important;}
-  @media (max-width:820px){ .grid{grid-template-columns:1fr} #charWrap img{width:200px} }
-</style>
-</head>
-<body>
+ <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>芋虫育成日記 × MeAI</title>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+  <style>
+    :root{
+      --surface: #ffffff;
+      --text: #333333;
+      --button: #f5f5f5;
+      --accent: #4CAF50;
+      --overlay: rgba(255,255,255,.18);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif;overflow:hidden}
+    #app{
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      position:relative;
+      transition:background 600ms ease, background-image 800ms ease;
+      background-size:cover;
+      background-position:center;
+      background-repeat:no-repeat;
+      isolation:isolate;
+    }
+    /* グラデーションの柔らかいレイヤー */
+    #bg-overlay{
+      position:absolute;inset:0;z-index:0;pointer-events:none;
+      background: radial-gradient(1200px 600px at 50% -20%, rgba(255,255,255,.35), transparent 60%),
+                  linear-gradient(to bottom, rgba(255,255,255,.15), rgba(255,255,255,.25));
+      mix-blend-mode:soft-light;
+    }
 
-<!-- 表紙（初回） -->
-<div id="cover" class="hidden">
-  <div class="glass cover-card">
-    <div style="font-size:12px; opacity:.9;">MeAI MINI</div>
-    <div class="cover-title">小さな“やってみる”を、いっしょに。</div>
-    <p style="opacity:.9;">1日に3つだけ。できたらハートが貯まって、キャラが喜ぶよ。</p>
-    <div class="row" style="justify-content:center;">
-      <input id="coverName" class="cover-name" type="text" placeholder="あなたの名前（例：みわ）" style="width:200px;">
-      <select id="coverColor">
-        <option value="blue">blue</option><option value="pink">pink</option>
-        <option value="green">green</option><option value="purple">purple</option>
-      </select>
-    </div>
-    <div class="row" style="justify-content:center; margin-top:10px;">
-      <button id="coverStart" class="btn" style="background:rgba(125,211,252,.25); border:1px solid rgba(125,211,252,.5);">はじめる</button>
-      <button id="coverSkip" class="btn">あとで設定</button>
-    </div>
-  </div>
-</div>
+    /* 初期設定画面 */
+    #setup-screen{
+      position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1000;
+      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    }
+    #setup-screen.hidden{display:none}
+    #setup-box{
+      width:min(720px,92vw);
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.24);
+      padding: 28px;
+    }
+    #setup-box h2{margin:0 0 16px 0;font-size:28px;text-align:center;color:#333}
+    .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .input-group{margin-bottom:14px}
+    .input-group label{display:block;margin-bottom:8px;font-size:13px;color:#666;font-weight:bold}
+    .input-group input, .input-group select{
+      width:100%;padding:12px;border:2px solid #e0e0e0;border-radius:10px;font-size:16px;font-family:inherit
+    }
+    .char-choices{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:8px}
+    .char-card{
+      background:#fff;border:2px solid #e5e7eb;border-radius:14px;padding:10px;text-align:center;cursor:pointer;transition:.2s;
+    }
+    .char-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.12)}
+    .char-card.selected{border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.2) inset}
+    .char-card img{width:84px;height:84px;object-fit:contain;image-rendering:-webkit-optimize-contrast}
+    #start-btn{
+      width:100%;padding:14px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;border:none;border-radius:12px;
+      font-size:18px;font-weight:bold;cursor:pointer;transition:transform .2s
+    }
+    #start-btn:hover{transform:translateY(-2px)}
+    #start-btn:active{transform:translateY(0)}
 
-<!-- 命名モーダル（3回達成で一度だけ） -->
-<div id="nameModal">
-  <div class="glass modal-card">
-    <h3 style="margin:4px 0 8px;">キャラの名前をつけよう！</h3>
-    <div class="row">
-      <input id="charNameInput" type="text" placeholder="例）そら / みるく" style="width:220px;">
-      <button id="charNameSave" class="btn">決定</button>
-      <button id="charNameLater" class="btn">あとで</button>
-    </div>
-    <div style="font-size:12px; opacity:.85; margin-top:6px;">※あとからも設定できます（キャラ下のバッジをクリック）。</div>
-  </div>
-</div>
+    /* メイン */
+    #game-screen{display:none;flex:1;position:relative;z-index:1}
+    #header{
+      padding:14px 16px;text-align:center;background:var(--overlay);backdrop-filter: blur(6px);
+      display:flex;align-items:center;justify-content:center;gap:12px;position:relative
+    }
+    #title{font-size:20px;font-weight:700;margin:0}
+    #datetime-display{font-size:13px;opacity:.8}
 
-<div class="wrap">
-  <div class="row" style="justify-content:space-between; margin-bottom:12px;">
-    <h1>MeAI – 今日は何を提案してくれる？</h1>
-    <div class="row">
-      <a id="toCare" class="btn" href="Room.html">お世話コーナーへ</a>
-      <button id="exportCsv" class="btn">CSVを書き出す</button>
-      <button id="resetAll" class="btn">初期化</button>
-    </div>
-  </div>
+    /* 設定ボタン */
+    #settings-btn{
+      position:absolute;right:12px;top:10px;border:none;background:rgba(255,255,255,.85);backdrop-filter:blur(6px);
+      padding:8px 12px;border-radius:12px;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.08)
+    }
 
-  <!-- 設定 -->
-  <div class="glass pad" style="margin-bottom:16px;">
-    <div class="row">
-      <div class="field">
-        <label for="userName">あなたの名前</label>
-        <input id="userName" type="text" placeholder="例）みわ" style="width:160px;">
-      </div>
-      <div class="field">
-        <label for="charColor">キャラ色</label>
-        <select id="charColor">
-          <option value="blue">blue</option><option value="pink">pink</option>
-          <option value="green">green</option><option value="purple">purple</option>
-        </select>
-      </div>
-      <button id="saveProfile" class="btn">保存</button>
-      <span id="dailyInfo" class="chip">本日の達成: <b id="doneCount">0</b>/3</span>
-    </div>
-    <div class="row" style="margin-top:6px; font-size:12px; opacity:.9;">
-      画像は <code>public/char/{color}/{emotion}.png</code>（emotion: calm / joy / sad / sleep）
-    </div>
-  </div>
+    /* メインエリア */
+    #main-content{
+      flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 16px;position:relative;overflow:hidden
+    }
 
-  <div class="grid">
-    <!-- 左：キャラ -->
-    <div class="glass pad">
-      <div id="charWrap">
-        <img id="charImg" alt="char" src="">
-        <div id="hello" style="margin-top:8px; opacity:.95;"></div>
-        <button id="charNameBadge" class="name-badge" title="クリックで変更">
-          <span>🐣 なまえ：<b id="charNameLabel">（未設定）</b></span>
-        </button>
-      </div>
-      <hr class="divider">
-      <div id="status">
-        <div>❤️ <span id="hearts">0</span>　／　ステージ: <span id="stage">S0</span>　／　連続: <span id="streak">0</span>日</div>
-        <div>🎖️ スタンプ: <span id="stamps">0</span></div>
-        <div id="stampsRow" class="row" style="margin-top:6px;"></div>
-      </div>
-    </div>
+    /* 芋虫（MeAIキャラ）エリア */
+    #caterpillar-area{position:relative;width:min(560px,92vw);height:240px;margin-bottom:16px}
+    #caterpillar{
+      position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);cursor:pointer;transition:transform .35s ease, opacity .35s ease;
+      animation:floaty 4s ease-in-out infinite;
+    }
+    #caterpillar.hidden-in-grass{opacity:.35;filter:brightness(.7)}
+    #char-img{width:140px;height:140px;object-fit:contain;image-rendering:-webkit-optimize-contrast}
+    #emoji-fallback{font-size:84px;display:none}
+    @keyframes floaty{0%,100%{transform:translate(-50%,-48%)}50%{transform:translate(-50%,-54%)}}
 
-    <!-- 右：提案 & おやすみ -->
-    <div class="glass pad">
-      <h3>📬 今日の提案（3つ）</h3>
-      <ul id="tasks" style="list-style:none; padding:0; display:grid; gap:10px;"></ul>
-      <div style="opacity:.9; font-size:13px;">同じ日は同じ3件。各タスクは<strong>1日1回</strong>、合計<strong>3回まで</strong>。</div>
-      <hr class="divider" />
-      <div id="goodCard">
-        <h3>🌙 おやすみ前チェック（今日あったいいこと ×3）</h3>
-        <div id="goodInputArea" style="display:grid; gap:8px;">
-          <input id="good1" type="text" placeholder="いいこと①">
-          <input id="good2" type="text" placeholder="いいこと②">
-          <input id="good3" type="text" placeholder="いいこと③">
-          <div class="row" style="margin-top:6px;">
-            <button id="goodSave" class="btn">今日をしめる</button>
-            <span id="goodStatus" class="chip">未登録</span>
+    .grass{position:absolute;font-size:42px;bottom:2px;opacity:.65}
+    /* ステータス */
+    #status-box{
+      background: rgba(255,255,255,.92);backdrop-filter: blur(6px);
+      padding:16px;border-radius:16px;margin-bottom:16px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.08);
+      min-width:280px
+    }
+    #caterpillar-name{font-size:19px;font-weight:700;margin-bottom:8px;color:var(--text)}
+    #growth-stage{font-size:15px;color:#666;margin-bottom:8px}
+    #growth-bar-container{width:100%;height:12px;background:#e0e0e0;border-radius:999px;overflow:hidden;margin-top:6px}
+    #growth-bar{height:100%;background:linear-gradient(90deg,var(--accent), color-mix(in srgb, var(--accent), white 20%));width:0%;transition:width .5s}
+
+    #message{font-size:14px;color:#777;margin-top:8px;font-style:italic}
+
+    /* アクション */
+    #action-buttons{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+    .action-btn{
+      background: rgba(255,255,255,.95);
+      border:none;padding:12px 18px;border-radius:12px;font-size:14px;cursor:pointer;transition:.25s;
+      box-shadow:0 2px 8px rgba(0,0,0,.08);font-family:inherit;position:relative
+    }
+    .action-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.14)}
+    .action-btn:disabled{opacity:.45;cursor:not-allowed}
+    .action-btn.locked::after{content:'🔒';margin-left:6px}
+
+    /* 発見/トースト */
+    #find-message{
+      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      background: rgba(255,255,255,.96);padding:20px 28px;border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.18);
+      font-size:18px;text-align:center;opacity:0;pointer-events:none;transition:opacity .28s ease;z-index:100
+    }
+    #find-message.show{opacity:1}
+
+    /* フッター */
+    #footer{padding:12px;text-align:center;font-size:12px;opacity:.8;background:var(--overlay)}
+
+    /* 設定モーダル */
+    #settings-modal{
+      position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:1200
+    }
+    #settings-modal.show{display:flex}
+    #settings-panel{
+      width:min(720px,94vw);max-height:80vh;overflow:auto;background:#fff;border-radius:18px;padding:18px 18px 22px;
+      box-shadow:0 12px 36px rgba(0,0,0,.25)
+    }
+    .bg-choices{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .bg-card{
+      border:2px solid #e5e7eb;border-radius:14px;overflow:hidden;cursor:pointer;background:#fff;transition:.2s
+    }
+    .bg-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.12)}
+    .bg-card.selected{border-color:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.2) inset}
+    .bg-card img{width:100%;aspect-ratio:16/10;object-fit:cover;display:block}
+    .panel-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
+    .close-btn{margin-top:12px;width:100%;padding:12px;border:none;border-radius:12px;background:#111;color:#fff;font-weight:700;cursor:pointer}
+  </style>
+ </head>
+ <body>
+  <div id="app" class="day" style="background-image:url('public/items/bg/beach_day.jpg')">
+    <div id="bg-overlay"></div>
+
+    <!-- 初期設定 -->
+    <div id="setup-screen">
+      <div id="setup-box">
+        <h2 id="setup-title">芋虫育成日記</h2>
+        <div class="setup-grid">
+          <div>
+            <div class="input-group">
+              <label for="caterpillar-name-input">芋虫の名前</label>
+              <input type="text" id="caterpillar-name-input" placeholder="いもちゃん" maxlength="10">
+            </div>
+            <div class="input-group">
+              <label for="start-date-input">開始日</label>
+              <input type="date" id="start-date-input">
+            </div>
+            <div class="input-group">
+              <label for="start-time-input">開始時刻</label>
+              <input type="time" id="start-time-input">
+            </div>
+            <div class="input-group">
+              <label>キャラクターを選ぶ（MeAI）</label>
+              <div class="char-choices" id="char-choice-list">
+                <!-- JSで生成 -->
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="input-group">
+              <label>背景テーマ（自動は時間帯で変化）</label>
+              <select id="bg-theme-select">
+                <option value="auto">自動（時間帯で切替）</option>
+                <option value="sunrise">sunrise</option>
+                <option value="beach_day">beach_day</option>
+                <option value="afternoon_green">afternoon_green</option>
+                <option value="evening_orange">evening_orange</option>
+                <option value="night_beach">night_beach</option>
+                <option value="space">space</option>
+              </select>
+            </div>
+            <div style="margin-top:8px;color:#555;font-size:13px;line-height:1.6">
+              ・キャラや背景はプレイ中も右上の歯車から変更できます。<br/>
+              ・画像パスは public/ 配下を参照します。プロジェクトのルールに沿っています。
+            </div>
           </div>
         </div>
-        <div id="goodSavedArea" class="hidden">
-          <div class="row" id="goodSavedList" style="gap:6px; flex-direction:column;"></div>
-          <div style="opacity:.9; font-size:12px;">※登録済み（再編集不可）</div>
+        <button id="start-btn" style="margin-top:12px">育成を始める</button>
+      </div>
+    </div>
+
+    <!-- ゲーム画面 -->
+    <div id="game-screen">
+      <header id="header">
+        <h1 id="title">芋虫育成日記</h1>
+        <div id="datetime-display">2024年1月1日 09:00</div>
+        <button id="settings-btn" title="設定">⚙️</button>
+      </header>
+
+      <main id="main-content">
+        <div id="caterpillar-area">
+          <div id="caterpillar" aria-label="caterpillar">
+            <img id="char-img" alt="character" />
+            <div id="emoji-fallback">🐛</div>
+          </div>
+          <div class="grass" style="left:8%">🌿</div>
+          <div class="grass" style="left:28%">🌿</div>
+          <div class="grass" style="left:50%">🌿</div>
+          <div class="grass" style="left:72%">🌿</div>
+          <div class="grass" style="left:90%">🌿</div>
         </div>
-        <div style="opacity:.9; font-size:13px; margin-top:8px;">※登録しないと翌朝に❤️が<strong>2こ減少</strong>（自動）</div>
+
+        <div id="status-box">
+          <div id="caterpillar-name">いもちゃん</div>
+          <div id="growth-stage">成長段階: 赤ちゃん芋虫</div>
+          <div id="growth-bar-container"><div id="growth-bar"></div></div>
+          <div id="message">一緒に過ごそう</div>
+        </div>
+
+        <div id="action-buttons">
+          <button class="action-btn" data-action="morning" data-time="morning">カーテンを開ける</button>
+          <button class="action-btn" data-action="breakfast" data-time="morning">朝ごはん</button>
+          <button class="action-btn" data-action="lunch" data-time="afternoon">お昼ごはん</button>
+          <button class="action-btn" data-action="play" data-time="day">一緒に遊ぶ</button>
+          <button class="action-btn" data-action="evening" data-time="evening">夕焼けを見る</button>
+          <button class="action-btn" data-action="night" data-time="night">星を見る</button>
+        </div>
+
+        <div id="find-message">見つけた! 🎉</div>
+      </main>
+
+      <footer id="footer">
+        <div>お世話した回数: <span id="care-count">0</span>回</div>
+      </footer>
+    </div>
+
+    <!-- 設定モーダル -->
+    <div id="settings-modal" role="dialog" aria-modal="true">
+      <div id="settings-panel">
+        <h3 style="margin:0 0 10px 0">設定</h3>
+        <div class="panel-row">
+          <div>
+            <div style="font-weight:700;margin-bottom:6px">キャラクター</div>
+            <div class="char-choices" id="char-choice-list-2"></div>
+          </div>
+          <div>
+            <div style="font-weight:700;margin-bottom:6px">背景テーマ</div>
+            <div class="bg-choices" id="bg-choice-list">
+              <!-- JSで生成 -->
+            </div>
+          </div>
+        </div>
+        <button class="close-btn" id="close-settings">閉じる</button>
       </div>
     </div>
   </div>
-</div>
 
-<script type="module">
-/* ====== 設定 ====== */
-const LS_STATE='MEAI_STATE_V3', LS_LOG='MEAI_LOG_V3';
-const LS_DAY_PREFIX='MEAI_DAILY_V3:', LS_DAY_PROGRESS_PREFIX='MEAI_DAY_PROGRESS_V3:';
-const LS_USER='MEAI_USER_NAME', LS_COLOR='MEAI_CHAR_COLOR', LS_SEEN='MEAI_SEEN_COVER_V1';
-const LS_GOOD_PREFIX='MEAI_GOOD_V1:', LS_PENALTY_PREFIX='MEAI_PENALTY_V1:', LS_SLEEP='MEAI_SLEEP_DATE_V1';
-const LS_CNAME='MEAI_CHAR_NAME_V1';
+  <script>
+    /* ========= MeAIアセット ========= */
+    const CHARACTERS = {
+      blue:   { key:'blue',   label:'Blue',   calm:'public/char/blue/calm.png',   happy:'public/char/blue/happy.png' },
+      pink:   { key:'pink',   label:'Pink',   calm:'public/char/pink/calm.png',   happy:'public/char/pink/happy.png' },
+      green:  { key:'green',  label:'Green',  calm:'public/char/green/calm.png',  happy:'public/char/green/happy.png' },
+      purple: { key:'purple', label:'Purple', calm:'public/char/purple/calm.png', happy:'public/char/purple/happy.png' },
+    };
 
-const COLORS=['blue','pink','green','purple'];
-const EMOTIONS=['calm','joy','sad','sleep'];
-const TASK_POOL=[
-  {id:'H1',cat:'health',text:'お水をコップ1杯のもう',heart:1},
-  {id:'H2',cat:'health',text:'3分だけ深呼吸してみよう',heart:2},
-  {id:'L1',cat:'life',text:'机の上を1分だけ片付ける',heart:1},
-  {id:'L2',cat:'life',text:'窓を開けて外の空気を吸う',heart:1},
-  {id:'S1',cat:'social',text:'誰かに「ありがとう」を1回伝える',heart:2},
-  {id:'A1',cat:'art',text:'写真を1枚とってお気に入りに追加',heart:2},
-  {id:'A2',cat:'art',text:'1分落書きしてみよう',heart:2},
-  {id:'E1',cat:'learn',text:'気になる言葉を1つ調べる',heart:2},
-  {id:'E2',cat:'learn',text:'今日あった発見を1行メモ',heart:2},
-];
-const CAT_WEIGHT={health:3,life:3,social:2,art:2,learn:2};
-const DAILY_LIMIT=3;
-const $=sel=>document.querySelector(sel);
-const todayStr=()=>new Date().toISOString().slice(0,10);
-const ymd=d=>d.toISOString().slice(0,10);
-const goodKey=d=>LS_GOOD_PREFIX+d, penKey=d=>LS_PENALTY_PREFIX+d;
+    const BACKGROUNDS = {
+      sunrise:          { key:'sunrise',          url:'public/items/bg/sunrise.jpg' },
+      beach_day:        { key:'beach_day',        url:'public/items/bg/beach_day.jpg' },
+      afternoon_green:  { key:'afternoon_green',  url:'public/items/bg/afternoon_green.jpg' },
+      evening_orange:   { key:'evening_orange',   url:'public/items/bg/evening_orange.jpg' },
+      night_beach:      { key:'night_beach',      url:'public/items/bg/night_beach.jpg' },
+      space:            { key:'space',            url:'public/items/bg/space.jpg' },
+    };
 
-/* ====== IO ====== */
-function loadState(){
-  const s=localStorage.getItem(LS_STATE);
-  if (s) return JSON.parse(s);
-  const init={ userName:localStorage.getItem(LS_USER)||'', charColor:localStorage.getItem(LS_COLOR)||'blue',
-               hearts:0, streakDays:0, stamps:0, lastActionDate:null, stage:'S0', unlocked:{skins:[],bg:[],lines:[]} };
-  localStorage.setItem(LS_STATE, JSON.stringify(init));
-  if (!localStorage.getItem(LS_LOG)) localStorage.setItem(LS_LOG, JSON.stringify([]));
-  return init;
-}
-function saveState(st){ localStorage.setItem(LS_STATE, JSON.stringify(st)); }
-function loadLog(){ return JSON.parse(localStorage.getItem(LS_LOG)||'[]'); }
-function saveLog(l){ localStorage.setItem(LS_LOG, JSON.stringify(l)); }
-function loadGood(d){ const raw=localStorage.getItem(goodKey(d)); return raw?JSON.parse(raw):null }
-function saveGood(d,items){ localStorage.setItem(goodKey(d), JSON.stringify({items, savedAt:new Date().toISOString()})); }
+    const TIME_TO_THEME = {
+      morning:  'sunrise',
+      day:      'beach_day',
+      afternoon:'afternoon_green',
+      evening:  'evening_orange',
+      night:    'night_beach'
+    };
 
-/* ====== 日次進捗 ====== */
-const dayKey=()=>LS_DAY_PROGRESS_PREFIX+todayStr();
-function loadDayProgress(){
-  const raw=localStorage.getItem(dayKey());
-  if (raw) return JSON.parse(raw);
-  const init={doneIds:[],count:0}; localStorage.setItem(dayKey(), JSON.stringify(init)); return init;
-}
-function saveDayProgress(p){ localStorage.setItem(dayKey(), JSON.stringify(p)); }
+    /* ========= 既存設定 ========= */
+    const defaultConfig = {
+      game_title: "芋虫育成日記",
+      welcome_message: "一緒に過ごそう",
+      background_color: "#FFE5B4",
+      surface_color: "#FFFFFF",
+      text_color: "#333333",
+      button_color: "#F5F5F5",
+      accent_color: "#4CAF50",
+      font_family: "Hiragino Kaku Gothic ProN",
+      font_size: 16
+    };
 
-/* ====== ステージ判定 ====== */
-function evalStage(st){
-  const h=st.hearts, streak=st.streakDays, stamps=st.stamps;
-  if (h>=40 && stamps>=10) return 'S4';
-  if (h>=24 && streak>=7)  return 'S3';
-  if (h>=12 && stamps>=5)  return 'S2';
-  if (h>=5  && streak>=2)  return 'S1';
-  return 'S0';
-}
+    let gameState = {
+      caterpillarName: '',
+      startDate: null,
+      currentTime: null,
+      growthPoints: 0,
+      isHiding: false,
+      hideCheckInterval: null,
+      charKey: 'blue',
+      bgTheme: 'auto'
+    };
 
-/* ====== 画像・挨拶 ====== */
-function setEmotion(st, emotion='calm'){
-  const color = COLORS.includes(st.charColor)? st.charColor : 'blue';
-  $('#charImg').src = `public/char/${color}/${EMOTIONS.includes(emotion)?emotion:'calm'}.png`;
-}
-function helloLine(st){
-  const uname = st.userName || 'あなた';
-  const cname = localStorage.getItem(LS_CNAME) || '';
-  const t=todayStr();
-  const who = cname ? `${cname}と` : '';
-  if (!st.lastActionDate) return `はじめまして、${uname}さん。今日から${who}よろしくね。`;
-  if (st.lastActionDate===t) return getSleepIsToday()? `おやすみ中…。静かに見守るね。` : `また会えたね、${uname}さん。`;
-  const last=new Date(st.lastActionDate+'T00:00:00'), now=new Date(t+'T00:00:00'); const diff=Math.round((now-last)/86400000);
-  if (diff===1) return `おかえり、${uname}さん。昨日の続き、いい感じ！`;
-  if (diff<=3)  return `おかえり、${uname}さん。${diff}日ぶりだね。`;
-  return `会えてうれしいよ、${uname}さん。`;
-}
+    let isLoading = false;
+    let allCareRecords = [];
+    let dataReady = false;
 
-/* ====== 就寝フラグ ====== */
-const getSleep=()=>localStorage.getItem(LS_SLEEP);
-const setSleep=d=>localStorage.setItem(LS_SLEEP,d);
-const clearSleep=()=>localStorage.removeItem(LS_SLEEP);
-const getSleepIsToday=()=>getSleep()===todayStr();
-function refreshForNewDay(){
-  const flag=getSleep();
-  if (flag && flag!==todayStr()) clearSleep();
-}
+    const growthStages = [
+      { name: '赤ちゃん芋虫', emoji: '🐛', minPoints: 0 },
+      { name: '元気な芋虫', emoji: '🐛', minPoints: 5 },
+      { name: '大きな芋虫', emoji: '🐛', minPoints: 15 },
+      { name: 'さなぎ', emoji: '🥚', minPoints: 30 },
+      { name: '蝶々', emoji: '🦋', minPoints: 50 }
+    ];
 
-/* ====== デイリー提案 ====== */
-function seededRandom(seedStr){ let h=0; for(let i=0;i<seedStr.length;i++) h=(h*31+seedStr.charCodeAt(i))>>>0;
-  return ()=>{ h^=h<<13; h^=h>>>17; h^=h<<5; return (h>>>0)/0xFFFFFFFF; }; }
-function weightedPick(arr,weights,n,excludeIds=new Set()){
-  const out=[], pool=arr.filter(x=>!excludeIds.has(x.id));
-  while(out.length<n && pool.length){
-    const total=Object.values(weights).reduce((a,b)=>a+b,0), r=Math.random()*total; let acc=0, pick=null;
-    for(const [k,w] of Object.entries(weights)){ acc+=w; if(r<=acc){ pick=k; break; } }
-    const cand=pool.filter(x=>x.cat===pick);
-    const item=(cand.length?cand:pool)[Math.floor(Math.random()* (cand.length?cand.length:pool.length))];
-    if (!out.find(o=>o.id===item.id)) out.push(item);
-  }
-  while(out.length<n && pool.length){
-    const item=pool.splice(Math.floor(Math.random()*pool.length),1)[0];
-    if (!out.find(o=>o.id===item.id)) out.push(item);
-  }
-  return out;
-}
-function getTodayTasks(st){
-  const key=LS_DAY_PREFIX+todayStr(); const cached=localStorage.getItem(key);
-  if (cached) return JSON.parse(cached);
-  const recentDone=new Set(loadLog().filter(x=>x.done).slice(-9).map(x=>x.taskId));
-  const seed=seededRandom(todayStr()+(st.userName||'')+st.charColor); const bak=Math.random; Math.random=seed;
-  const tasks=weightedPick(TASK_POOL, CAT_WEIGHT, 3, recentDone); Math.random=bak;
-  localStorage.setItem(key, JSON.stringify(tasks)); return tasks;
-}
+    const timeOfDayData = {
+      morning: { class: 'morning', hours: [5,6,7,8,9,10] },
+      day: { class: 'day', hours: [10,11,12,13,14] },
+      afternoon: { class: 'afternoon', hours: [12,13,14,15,16] },
+      evening: { class: 'evening', hours: [17,18,19] },
+      night: { class: 'night', hours: [20,21,22,23,0,1,2,3,4] }
+    };
 
-/* ====== 完了処理（★3回で命名） ====== */
-function maybeOpenNameModal(){
-  if (localStorage.getItem(LS_CNAME)) return; // 既に命名済み
-  $('#nameModal').style.display='flex';
-  $('#charNameInput').focus();
-}
-function completeTask(task){
-  const st=loadState(), today=todayStr(), prog=loadDayProgress();
-  if (prog.doneIds.includes(task.id)) { alert('この提案は今日はもう達成済みだよ！'); return; }
-  if (prog.count>=DAILY_LIMIT) { alert('今日は3つ達成！また明日いっしょにやろう。'); return; }
+    const actionMessages = {
+      morning: 'おはよう! 今日も一緒だね',
+      breakfast: 'もぐもぐ... おいしいね',
+      lunch: 'お昼ごはん、一緒に食べよう',
+      play: 'わーい! 楽しいね',
+      evening: 'きれいな夕焼けだね',
+      night: '星がきらきらしてる...'
+    };
 
-  if (st.lastActionDate!==today){
-    const y=new Date(); y.setDate(y.getDate()-1);
-    st.streakDays = (st.lastActionDate===ymd(y)) ? (st.streakDays+1) : 1;
-    st.stamps += 1;
-  }
-  st.hearts += task.heart;
-  st.lastActionDate = today;
-  const p=st.stage; st.stage=evalStage(st); if (p!==st.stage){ /* アンロック演出は省略 */ }
-  saveState(st);
+    const dataHandler = {
+      onDataChanged(data) {
+        allCareRecords = data || [];
+        gameState.growthPoints = allCareRecords.reduce((sum, r) => sum + (r.growth_points || 0), 0);
+        updateStatus();
+      }
+    };
 
-  const log=loadLog(); log.push({date:today, taskId:task.id, category:task.cat, done:true, deltaHeart:task.heart}); saveLog(log);
+    /* ========= 初期化 ========= */
+    async function init() {
+      // dataSdkが使える環境か確認
+      try{
+        if (window.dataSdk && typeof window.dataSdk.init === 'function'){
+          const initResult = await window.dataSdk.init(dataHandler);
+          dataReady = !!(initResult && initResult.isOk);
+        }
+      }catch(e){ console.warn('dataSdk unavailable; fallback to local only', e); }
 
-  prog.doneIds.push(task.id); prog.count += 1; saveDayProgress(prog);
+      setupInitialScreen();
+      buildCharacterChoices('char-choice-list');
+      buildCharacterChoices('char-choice-list-2');
+      buildBackgroundChoices();
+      restoreFromLocal();
+    }
 
-  if (!getSleepIsToday()){ setEmotion(st,'joy'); setTimeout(()=>setEmotion(st,'calm'), 1200); }
-  renderAll();
+    function setupInitialScreen() {
+      const today = new Date();
+      const dateEl = document.getElementById('start-date-input');
+      const timeEl = document.getElementById('start-time-input');
+      dateEl.valueAsDate = today;
+      timeEl.value = today.getHours().toString().padStart(2,'0') + ':' + today.getMinutes().toString().padStart(2,'0');
 
-  // ★ 本日3回達成した瞬間に命名モーダル
-  if (prog.count===3) maybeOpenNameModal();
-}
+      document.getElementById('start-btn').addEventListener('click', startGame);
+      document.getElementById('settings-btn').addEventListener('click', ()=>toggleSettings(true));
+      document.getElementById('close-settings').addEventListener('click', ()=>toggleSettings(false));
+      document.getElementById('bg-theme-select').addEventListener('change', (e)=>{
+        gameState.bgTheme = e.target.value;
+        saveToLocal();
+        applyBackgroundByState();
+      });
+    }
 
-/* ====== おやすみ ====== */
-function renderGoodCard(){
-  const t=todayStr(), saved=loadGood(t);
-  const inputArea=$('#goodInputArea'), savedArea=$('#goodSavedArea'), status=$('#goodStatus');
-  if (saved){
-    inputArea.classList.add('hidden'); savedArea.classList.remove('hidden'); status.textContent='登録済み';
-    const list=$('#goodSavedList'); list.innerHTML=''; saved.items.forEach((txt,i)=>{ const div=document.createElement('div'); div.textContent=`いいこと${i+1}：${txt}`; list.appendChild(div); });
-  }else{
-    inputArea.classList.remove('hidden'); savedArea.classList.add('hidden'); status.textContent='未登録';
-  }
-}
-function saveTodayGoods(){
-  const v1=$('#good1').value.trim(), v2=$('#good2').value.trim(), v3=$('#good3').value.trim();
-  if (![v1,v2,v3].every(Boolean)) return alert('3つすべて入力してね！');
-  const d=todayStr(); saveGood(d,[v1,v2,v3]); setSleep(d); const st=loadState(); setEmotion(st,'sleep'); renderGoodCard(); renderStatus(st);
-}
-/* 翌朝ペナルティ */
-function checkAndApplyPenalty(){
-  const today=new Date(), y=new Date(today); y.setDate(y.getDate()-1); const yStr=ymd(y);
-  if (localStorage.getItem(penKey(yStr))) return;
-  if (!loadGood(yStr)){
-    const st=loadState(); const before=st.hearts; st.hearts=Math.max(0, st.hearts-2); saveState(st);
-    const log=loadLog(); log.push({date:todayStr(), taskId:'PENALTY_NO_GOOD', category:'penalty', done:false, deltaHeart: st.hearts-before}); saveLog(log);
-    localStorage.setItem(penKey(yStr),'1');
-    if (!getSleepIsToday()){ setEmotion(st,'sad'); setTimeout(()=>setEmotion(st,'calm'), 1400); }
-  }
-}
+    function buildCharacterChoices(containerId){
+      const wrap = document.getElementById(containerId);
+      wrap.innerHTML = '';
+      Object.values(CHARACTERS).forEach(ch=>{
+        const card = document.createElement('div');
+        card.className = 'char-card';
+        card.dataset.char = ch.key;
+        card.innerHTML = `<img src="${ch.calm}" alt="${ch.label}" onerror="this.style.display='none'"/><div style="margin-top:6px;font-size:13px">${ch.label}</div>`;
+        card.addEventListener('click', ()=>{
+          [...wrap.children].forEach(c=>c.classList.remove('selected'));
+          card.classList.add('selected');
+          gameState.charKey = ch.key;
+          updateCharacterImage('calm');
+          mirrorSelection(containerId, ch.key);
+          saveToLocal();
+        });
+        wrap.appendChild(card);
+      });
+      // 既存選択を反映
+      selectCardByKey(wrap, gameState.charKey);
+    }
 
-/* ====== UI描画 ====== */
-function renderStatus(st){
-  $('#hearts').textContent=st.hearts; $('#stage').textContent=st.stage; $('#streak').textContent=st.streakDays; $('#stamps').textContent=st.stamps;
-  const row=$('#stampsRow'); row.innerHTML=''; const n=Math.min(st.stamps,12); for(let i=0;i<n;i++){ const b=document.createElement('span'); b.textContent='🌟'; b.style.fontSize='20px'; row.appendChild(b); }
-  const prog=loadDayProgress(); $('#doneCount').textContent=prog.count;
-}
-function renderTasks(tasks){
-  const ul=$('#tasks'); ul.innerHTML=''; const prog=loadDayProgress();
-  tasks.forEach(t=>{
-    const disabled=prog.doneIds.includes(t.id)||prog.count>=DAILY_LIMIT; const label=prog.doneIds.includes(t.id)?'済':'やったよ';
-    const li=document.createElement('li'); li.className='glass pad'; li.innerHTML=`
-      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center;">
-        <div><div style="font-weight:700;">${t.text}</div><small>カテゴリ: ${t.cat} ／ ❤️ +${t.heart}</small></div>
-        <button class="btn doBtn" data-id="${t.id}" ${disabled?'disabled':''}>${label}</button>
-      </div>`;
-    ul.appendChild(li);
-  });
-  ul.querySelectorAll('.doBtn').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      if (btn.disabled) return;
-      const id=btn.getAttribute('data-id'); const task=TASK_POOL.find(x=>x.id===id); if (task) completeTask(task);
-    });
-  });
-}
-function renderChar(st){
-  const cname = localStorage.getItem(LS_CNAME) || '（未設定）';
-  $('#charNameLabel').textContent = cname;
-  setEmotion(st, getSleepIsToday() ? 'sleep' : 'calm');
-  $('#hello').textContent = helloLine(st);
-}
-function renderAll(){
-  const st=loadState();
-  renderStatus(st);
-  renderTasks(getTodayTasks(st));
-  renderChar(st);
-  renderGoodCard();
-}
+    function mirrorSelection(fromContainerId, charKey){
+      const otherId = fromContainerId === 'char-choice-list' ? 'char-choice-list-2' : 'char-choice-list';
+      const wrap2 = document.getElementById(otherId);
+      if(!wrap2) return;
+      selectCardByKey(wrap2, charKey);
+    }
 
-/* ====== CSV ====== */
-function exportCSV(){
-  const log=loadLog(); if(!log.length) return alert('ログがありません');
-  const header=['date','taskId','category','done','deltaHeart'], rows=[header.join(',')].concat(log.map(r=>[r.date,r.taskId,r.category,r.done,r.deltaHeart].join(',')));
-  const blob=new Blob([rows.join('\n')],{type:'text/csv'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`meai_log_${todayStr()}.csv`; a.click(); URL.revokeObjectURL(a.href);
-}
+    function selectCardByKey(container, key){
+      [...container.children].forEach(c=>{
+        if(c.dataset.char === key){ c.classList.add('selected'); }
+        else{ c.classList.remove('selected'); }
+      });
+    }
 
-/* ====== 設定UI ====== */
-function applyProfileFields(){ const st=loadState(); $('#userName').value=st.userName||''; $('#charColor').value=COLORS.includes(st.charColor)?st.charColor:'blue'; }
-function saveProfile(){ const st=loadState(); st.userName=$('#userName').value.trim(); st.charColor=$('#charColor').value; localStorage.setItem(LS_USER,st.userName); localStorage.setItem(LS_COLOR,st.charColor); saveState(st); renderAll(); }
+    function buildBackgroundChoices(){
+      const list = document.getElementById('bg-choice-list');
+      list.innerHTML = '';
+      Object.values(BACKGROUNDS).forEach(bg=>{
+        const card = document.createElement('div');
+        card.className = 'bg-card';
+        card.dataset.bg = bg.key;
+        card.innerHTML = `<img src="${bg.url}" alt="${bg.key}"/>`;
+        card.addEventListener('click', ()=>{
+          [...list.children].forEach(c=>c.classList.remove('selected'));
+          card.classList.add('selected');
+          gameState.bgTheme = bg.key;
+          document.getElementById('bg-theme-select').value = bg.key;
+          saveToLocal();
+          applyBackgroundByState();
+        });
+        list.appendChild(card);
+      });
+      // 初期選択
+      highlightBgCard(gameState.bgTheme);
+    }
 
-/* ====== 初期化 ====== */
-function resetAll(){
-  if(!confirm('すべての記録を初期化し、スタート画面へ戻ります。よろしいですか？')) return;
-  [LS_STATE,LS_LOG,LS_USER,LS_COLOR,LS_SEEN,LS_SLEEP,LS_CNAME].forEach(k=>localStorage.removeItem(k));
-  Object.keys(localStorage).forEach(k=>{ if([LS_DAY_PREFIX,LS_DAY_PROGRESS_PREFIX,LS_GOOD_PREFIX,LS_PENALTY_PREFIX,'MEAI_STATE_V2','MEAI_LOG_V2'].some(p=>k.startsWith(p))) localStorage.removeItem(k); });
-  location.href='index.html';
-}
+    function highlightBgCard(key){
+      const list = document.getElementById('bg-choice-list');
+      [...list.children].forEach(c=>{
+        c.classList.toggle('selected', c.dataset.bg === key);
+      });
+    }
 
-/* ====== 起動 ====== */
-document.addEventListener('DOMContentLoaded', ()=>{
-  refreshForNewDay(); checkAndApplyPenalty();
-  applyProfileFields(); renderAll();
+    function toggleSettings(show){
+      const modal = document.getElementById('settings-modal');
+      modal.classList.toggle('show', !!show);
+      if(show){
+        buildCharacterChoices('char-choice-list-2');
+        highlightBgCard(gameState.bgTheme);
+      }
+    }
 
-  // カバー表示
-  if (!localStorage.getItem(LS_SEEN)){
-    $('#cover').classList.remove('hidden');
-    $('#coverName').value = (loadState().userName || '');
-    $('#coverColor').value = (loadState().charColor || 'blue');
-  }
-  // カバー操作
-  $('#coverStart').addEventListener('click', ()=>{
-    const name=$('#coverName').value.trim(); const color=$('#coverColor').value; const st=loadState();
-    if(name){ st.userName=name; localStorage.setItem(LS_USER,name); }
-    st.charColor=color; localStorage.setItem(LS_COLOR,color);
-    saveState(st); localStorage.setItem(LS_SEEN,'1'); $('#cover').classList.add('hidden'); renderAll();
-  });
-  $('#coverSkip').addEventListener('click', ()=>{ localStorage.setItem(LS_SEEN,'1'); $('#cover').classList.add('hidden'); renderAll(); });
+    function startGame() {
+      const nameInput = document.getElementById('caterpillar-name-input').value.trim();
+      const dateInput = document.getElementById('start-date-input').value;
+      const timeInput = document.getElementById('start-time-input').value;
 
-  // UIイベント
-  $('#saveProfile').addEventListener('click', saveProfile);
-  $('#exportCsv').addEventListener('click', exportCSV);
-  $('#resetAll').addEventListener('click', resetAll);
-  $('#goodSave').addEventListener('click', saveTodayGoods);
+      if (!nameInput || !dateInput || !timeInput) {
+        toast('すべての項目を入力してください');
+        return;
+      }
 
-  // 命名モーダル
-  $('#charNameBadge').addEventListener('click', ()=>{ $('#nameModal').style.display='flex'; $('#charNameInput').value=localStorage.getItem(LS_CNAME)||''; $('#charNameInput').focus(); });
-  $('#charNameLater').addEventListener('click', ()=>{ $('#nameModal').style.display='none'; });
-  $('#charNameSave').addEventListener('click', ()=>{
-    const v=$('#charNameInput').value.trim(); if(!v) return alert('名前を入力してね');
-    localStorage.setItem(LS_CNAME, v); $('#nameModal').style.display='none'; $('#charNameLabel').textContent=v;
-    renderAll();
-  });
-});
-</script>
+      gameState.caterpillarName = nameInput;
+      gameState.startDate = new Date(dateInput + 'T' + timeInput);
+      gameState.currentTime = new Date(gameState.startDate);
 
-<!-- 共通ユーティリティ（ゲーム側でも使用） -->
-<script src="public/js/meai-common.js"></script>
-</body>
+      document.getElementById('setup-screen').classList.add('hidden');
+      document.getElementById('game-screen').style.display = 'flex';
+
+      updateDateTime();
+      updateTimeOfDay();
+      updateStatus();
+      setupGameEventListeners();
+      startHideTimer();
+      updateCharacterImage('calm');
+      applyBackgroundByState();
+      saveToLocal();
+    }
+
+    function setupGameEventListeners() {
+      const buttons = document.querySelectorAll('.action-btn');
+      buttons.forEach(button => {
+        button.addEventListener('click', async (e) => {
+          if (isLoading || e.target.disabled) return;
+          const action = e.target.dataset.action;
+          await handleAction(action);
+        });
+      });
+      document.getElementById('caterpillar').addEventListener('click', handleCaterpillarClick);
+    }
+
+    function handleCaterpillarClick() {
+      if (gameState.isHiding) {
+        gameState.isHiding = false;
+        const c = document.getElementById('caterpillar');
+        c.classList.remove('hidden-in-grass');
+        showFindMessage();
+      } else {
+        // ちょっとだけジャンプ
+        const c = document.getElementById('caterpillar');
+        c.style.transform = 'translate(-50%,-62%) scale(1.04)';
+        setTimeout(()=>c.style.transform='translate(-50%,-54%)',180);
+        setTimeout(()=>c.style.transform='',420);
+      }
+    }
+
+    function showFindMessage() {
+      const message = document.getElementById('find-message');
+      message.textContent = '見つけた! 🎉';
+      message.classList.add('show');
+      setTimeout(() => {
+        message.classList.remove('show');
+        message.textContent = '見つけた! 🎉';
+      }, 1600);
+    }
+
+    function startHideTimer() {
+      clearInterval(gameState.hideCheckInterval);
+      gameState.hideCheckInterval = setInterval(() => {
+        if (!gameState.isHiding && Math.random() < 0.1) {
+          gameState.isHiding = true;
+          const c = document.getElementById('caterpillar');
+          c.classList.add('hidden-in-grass');
+          const randomX = Math.random() * 80;
+          c.style.left = randomX + '%';
+          c.style.top = '55%';
+        }
+      }, 9000);
+    }
+
+    async function handleAction(action) {
+      if (allCareRecords.length >= 999) {
+        toast('記録の上限に達しました');
+        return;
+      }
+
+      isLoading = true;
+      setButtonsLoading(true);
+
+      const points = Math.floor(Math.random() * 2) + 1;
+
+      if (dataReady){
+        try{
+          const result = await window.dataSdk.create({
+            id: Date.now().toString(),
+            timestamp: gameState.currentTime.toISOString(),
+            action_type: action,
+            growth_points: points
+          });
+          if (!result.isOk){ console.warn('dataSdk create failed'); }
+        }catch(e){ console.warn('dataSdk error', e); }
+      }else{
+        // ローカルフォールバック
+        allCareRecords.push({
+          id: Date.now().toString(),
+          timestamp: gameState.currentTime.toISOString(),
+          action_type: action,
+          growth_points: points
+        });
+        gameState.growthPoints = allCareRecords.reduce((s,r)=>s+(r.growth_points||0),0);
+        updateStatus();
+      }
+
+      // 演出：ハッピー表情に一瞬切替
+      happyFaceFlash();
+
+      advanceTime();
+      showActionMessage(action);
+
+      isLoading = false;
+      setButtonsLoading(false);
+      saveToLocal();
+    }
+
+    function happyFaceFlash(){
+      const img = document.getElementById('char-img');
+      const char = CHARACTERS[gameState.charKey] || CHARACTERS.blue;
+      const prev = img.src;
+      if (char.happy){
+        img.src = char.happy;
+        setTimeout(()=>{ img.src = char.calm; }, 1000);
+      }else{
+        // 絵文字フォールバックを瞬間表示
+        const emo = document.getElementById('emoji-fallback');
+        emo.style.display='block';
+        img.style.display='none';
+        setTimeout(()=>{ emo.style.display='none'; img.style.display='block'; }, 800);
+      }
+    }
+
+    function advanceTime() {
+      gameState.currentTime = new Date(gameState.currentTime.getTime() + 60 * 60 * 1000);
+      updateDateTime();
+      updateTimeOfDay();
+    }
+
+    function updateDateTime() {
+      const d = gameState.currentTime || new Date();
+      const year = d.getFullYear();
+      const month = d.getMonth()+1;
+      const date = d.getDate();
+      const hours = d.getHours().toString().padStart(2,'0');
+      const minutes = d.getMinutes().toString().padStart(2,'0');
+      document.getElementById('datetime-display').textContent = `${year}年${month}月${date}日 ${hours}:${minutes}`;
+    }
+
+    function resolveTimePeriod(hour){
+      let currentPeriod = 'morning';
+      for (const [period, data] of Object.entries(timeOfDayData)) {
+        if (data.hours.includes(hour)) { currentPeriod = period; break; }
+      }
+      return currentPeriod;
+    }
+
+    function updateTimeOfDay() {
+      const hour = (gameState.currentTime || new Date()).getHours();
+      const currentPeriod = resolveTimePeriod(hour);
+
+      // 背景更新（自動の場合）
+      applyBackgroundByState(currentPeriod);
+
+      // 利用可能アクション
+      updateAvailableActions(hour);
+    }
+
+    function updateAvailableActions(hour) {
+      const buttons = document.querySelectorAll('.action-btn');
+      buttons.forEach(button => {
+        const requiredTime = button.dataset.time;
+        const data = timeOfDayData[requiredTime];
+        if (data && data.hours.includes(hour)) {
+          button.disabled = false;
+          button.classList.remove('locked');
+        } else {
+          button.disabled = true;
+          button.classList.add('locked');
+        }
+      });
+    }
+
+    function updateStatus() {
+      const nameEl = document.getElementById('caterpillar-name');
+      const stageEl = document.getElementById('growth-stage');
+      const barEl = document.getElementById('growth-bar');
+      const countEl = document.getElementById('care-count');
+
+      nameEl.textContent = gameState.caterpillarName || 'いもちゃん';
+      countEl.textContent = allCareRecords.length;
+
+      let currentStage = growthStages[0];
+      let nextStage = growthStages[1];
+
+      for (let i = growthStages.length - 1; i >= 0; i--) {
+        if (gameState.growthPoints >= growthStages[i].minPoints) {
+          currentStage = growthStages[i];
+          nextStage = growthStages[i + 1] || currentStage;
+          break;
+        }
+      }
+
+      stageEl.textContent = `成長段階: ${currentStage.name}`;
+
+      const progressInStage = gameState.growthPoints - currentStage.minPoints;
+      const pointsNeeded = nextStage.minPoints - currentStage.minPoints;
+      const percentage = currentStage === nextStage ? 100 : (progressInStage / pointsNeeded) * 100;
+      barEl.style.width = Math.min(percentage, 100) + '%';
+    }
+
+    function updateCharacterImage(state='calm'){
+      const img = document.getElementById('char-img');
+      const emo = document.getElementById('emoji-fallback');
+      const ch = CHARACTERS[gameState.charKey] || CHARACTERS.blue;
+      const src = (state === 'happy' ? ch.happy : ch.calm) || ch.calm;
+      img.style.display = 'block';
+      emo.style.display = 'none';
+      img.src = src;
+      img.onerror = ()=>{ img.style.display='none'; emo.style.display='block'; };
+    }
+
+    function applyBackgroundByState(periodGuess){
+      const app = document.getElementById('app');
+      const theme = gameState.bgTheme;
+      let bgKey = theme;
+
+      if (theme === 'auto'){
+        const hour = (gameState.currentTime || new Date()).getHours();
+        const p = periodGuess || resolveTimePeriod(hour);
+        bgKey = TIME_TO_THEME[p] || 'beach_day';
+      }
+      const bg = BACKGROUNDS[bgKey] || BACKGROUNDS.beach_day;
+      app.style.backgroundImage = `url('${bg.url}')`;
+      highlightBgCard(gameState.bgTheme);
+    }
+
+    function showActionMessage(action) {
+      const messageElement = document.getElementById('message');
+      messageElement.textContent = actionMessages[action] || 'ありがとう!';
+    }
+
+    function toast(text){
+      const el = document.getElementById('find-message');
+      const keep = el.textContent;
+      el.textContent = text;
+      el.classList.add('show');
+      setTimeout(()=>{ el.classList.remove('show'); el.textContent = keep; }, 1800);
+    }
+
+    function setButtonsLoading(loading){
+      const buttons = document.querySelectorAll('.action-btn');
+      buttons.forEach(b=> b.style.opacity = loading ? '0.6' : '1');
+    }
+
+    /* ========= elementSdk（色・フォント反映） ========= */
+    async function onConfigChange(config) {
+      const titleEl = document.getElementById('title');
+      const setupTitleEl = document.getElementById('setup-title');
+      const messageEl = document.getElementById('message');
+      const baseFont = config.font_family || defaultConfig.font_family;
+      const baseFontStack = 'Hiragino Kaku Gothic ProN, Hiragino Sans, Meiryo, sans-serif';
+      const baseSize = config.font_size || defaultConfig.font_size;
+
+      titleEl.textContent = config.game_title || defaultConfig.game_title;
+      setupTitleEl.textContent = config.game_title || defaultConfig.game_title;
+      messageEl.textContent = config.welcome_message || defaultConfig.welcome_message;
+
+      titleEl.style.fontFamily = `${baseFont}, ${baseFontStack}`;
+      titleEl.style.fontSize = `${baseSize * 1.4}px`;
+      titleEl.style.color = config.text_color || defaultConfig.text_color;
+
+      setupTitleEl.style.fontFamily = `${baseFont}, ${baseFontStack}`;
+      setupTitleEl.style.fontSize = `${baseSize * 1.6}px`;
+      setupTitleEl.style.color = config.text_color || defaultConfig.text_color;
+
+      document.getElementById('caterpillar-name').style.fontFamily = `${baseFont}, ${baseFontStack}`;
+      document.getElementById('caterpillar-name').style.fontSize = `${baseSize * 1.15}px`;
+      document.getElementById('caterpillar-name').style.color = config.text_color || defaultConfig.text_color;
+
+      document.getElementById('growth-stage').style.fontFamily = `${baseFont}, ${baseFontStack}`;
+      document.getElementById('growth-stage').style.fontSize = `${baseSize}px`;
+      document.getElementById('growth-stage').style.color = config.text_color || defaultConfig.text_color;
+
+      messageEl.style.fontFamily = `${baseFont}, ${baseFontStack}`;
+      messageEl.style.fontSize = `${baseSize * 0.9}px`;
+
+      // CSS変数でUI色連動
+      document.documentElement.style.setProperty('--surface', config.surface_color || defaultConfig.surface_color);
+      document.documentElement.style.setProperty('--text', config.text_color || defaultConfig.text_color);
+      document.documentElement.style.setProperty('--button', config.button_color || defaultConfig.button_color);
+      document.documentElement.style.setProperty('--accent', config.accent_color || defaultConfig.accent_color);
+
+      document.getElementById('status-box').style.background = `${config.surface_color || defaultConfig.surface_color}F2`;
+
+      document.querySelectorAll('.action-btn').forEach(btn=>{
+        btn.style.background = `${config.button_color || defaultConfig.button_color}F2`;
+        btn.style.color = config.text_color || defaultConfig.text_color;
+      });
+
+      document.getElementById('growth-bar').style.background = `linear-gradient(90deg, ${config.accent_color || defaultConfig.accent_color}, ${(config.accent_color || defaultConfig.accent_color)}CC)`;
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            { get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => { config.background_color = value; window.elementSdk.setConfig({ background_color: value }); } },
+            { get: () => config.surface_color || defaultConfig.surface_color,
+              set: (value) => { config.surface_color = value; window.elementSdk.setConfig({ surface_color: value }); } },
+            { get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => { config.text_color = value; window.elementSdk.setConfig({ text_color: value }); } },
+            { get: () => config.button_color || defaultConfig.button_color,
+              set: (value) => { config.button_color = value; window.elementSdk.setConfig({ button_color: value }); } },
+            { get: () => config.accent_color || defaultConfig.accent_color,
+              set: (value) => { config.accent_color = value; window.elementSdk.setConfig({ accent_color: value }); } },
+          ],
+          borderables: [],
+          fontEditable: {
+            get: () => config.font_family || defaultConfig.font_family,
+            set: (value) => { config.font_family = value; window.elementSdk.setConfig({ font_family: value }); }
+          },
+          fontSizeable: {
+            get: () => config.font_size || defaultConfig.font_size,
+            set: (value) => { config.font_size = value; window.elementSdk.setConfig({ font_size: value }); }
+          }
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ['game_title', config.game_title || defaultConfig.game_title],
+          ['welcome_message', config.welcome_message || defaultConfig.welcome_message]
+        ])
+      });
+    }
+
+    /* ========= 保存/復元 ========= */
+    function saveToLocal(){
+      const payload = {
+        name: gameState.caterpillarName,
+        charKey: gameState.charKey,
+        bgTheme: gameState.bgTheme,
+        start: gameState.startDate ? gameState.startDate.toISOString() : null,
+        now: gameState.currentTime ? gameState.currentTime.toISOString() : null,
+        points: gameState.growthPoints,
+        records: allCareRecords
+      };
+      localStorage.setItem('meai_caterpillar_v2', JSON.stringify(payload));
+    }
+
+    function restoreFromLocal(){
+      try{
+        const raw = localStorage.getItem('meai_caterpillar_v2');
+        if(!raw) return;
+        const d = JSON.parse(raw);
+        if(d){
+          gameState.caterpillarName = d.name || '';
+          gameState.charKey = d.charKey || 'blue';
+          gameState.bgTheme = d.bgTheme || 'auto';
+          if(d.start) gameState.startDate = new Date(d.start);
+          if(d.now) gameState.currentTime = new Date(d.now);
+          gameState.growthPoints = Number(d.points||0);
+          allCareRecords = Array.isArray(d.records)? d.records : [];
+          // 初期画面に反映
+          document.getElementById('caterpillar-name-input').value = gameState.caterpillarName || '';
+          if(gameState.startDate){
+            const s = new Date(gameState.startDate);
+            document.getElementById('start-date-input').valueAsDate = s;
+            document.getElementById('start-time-input').value = s.getHours().toString().padStart(2,'0') + ':' + s.getMinutes().toString().padStart(2,'0');
+          }
+          document.getElementById('bg-theme-select').value = gameState.bgTheme;
+        }
+      }catch(e){ console.warn('restore error', e); }
+    }
+
+    /* ========= 起動 ========= */
+    init();
+  </script>
+
+  <!-- Cloudflare snippet (そのまま) -->
+  <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99b57ff0146fafab',t:'MTc2MjYwOTQxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+ </body>
 </html>
