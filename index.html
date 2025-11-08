@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>君は何者？ × MeAI</title>
   <script src="/_sdk/data_sdk.js"></script>
   <script src="/_sdk/element_sdk.js"></script>
@@ -10,6 +10,8 @@
   <style>
     html,body{height:100%;margin:0;font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif;overflow:hidden}
     #app{height:100%;display:flex;flex-direction:column;position:relative;transition:background 1s ease;background-size:cover;background-position:center}
+
+    /* 時間帯の背景 */
     .morning{background:linear-gradient(to bottom,#FFE5B4 0%,#FFDAB9 50%,#FFE4E1 100%)}
     .day{background:linear-gradient(to bottom,#87CEEB 0%,#B0E0E6 50%,#E0F6FF 100%)}
     .afternoon{background:linear-gradient(to bottom,#98D8C8 0%,#B8E6D5 50%,#D4F1E8 100%)}
@@ -29,12 +31,30 @@
     .btn-primary{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:14px;padding:14px 18px;font-weight:700;cursor:pointer}
     .btn-ghost{background:#f3f4f6;border:none;border-radius:12px;padding:12px 16px;cursor:pointer}
     .notice{font-size:12px;color:#666;margin-top:6px}
-    .thumb{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:14px;border:2px solid #e5e7eb}
+
+    /* カバー画像の制御 */
+    .thumb{
+      width:100%;
+      height:auto;
+      max-height:240px;
+      object-fit:cover;
+      border-radius:14px;
+      border:2px solid #e5e7eb;
+    }
+    .thumb-char{
+      max-height:220px;
+      width:100%;
+      object-fit:contain;
+      border-radius:14px;
+      border:2px solid #e5e7eb;
+      background:#fff;
+    }
+    .thumb[hidden]{ display:none !important; }
 
     /* 初期設定 */
     #setup-screen{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);z-index:1000}
     #setup-screen.show{display:flex}
-    #setup-box{background:white;padding:28px;border-radius:24px;box-shadow:0 8px 32px rgba(0,0,0,.3);width:min(800px,92vw)}
+    #setup-box{background:#fff;padding:28px;border-radius:24px;box-shadow:0 8px 32px rgba(0,0,0,.3);width:min(800px,92vw)}
     #setup-title{margin:0 0 12px 0;font-size:26px;text-align:center}
     .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .input-group{margin-bottom:14px}
@@ -44,7 +64,7 @@
 
     /* ゲーム画面 */
     #game-screen{height:100%;display:none;flex-direction:column}
-    #header{padding:14px;text-align:center;background:rgba(255,255,255,.3);position:relative}
+    #header{padding:14px;text-align:center;background:rgba(255,255,255,.3)}
     #title{font-size:22px;font-weight:800;margin:0 0 6px 0}
     #datetime-display{font-size:13px;opacity:.85}
     #main-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 16px;position:relative;overflow:hidden}
@@ -75,7 +95,7 @@
     #find-message.show{opacity:1}
     #footer{padding:12px;text-align:center;font-size:12px;opacity:.8;background:rgba(255,255,255,.2)}
 
-    /* モーダル（研究について） */
+    /* 研究モーダル */
     #about-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:1300}
     #about-modal.show{display:flex}
     .about-card{width:min(860px,92vw);max-height:80vh;overflow:auto;background:#fff;border-radius:20px;padding:18px 18px 22px;box-shadow:0 12px 36px rgba(0,0,0,.25)}
@@ -105,7 +125,9 @@
       </p>
       <div class="cover-grid">
         <div>
-          <img class="thumb" src="public/items/bg/sunrise.jpg" alt="">
+          <!-- 左の背景サムネ：存在率の高い beach_day に変更。無ければ自動非表示 -->
+          <img class="thumb" src="public/items/bg/beach_day.jpg" alt="cover background"
+               loading="lazy" onerror="this.hidden=true;">
           <div class="cover-cta">
             <button id="cover-start" class="btn-primary">スタート</button>
             <button id="cover-about" class="btn-ghost">研究について</button>
@@ -115,7 +137,9 @@
           </div>
         </div>
         <div>
-          <img class="thumb" src="public/char/blue/calm.png" alt="">
+          <!-- 右のキャラプレビュー：containで小さめ表示。無ければ自動非表示 -->
+          <img class="thumb thumb-char" src="public/char/blue/calm.png"
+               alt="MeAI preview" loading="lazy" onerror="this.hidden=true;">
         </div>
       </div>
     </div>
@@ -219,12 +243,14 @@
     </footer>
   </section>
 
-  <!-- 研究についてモーダル -->
+  <!-- 研究についてモーダル（愛着にフォーカス） -->
   <section id="about-modal">
     <div class="about-card">
       <h3 class="about-title" id="about-title">研究について</h3>
       <div class="about-body" id="about-body">
-        本作は、生成AI時代の美術教育における「学びの価値」を、小さなGAP（意図と結果のズレ）に注目して読み解く試みです。日々の行為（世話・記録・対話）を通じて、省察が促され、価値観が少しずつ「選び直される」過程を観察します。最終段階でMeAIキャラが誕生するのは、スキルの巧拙よりも、対話と内省を重心においたART5.0的な価値転換を象徴しています。捨てられた生成画像や未採用の案も、学びの軌跡として大切に扱います。
+        本作は、なぜ人はゲームのキャラクターに「愛着」を感じるのかを観察するための小さな装置です。関心は、毎日の世話や声かけ、ささやかな反応の積み重ねが、いつのまにか「誰かと一緒にいる感じ」を育てる、その過程にあります。
+        名前をつけること、朝昼夜のルーティンを共有すること、表情やメッセージや成長バーといった小さな手ごたえ、草むらに隠れるといった偶然性、「今日のいいこと」で自分の出来事が結びつくこと、次に何をするかを選び直せる余白――こうした微細な要素が重なり、愛着が立ち上がるのかもしれません。
+        最終段階の MeAI 誕生は、数値を超えて「誰かとして感じられる瞬間」をそっと可視化する印です。
       </div>
       <button class="about-close" id="about-close">閉じる</button>
     </div>
@@ -232,7 +258,7 @@
 </div>
 
 <script>
-/* ===== 多言語辞書 ===== */
+/* ===== 多言語辞書（愛着フォーカス版） ===== */
 const I18N = {
   ja:{
     cover_title:"君は何者？",
@@ -265,15 +291,7 @@ const I18N = {
     good_save:"記録する",
     footer:"お世話した回数: {n}回",
     about_title:"研究について",
-    about_body:"本作は、なぜ人はゲームの中のキャラクターに「愛着」を感じるのかを観察するための小さな装置です。ここでの関心は、うまく作ることではなく、毎日の世話や声かけ、ささやかな反応の積み重ねが、いつのまにか「誰かと一緒にいる感じ」を育ててしまう、その過程そのものにあります。
-愛着は、次のような微細な要素が重なり合うことで、少しずつ立ち上がるのかもしれませんね。
-・名前をつけることで「対象」が「わたしの誰か」に変わる
-・朝昼夜のルーティンを共有して「時間の手触り」を持つ
-・表情やメッセージ、成長バーといった小さな手ごたえが返ってくる
-・草むらに隠れるなど、わずかな偶然性が「気にかける理由」を生む
-・「今日のいいこと」を書くなど、自分の出来事がキャラと結び付く
-・次に何をするかを選び直せる、関わりの余白がある
-最終段階でMeAIのキャラが「誕生」する演出は、愛着が単なる数値ではなく「誰かとして感じられる瞬間」を、そっと可視化するための記号です。ここで測りたいのは完成度ではなく、関わりの中でゆっくり育つ情の生成プロセスです。",
+    about_body:"本作は、なぜ人はゲームのキャラクターに「愛着」を感じるのかを観察するための小さな装置です。関心は、毎日の世話や声かけ、ささやかな反応の積み重ねが、いつのまにか「誰かと一緒にいる感じ」を育てる、その過程にあります。名前をつけること、朝昼夜のルーティンを共有すること、表情やメッセージや成長バーといった小さな手ごたえ、草むらに隠れるといった偶然性、「今日のいいこと」で自分の出来事が結びつくこと、次に何をするかを選び直せる余白――こうした微細な要素が重なり、愛着が立ち上がるのかもしれません。最終段階の MeAI 誕生は、数値を超えて「誰かとして感じられる瞬間」をそっと可視化する印です。",
     action_msgs:{
       morning:'おはよう! 今日も一緒だね',
       breakfast:'もぐもぐ... おいしいね',
@@ -290,9 +308,9 @@ const I18N = {
   },
   en:{
     cover_title:"Who Are You?",
-    cover_sub:"A tiny care-and-reflection journey about your becoming. A caterpillar grows through daily interactions and finally is reborn as a MeAI character.",
+    cover_sub:"A tiny care-and-reflection journey. The caterpillar grows through daily interactions and is reborn as a MeAI character.",
     cover_start:"Start",
-    cover_about:"About this research",
+    cover_about:"About",
     cover_notice:"Images are loaded from public/. Records use dataSdk or local storage.",
     setup_title:"Who Are You?",
     label_name:"Caterpillar name",
@@ -301,7 +319,7 @@ const I18N = {
     label_meai:"MeAI character to be born",
     label_good_btn:"“Good things today” button",
     hint_good:"Log 1–3 items at day’s end to gain growth points.",
-    start_btn:"Start raising",
+    start_btn:"Start",
     header_title:"Who Are You?",
     btn_morning:"Open the curtains",
     btn_breakfast:"Breakfast",
@@ -319,7 +337,7 @@ const I18N = {
     good_save:"Save",
     footer:"Care count: {n}",
     about_title:"About this research",
-    about_body:"This work explores learning value in art education with generative AI by focusing on small ‘gaps’ between intention and outcome. Through caring, logging, and dialogue, learners gently ‘re-choose’ their values. The MeAI birth at the final stage symbolizes an ART5.0 shift that centers reflection and dialogue rather than mere skill. Unused images and drafts are treated as learning traces.",
+    about_body:"This work is a small instrument to observe why players develop attachment to a game character. We focus on how daily care, greetings, and tiny feedback slowly create a sense of being with someone. Naming, shared routines, small feedback (expressions/messages/growth bar), slight randomness (hiding), tying one’s own events via “good things today,” and the freedom to re-choose all layer together to raise attachment. The final MeAI birth quietly marks the moment it feels like someone, beyond numbers.",
     action_msgs:{
       morning:'Good morning! We’re together again',
       breakfast:'Yummy…',
@@ -329,7 +347,7 @@ const I18N = {
       night:'The stars are sparkling…',
       'good-things':'Recalling good things warms the heart'
     },
-    stages:['Egg','Baby caterpillar','Lively caterpillar','Big caterpillar','Chrysalis','Butterfly'],
+    stages:['Egg','Baby','Lively','Big','Chrysalis','Butterfly'],
     stage_label:"Stage: {stage}",
     born_msg:(name,key)=>`Congrats! “${name}” is reborn as ${key} 🎉`,
     born_after:"From here, a journey of dialogue and re-choosing may begin."
@@ -365,7 +383,7 @@ const I18N = {
     good_save:"保存",
     footer:"照料次数：{n}",
     about_title:"关于研究",
-    about_body:"本作关注“意图与结果的细微落差”，以此重新审视生成式 AI 情境下的美术学习价值。通过照料、记录与对话，学习者温和地“重新选择”价值。终局的 MeAI 诞生象征一种以反思与对话为重心的 ART5.0 转向。未采用的图像与草图也被视为学习轨迹。",
+    about_body:"本作用来观察为何会对游戏角色产生依恋：每日的照料与问候、细微反馈如何慢慢生成“与某人在一起”的感觉。命名、共享作息、表情与信息及成长条的小反馈、躲藏等偶然性、“今天的好事”把生活连到角色、以及可再选择的余白——这些叠加起来，依恋便会升起。终段的 MeAI 诞生象征依恋超越数字、像对某个人的感觉。",
     action_msgs:{
       morning:'早安！今天也在一起',
       breakfast:'好吃…',
@@ -375,7 +393,7 @@ const I18N = {
       night:'星星在闪烁…',
       'good-things':'回想好事会让心变得温暖'
     },
-    stages:['卵','小毛毛虫','活泼的毛毛虫','大毛毛虫','蛹','蝴蝶'],
+    stages:['卵','小毛毛虫','活泼','大毛毛虫','蛹','蝴蝶'],
     stage_label:"成长阶段：{stage}",
     born_msg:(name,key)=>`恭喜！“${name}” 以 ${key} 的样貌重生 🎉`,
     born_after:"接下来，也许是一段对话与再选择的旅程。"
@@ -411,7 +429,7 @@ const I18N = {
     good_save:"저장",
     footer:"돌봄 횟수: {n}",
     about_title:"연구 소개",
-    about_body:"이 작품은 의도와 결과 사이의 작은 ‘간극’에 주목하여, 생성 AI 시대 미술 학습의 가치를 재고합니다. 보살핌·기록·대화를 통해 학습자는 천천히 ‘다시 선택’합니다. 마지막의 MeAI 탄생은 기술 숙련보다 성찰과 대화에 무게를 두는 ART5.0 전환을 상징합니다. 채택되지 않은 이미지와 스케치도 학습의 흔적으로 다룹니다.",
+    about_body:"이 작품은 플레이어가 게임 캐릭터에게 왜 애착을 느끼는지 관찰합니다. 보살핌과 인사, 작은 피드백이 ‘누군가와 함께 있음’의 감각을 서서히 만듭니다. 이름 붙이기, 루틴 공유, 표정/메시지/성장바의 미세한 손맛, 숨기 같은 우연성, ‘오늘의 좋은 일’로 나의 사건이 연결됨, 그리고 다시 선택할 수 있는 여백이 겹쳐지며 애착이 자랍니다. 마지막의 MeAI 탄생은 숫자를 넘어 ‘누군가처럼 느껴지는’ 순간을 드러냅니다.",
     action_msgs:{
       morning:'좋은 아침! 오늘도 함께해요',
       breakfast:'맛있다…',
@@ -421,374 +439,6 @@ const I18N = {
       night:'별이 반짝여…',
       'good-things':'좋은 일을 떠올리면 마음이 따뜻해져요'
     },
-    stages:['알','아기 애벌레','활기찬 애벌레','큰 애벌레','번데기','나비'],
+    stages:['알','아기','활기찬','큰 애벌레','번데기','나비'],
     stage_label:"성장 단계: {stage}",
-    born_msg:(name,key)=>`축하해요! “${name}”가 ${key}로 다시 태어났어요 🎉`,
-    born_after:"이제부터 대화와 다시-선택의 여정이 시작될지도 모르겠네요."
-  }
-};
-
-/* ===== MeAIアセット ===== */
-const CHARACTERS = {
-  blue:   { calm:'public/char/blue/calm.png',   happy:'public/char/blue/happy.png' },
-  pink:   { calm:'public/char/pink/calm.png',   happy:'public/char/pink/happy.png' },
-  green:  { calm:'public/char/green/calm.png',  happy:'public/char/green/happy.png' },
-  purple: { calm:'public/char/purple/calm.png', happy:'public/char/purple/happy.png' }
-};
-
-/* ===== 設定と状態 ===== */
-let lang = localStorage.getItem('whoareyou_lang') || 'ja';
-let isLoading = false;
-let dataReady = false;
-
-const timeOfDayData = {
-  morning:{class:'morning',hours:[5,6,7,8,9,10]},
-  day:{class:'day',hours:[10,11,12,13,14]},
-  afternoon:{class:'afternoon',hours:[12,13,14,15,16]},
-  evening:{class:'evening',hours:[17,18,19]},
-  night:{class:'night',hours:[20,21,22,23,0,1,2,3,4]}
-};
-
-const growthStages = [
-  { name_key:0, emoji:'🥚', min:0 },
-  { name_key:1, emoji:'🐛', min:5 },
-  { name_key:2, emoji:'🐛', min:15 },
-  { name_key:3, emoji:'🐛', min:30 },
-  { name_key:4, emoji:'🥚', min:50 },
-  { name_key:5, emoji:'🦋', min:80 } // 到達でMeAI誕生
-];
-
-let gameState = {
-  name:'',
-  start:null,
-  now:null,
-  points:0,
-  hide:false,
-  hideTimer:null,
-  meaiKey:'blue',
-  evolved:false,
-  records:[]
-};
-
-/* ===== ユーティリティ ===== */
-const t=key=>I18N[lang][key];
-const ta=(grp,key)=>I18N[lang][grp][key];
-function fmt(str, map){ return str.replace(/\{(\w+)\}/g,(_,k)=>map[k]??''); }
-function saveLocal(){ localStorage.setItem('whoareyou_save', JSON.stringify({lang,gameState})); }
-function loadLocal(){
-  try{
-    const raw = localStorage.getItem('whoareyou_save');
-    if(!raw) return;
-    const d = JSON.parse(raw);
-    if(d?.lang) lang = d.lang;
-    if(d?.gameState){
-      gameState = {...gameState, ...d.gameState};
-      if (gameState.start) gameState.start = new Date(gameState.start);
-      if (gameState.now) gameState.now = new Date(gameState.now);
-    }
-  }catch(e){}
-}
-
-/* ===== 画面テキスト反映 ===== */
-function applyTexts(){
-  document.getElementById('cover-title').textContent = t('cover_title');
-  document.getElementById('cover-sub').textContent = t('cover_sub');
-  document.getElementById('cover-start').textContent = t('cover_start');
-  document.getElementById('cover-about').textContent = t('cover_about');
-  document.getElementById('cover-notice').textContent = t('cover_notice');
-
-  document.getElementById('setup-title').textContent = t('setup_title');
-  document.getElementById('label-name').textContent = t('label_name');
-  document.getElementById('label-date').textContent = t('label_date');
-  document.getElementById('label-time').textContent = t('label_time');
-  document.getElementById('label-meai').textContent = t('label_meai');
-  document.getElementById('label-goodthings').textContent = t('label_good_btn');
-  document.getElementById('hint-goodthings').textContent = t('hint_good');
-  document.getElementById('start-btn').textContent = t('start_btn');
-
-  document.getElementById('title').textContent = t('header_title');
-  document.getElementById('btn-morning').textContent = t('btn_morning');
-  document.getElementById('btn-breakfast').textContent = t('btn_breakfast');
-  document.getElementById('btn-lunch').textContent = t('btn_lunch');
-  document.getElementById('btn-play').textContent = t('btn_play');
-  document.getElementById('btn-evening').textContent = t('btn_evening');
-  document.getElementById('btn-night').textContent = t('btn_night');
-  document.getElementById('btn-good').textContent = t('btn_good');
-  document.getElementById('message').textContent = t('status_msg');
-
-  document.getElementById('good-things-title').textContent = t('good_title');
-  document.getElementById('good-thing-1').placeholder = t('good_placeholder1');
-  document.getElementById('good-thing-2').placeholder = t('good_placeholder2');
-  document.getElementById('good-thing-3').placeholder = t('good_placeholder3');
-  document.getElementById('cancel-good-things').textContent = t('good_cancel');
-  document.getElementById('save-good-things').textContent = t('good_save');
-
-  document.getElementById('about-title').textContent = t('about_title');
-  document.getElementById('about-body').textContent = t('about_body');
-
-  const n = (gameState.records||[]).length;
-  document.getElementById('footer-text').innerHTML = fmt(t('footer'), {n}) ;
-}
-
-function applyStageTexts(stageKey){
-  const stageName = I18N[lang].stages[stageKey];
-  document.getElementById('growth-stage').textContent = fmt(I18N[lang].stage_label, {stage:stageName});
-}
-
-/* ===== dataSdk, elementSdk ===== */
-const dataHandler = {
-  onDataChanged(data){
-    // dataSdkが使われる環境ではここが呼ばれる
-    gameState.records = data || [];
-    gameState.points = (gameState.records).reduce((s,r)=>s+(r.growth_points||0),0);
-    updateStatus();
-    saveLocal();
-  }
-};
-
-async function initSdks(){
-  try{
-    if (window.dataSdk && typeof window.dataSdk.init==='function'){
-      const res = await window.dataSdk.init(dataHandler);
-      dataReady = !!(res && res.isOk);
-    }
-  }catch(e){ dataReady = false; }
-  if (window.elementSdk){
-    window.elementSdk.init({
-      defaultConfig:{},
-      onConfigChange:()=>{},
-      mapToCapabilities:()=>({recolorables:[],borderables:[]}),
-      mapToEditPanelValues:()=>new Map()
-    });
-  }
-}
-
-/* ===== 時間帯 ===== */
-function resolvePeriod(h){
-  for (const [p,d] of Object.entries(timeOfDayData)){ if (d.hours.includes(h)) return p; }
-  return 'morning';
-}
-function updateTimeOfDay(){
-  const h = (gameState.now||new Date()).getHours();
-  const p = resolvePeriod(h);
-  const app = document.getElementById('app');
-  app.className = timeOfDayData[p].class;
-}
-
-/* ===== UIメッセージ ===== */
-function toast(text){
-  const el = document.getElementById('find-message');
-  const keep = el.textContent;
-  el.textContent = text;
-  el.classList.add('show');
-  setTimeout(()=>{ el.classList.remove('show'); el.textContent = keep; }, 2000);
-}
-
-/* ===== ゲームロジック ===== */
-function updateDateTime(){
-  const d = gameState.now;
-  const y = d.getFullYear(), m = d.getMonth()+1, dt = d.getDate();
-  const hh = d.getHours().toString().padStart(2,'0');
-  const mm = d.getMinutes().toString().padStart(2,'0');
-  document.getElementById('datetime-display').textContent = `${y}年${m}月${dt}日 ${hh}:${mm}`;
-}
-
-function updateActions(hour){
-  document.querySelectorAll('.action-btn').forEach(btn=>{
-    const req = btn.dataset.time;
-    const ok = timeOfDayData[req]?.hours.includes(hour);
-    btn.disabled = !ok;
-    btn.classList.toggle('locked', !ok);
-  });
-}
-
-function currentStage(){
-  let cur=growthStages[0], next=growthStages[1] ?? growthStages[0];
-  for (let i=growthStages.length-1;i>=0;i--){
-    if (gameState.points >= growthStages[i].min){
-      cur=growthStages[i]; next=growthStages[i+1] || growthStages[i]; break;
-    }
-  }
-  return {cur,next};
-}
-
-function updateStatus(){
-  document.getElementById('caterpillar-name').textContent = gameState.name || (lang==='en'?'Cater':'いもちゃん');
-  document.getElementById('care-count').textContent = (gameState.records||[]).length;
-
-  const {cur,next} = currentStage();
-  applyStageTexts(cur.name_key);
-  document.getElementById('caterpillar').textContent = cur.emoji;
-
-  const prog = gameState.points - cur.min;
-  const need = next.min - cur.min;
-  const pct = cur===next ? 100 : Math.max(0, Math.min(100, (prog/need)*100));
-  document.getElementById('growth-bar').style.width = pct + '%';
-
-  // 進化判定
-  if (!gameState.evolved && cur.name_key === 5) evolveToMeAI();
-}
-
-function evolveToMeAI(){
-  gameState.evolved = true;
-  const cat = document.getElementById('caterpillar');
-  cat.style.opacity='0'; cat.style.transform='translate(-50%,-50%) scale(0.85)';
-  const img = document.getElementById('char-img');
-  const asset = CHARACTERS[gameState.meaiKey] || CHARACTERS.blue;
-  img.onload=()=> img.classList.add('show');
-  img.onerror=()=>{ img.style.display='none'; };
-  img.src = asset.calm;
-  img.style.display='block';
-
-  toast(I18N[lang].born_msg(gameState.name||'', gameState.meaiKey));
-  setTimeout(()=>{ if (asset.happy){ img.classList.add('happy'); img.src=asset.happy; } }, 400);
-  setTimeout(()=>{ img.classList.remove('happy'); img.src=asset.calm; }, 1400);
-
-  document.getElementById('message').textContent = t('born_after');
-}
-
-async function logAction(payload){
-  if (dataReady){
-    try{ await window.dataSdk.create(payload); }catch(e){ // フォールバック
-      gameState.records.push(payload);
-    }
-  }else{
-    gameState.records.push(payload);
-  }
-  gameState.points = (gameState.records||[]).reduce((s,r)=>s+(r.growth_points||0),0);
-  saveLocal();
-}
-
-async function handleAction(action){
-  if ((gameState.records||[]).length >= 999){ toast('記録の上限に達しました'); return; }
-  if (isLoading) return;
-  isLoading = true; setButtonsOpacity(.6);
-  const pts = Math.floor(Math.random()*2)+1;
-  await logAction({ id:Date.now().toString(), timestamp:gameState.now.toISOString(), action_type:action, growth_points:pts });
-  advanceTime();
-  document.getElementById('message').textContent = (I18N[lang].action_msgs[action] || 'Thanks!');
-  isLoading = false; setButtonsOpacity(1);
-  updateStatus();
-}
-
-function advanceTime(){
-  gameState.now = new Date(gameState.now.getTime()+60*60*1000);
-  updateDateTime();
-  const h = gameState.now.getHours();
-  updateActions(h);
-  updateTimeOfDay();
-}
-
-function setButtonsOpacity(v){
-  document.querySelectorAll('.action-btn').forEach(b=> b.style.opacity = v);
-}
-
-/* ===== いいこと ===== */
-function openGoodModal(){
-  ['good-thing-1','good-thing-2','good-thing-3'].forEach(id=>{ const el=document.getElementById(id); el.value=''; el.placeholder = I18N[lang][`good_placeholder${id.endsWith('1')?1:id.endsWith('2')?2:3}`]; });
-  document.getElementById('good-things-title').textContent = t('good_title');
-  document.getElementById('good-things-modal').style.display='flex';
-}
-function closeGoodModal(){ document.getElementById('good-things-modal').style.display='none'; }
-
-async function saveGoodThings(){
-  const v1=document.getElementById('good-thing-1').value.trim();
-  const v2=document.getElementById('good-thing-2').value.trim();
-  const v3=document.getElementById('good-thing-3').value.trim();
-  if(!v1 && !v2 && !v3){ toast(lang==='en'?'Enter at least one item':'少なくとも1つ入力してください'); return; }
-  if ((gameState.records||[]).length >= 999){ toast('記録の上限に達しました'); return; }
-  isLoading = true; setButtonsOpacity(.6);
-  await logAction({
-    id:Date.now().toString(),
-    timestamp:gameState.now.toISOString(),
-    action_type:'good-things',
-    growth_points:3,
-    good_thing_1:v1, good_thing_2:v2, good_thing_3:v3
-  });
-  advanceTime();
-  document.getElementById('message').textContent = I18N[lang].action_msgs['good-things'];
-  isLoading = false; setButtonsOpacity(1);
-  updateStatus();
-  closeGoodModal();
-}
-
-/* ===== イベント設定 ===== */
-function bindEvents(){
-  document.getElementById('cover-start').addEventListener('click', ()=>{
-    document.getElementById('cover').classList.add('hidden');
-    document.getElementById('setup-screen').classList.add('show');
-  });
-  document.getElementById('cover-about').addEventListener('click', ()=> toggleAbout(true));
-  document.getElementById('about-close').addEventListener('click', ()=> toggleAbout(false));
-
-  document.getElementById('start-btn').addEventListener('click', ()=>{
-    const name = document.getElementById('caterpillar-name-input').value.trim();
-    const d = document.getElementById('start-date-input').value;
-    const tm = document.getElementById('start-time-input').value;
-    const key = document.getElementById('meai-char-select').value || 'blue';
-    if (!name || !d || !tm){ toast(lang==='en'?'Please fill all fields':'すべての項目を入力してください'); return; }
-    gameState.name = name; gameState.start = new Date(d+'T'+tm); gameState.now = new Date(gameState.start);
-    gameState.meaiKey = key; gameState.evolved = false;
-    document.getElementById('setup-screen').classList.remove('show');
-    document.getElementById('game-screen').style.display='flex';
-    updateDateTime(); updateTimeOfDay(); updateActions(gameState.now.getHours()); updateStatus();
-    startHideTimer();
-    saveLocal();
-  });
-
-  ['btn-morning','btn-breakfast','btn-lunch','btn-play','btn-evening','btn-night'].forEach(id=>{
-    document.getElementById(id).addEventListener('click', e=> handleAction(e.target.dataset.action));
-  });
-  document.getElementById('btn-good').addEventListener('click', openGoodModal);
-  document.getElementById('cancel-good-things').addEventListener('click', closeGoodModal);
-  document.getElementById('save-good-things').addEventListener('click', saveGoodThings);
-
-  document.getElementById('caterpillar').addEventListener('click', ()=>{
-    if (gameState.hide){
-      gameState.hide=false;
-      const c=document.getElementById('caterpillar'); c.classList.remove('hidden-in-grass'); toast(lang==='en'?'Found!':'見つけた! 🎉');
-    }
-  });
-
-  const sel = document.getElementById('lang-select');
-  sel.value = lang;
-  sel.addEventListener('change', ()=>{
-    lang = sel.value; localStorage.setItem('whoareyou_lang', lang); applyTexts(); updateStatus();
-  });
-}
-
-function toggleAbout(show){
-  document.getElementById('about-modal').classList.toggle('show', !!show);
-}
-
-/* ===== 隠れタイマー ===== */
-function startHideTimer(){
-  clearInterval(gameState.hideTimer);
-  gameState.hideTimer = setInterval(()=>{
-    if (!gameState.evolved && !gameState.hide && Math.random()<0.1){
-      gameState.hide=true;
-      const c=document.getElementById('caterpillar');
-      c.classList.add('hidden-in-grass');
-      c.style.left = (Math.random()*80)+'%';
-      c.style.top = '50%';
-    }
-  },10000);
-}
-
-/* ===== 初期化 ===== */
-(async function(){
-  loadLocal();
-  document.getElementById('lang-select').value = lang;
-  applyTexts();
-  bindEvents();
-  await initSdks();
-
-  // カバー表示のまま開始（セーブがあってもユーザーがスタート押下）
-  document.getElementById('cover').classList.remove('hidden');
-})();
-</script>
-
-<!-- Cloudflare snippet（そのまま） -->
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99b595afb72c7344',t:'MTc2MjYxMDMwMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
-</body>
-</html>
+    born_msg:(name,key)=>`축하해요! “${name}”가 ${key}로_
