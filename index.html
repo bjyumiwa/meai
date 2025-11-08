@@ -1,15 +1,15 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>君は何者？ × MeAI</title>
+  <!-- SDKが無くても動きます（404でもOK） -->
   <script src="/_sdk/data_sdk.js"></script>
   <script src="/_sdk/element_sdk.js"></script>
-  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
   <style>
     html,body{height:100%;margin:0;font-family:'Hiragino Kaku Gothic ProN','Hiragino Sans',Meiryo,sans-serif;overflow:hidden}
-    #app{height:100%;display:flex;flex-direction:column;position:relative;transition:background 1s ease;background-size:cover;background-position:center}
+    #app{height:100%;display:flex;flex-direction:column;position:relative;transition:background 1s ease}
 
     /* 時間帯の背景 */
     .morning{background:linear-gradient(to bottom,#FFE5B4 0%,#FFDAB9 50%,#FFE4E1 100%)}
@@ -28,28 +28,13 @@
     .cover-sub{color:#555;margin:4px 0 16px 0;line-height:1.7}
     .cover-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
     .cover-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
-    .btn-primary{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:14px;padding:14px 18px;font-weight:700;cursor:pointer}
-    .btn-ghost{background:#f3f4f6;border:none;border-radius:12px;padding:12px 16px;cursor:pointer}
+    .btn{cursor:pointer;border:none}
+    .btn-primary{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:14px;padding:14px 18px;font-weight:700}
+    .btn-ghost{background:#f3f4f6;border-radius:12px;padding:12px 16px}
     .notice{font-size:12px;color:#666;margin-top:6px}
-
-    /* カバー画像の制御 */
-    .thumb{
-      width:100%;
-      height:auto;
-      max-height:240px;
-      object-fit:cover;
-      border-radius:14px;
-      border:2px solid #e5e7eb;
-    }
-    .thumb-char{
-      max-height:220px;
-      width:100%;
-      object-fit:contain;
-      border-radius:14px;
-      border:2px solid #e5e7eb;
-      background:#fff;
-    }
-    .thumb[hidden]{ display:none !important; }
+    .thumb{width:100%;height:auto;max-height:240px;object-fit:cover;border-radius:14px;border:2px solid #e5e7eb}
+    .thumb-char{max-height:220px;width:100%;object-fit:contain;border-radius:14px;border:2px solid #e5e7eb;background:#fff}
+    .thumb[hidden]{display:none!important}
 
     /* 初期設定 */
     #setup-screen{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);z-index:1000}
@@ -64,18 +49,23 @@
 
     /* ゲーム画面 */
     #game-screen{height:100%;display:none;flex-direction:column}
-    #header{padding:14px;text-align:center;background:rgba(255,255,255,.3)}
+    #header{padding:12px 16px;text-align:center;background:rgba(255,255,255,.3)}
     #title{font-size:22px;font-weight:800;margin:0 0 6px 0}
     #datetime-display{font-size:13px;opacity:.85}
-    #main-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 16px;position:relative;overflow:hidden}
 
+    /* デイリーバナー */
+    #daily-bar{display:none;gap:8px;align-items:center;justify-content:center;padding:10px 12px;background:rgba(255,255,255,.75);backdrop-filter:blur(6px)}
+    #daily-bar.show{display:flex}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:999px;background:#fff;border:1px solid #e5e7eb;font-size:13px}
+    .chip .btn{padding:6px 10px;border-radius:10px;background:#111;color:#fff}
+
+    #main-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 16px;position:relative;overflow:hidden}
     #caterpillar-area{position:relative;width:min(560px,92vw);height:240px;margin-bottom:16px}
     #caterpillar{font-size:80px;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);cursor:pointer;transition:all .5s ease;animation:breathe 3s ease-in-out infinite}
     #caterpillar.hidden-in-grass{opacity:.3;filter:brightness(.7)}
     @keyframes breathe{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-54%) scale(1.05)}}
     #char-img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);width:140px;height:140px;object-fit:contain;opacity:0;pointer-events:auto;transition:opacity .6s ease,transform .6s ease}
     #char-img.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
-    #char-img.happy{filter:saturate(1.2)}
     .grass{position:absolute;font-size:42px;bottom:2px;opacity:.65}
 
     #status-box{background:rgba(255,255,255,.92);backdrop-filter:blur(6px);padding:16px;border-radius:16px;margin-bottom:16px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.08);min-width:280px}
@@ -95,15 +85,18 @@
     #find-message.show{opacity:1}
     #footer{padding:12px;text-align:center;font-size:12px;opacity:.8;background:rgba(255,255,255,.2)}
 
+    /* モーダル共通 */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:1100}
+    .modal.show{display:flex}
+    .modal-box{background:#fff;padding:24px;border-radius:20px;box-shadow:0 8px 32px rgba(0,0,0,.3);width:min(480px,92vw)}
+
     /* 研究モーダル */
-    #about-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:1300}
-    #about-modal.show{display:flex}
+    #about-modal{z-index:1300}
     .about-card{width:min(860px,92vw);max-height:80vh;overflow:auto;background:#fff;border-radius:20px;padding:18px 18px 22px;box-shadow:0 12px 36px rgba(0,0,0,.25)}
     .about-title{margin:0 0 8px 0;font-size:20px;font-weight:800}
     .about-body{color:#444;line-height:1.8;font-size:14px}
     .about-close{margin-top:12px;width:100%;padding:12px;border:none;border-radius:12px;background:#111;color:#fff;font-weight:700;cursor:pointer}
   </style>
-  <style>@view-transition{navigation:auto}</style>
 </head>
 <body>
 <div id="app" class="morning">
@@ -114,10 +107,8 @@
       <div class="cover-header">
         <h1 class="cover-title" id="cover-title">君は何者？</h1>
         <select id="lang-select" class="lang-select" aria-label="language">
-          <option value="ja">日本語</option>
-          <option value="en">English</option>
-          <option value="zh">中文</option>
-          <option value="ko">한국어</option>
+          <option value="ja">日本語</option><option value="en">English</option>
+          <option value="zh">中文</option><option value="ko">한국어</option>
         </select>
       </div>
       <p class="cover-sub" id="cover-sub">
@@ -125,19 +116,18 @@
       </p>
       <div class="cover-grid">
         <div>
-          <!-- 左の背景サムネ：存在率の高い beach_day に変更。無ければ自動非表示 -->
+          <!-- ここは存在しない可能性が高いので、無ければ自動で非表示 -->
           <img class="thumb" src="public/items/bg/beach_day.jpg" alt="cover background"
                loading="lazy" onerror="this.hidden=true;">
           <div class="cover-cta">
-            <button id="cover-start" class="btn-primary">スタート</button>
-            <button id="cover-about" class="btn-ghost">研究について</button>
+            <button id="cover-start" class="btn btn-primary">スタート</button>
+            <button id="cover-about" class="btn btn-ghost">研究について</button>
           </div>
           <div class="notice" id="cover-notice">
             画像は public/ 配下を参照します。記録は dataSdk またはローカル保存に対応。
           </div>
         </div>
         <div>
-          <!-- 右のキャラプレビュー：containで小さめ表示。無ければ自動非表示 -->
           <img class="thumb thumb-char" src="public/char/blue/calm.png"
                alt="MeAI preview" loading="lazy" onerror="this.hidden=true;">
         </div>
@@ -168,15 +158,13 @@
           <div class="input-group">
             <label id="label-meai" for="meai-char-select">誕生するMeAIキャラ</label>
             <select id="meai-char-select">
-              <option value="blue">blue</option>
-              <option value="pink">pink</option>
-              <option value="green">green</option>
-              <option value="purple">purple</option>
+              <option value="blue">blue</option><option value="pink">pink</option>
+              <option value="green">green</option><option value="purple">purple</option>
             </select>
           </div>
           <div class="input-group">
-            <label id="label-goodthings">「今日のいいこと」ボタン</label>
-            <div style="font-size:13px;color:#666" id="hint-goodthings">
+            <label id="label-good-btn">「今日のいいこと」ボタン</label>
+            <div style="font-size:13px;color:#666" id="hint-good">
               一日の終わりに 1〜3 件を記録すると成長ポイントが加算されます。
             </div>
           </div>
@@ -192,6 +180,12 @@
       <h2 id="title">君は何者？</h2>
       <div id="datetime-display">2024年1月1日 09:00</div>
     </header>
+
+    <!-- デイリーバー：毎日の🎁とスペシャルお世話 -->
+    <div id="daily-bar">
+      <div class="chip" id="gift-chip">🎁 今日のプレゼント <button id="gift-open" class="btn">開ける</button></div>
+      <div class="chip" id="special-chip">✨ 今日のスペシャル <button id="special-open" class="btn">見る</button></div>
+    </div>
 
     <main id="main-content">
       <div id="caterpillar-area">
@@ -224,33 +218,51 @@
       <div id="find-message">見つけた! 🎉</div>
     </main>
 
-    <!-- いいこと記録モーダル -->
-    <div id="good-things-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);align-items:center;justify-content:center;z-index:1100">
-      <div id="good-things-box" style="background:#fff;padding:28px;border-radius:20px;box-shadow:0 8px 32px rgba(0,0,0,.3);width:min(420px,92vw)">
-        <h3 id="good-things-title" style="margin:0 0 16px 0">今日のいいこと</h3>
-        <input type="text" class="good-thing-input" id="good-thing-1" placeholder="1つ目のいいこと" maxlength="50" style="width:100%;padding:12px;margin-bottom:10px;border:2px solid #e0e0e0;border-radius:10px">
-        <input type="text" class="good-thing-input" id="good-thing-2" placeholder="2つ目のいいこと" maxlength="50" style="width:100%;padding:12px;margin-bottom:10px;border:2px solid #e0e0e0;border-radius:10px">
-        <input type="text" class="good-thing-input" id="good-thing-3" placeholder="3つ目のいいこと" maxlength="50" style="width:100%;padding:12px;margin-bottom:10px;border:2px solid #e0e0e0;border-radius:10px">
-        <div class="modal-buttons" style="display:flex;gap:12px;margin-top:10px">
-          <button class="modal-btn cancel" id="cancel-good-things" style="flex:1;padding:12px;border:none;border-radius:10px;background:#e5e7eb">キャンセル</button>
-          <button class="modal-btn save" id="save-good-things" style="flex:1;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:700">記録する</button>
+    <!-- いいことモーダル -->
+    <div id="good-modal" class="modal">
+      <div class="modal-box">
+        <h3 id="good-title" style="margin:0 0 12px 0">今日のいいこと</h3>
+        <input type="text" id="good-1" placeholder="1つ目のいいこと" maxlength="50" style="width:100%;padding:12px;margin-bottom:10px;border:2px solid #e0e0e0;border-radius:10px">
+        <input type="text" id="good-2" placeholder="2つ目のいいこと" maxlength="50" style="width:100%;padding:12px;margin-bottom:10px;border:2px solid #e0e0e0;border-radius:10px">
+        <input type="text" id="good-3" placeholder="3つ目のいいこと" maxlength="50" style="width:100%;padding:12px;margin-bottom:10px;border:2px solid #e0e0e0;border-radius:10px">
+        <div style="display:flex;gap:12px;margin-top:10px">
+          <button id="good-cancel" class="btn" style="flex:1;padding:12px;border-radius:10px;background:#e5e7eb">キャンセル</button>
+          <button id="good-save" class="btn" style="flex:1;padding:12px;border-radius:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:700">記録する</button>
         </div>
       </div>
     </div>
 
-    <footer id="footer">
-      <div id="footer-text">お世話した回数: <span id="care-count">0</span>回</div>
-    </footer>
+    <!-- スペシャルお世話モーダル -->
+    <div id="special-modal" class="modal">
+      <div class="modal-box">
+        <h3 id="sp-title" style="margin:0 0 10px 0">今日のスペシャル</h3>
+        <div id="sp-task" style="line-height:1.8;color:#444">…</div>
+        <div style="display:flex;gap:12px;margin-top:14px">
+          <button id="sp-cancel" class="btn" style="flex:1;padding:12px;border-radius:10px;background:#e5e7eb">あとで</button>
+          <button id="sp-done" class="btn" style="flex:1;padding:12px;border-radius:10px;background:#111;color:#fff;font-weight:700">完了！</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- プレゼント開封モーダル -->
+    <div id="gift-modal" class="modal">
+      <div class="modal-box" style="text-align:center">
+        <div style="font-size:46px">🎁</div>
+        <h3 style="margin:8px 0 6px 0">今日のプレゼント</h3>
+        <div id="gift-body" style="color:#444;line-height:1.8">…</div>
+        <button id="gift-close" class="btn" style="margin-top:12px;width:100%;padding:12px;border-radius:12px;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff">OK</button>
+      </div>
+    </div>
+
+    <footer id="footer">お世話した回数: <span id="care-count">0</span>回</footer>
   </section>
 
-  <!-- 研究についてモーダル（愛着にフォーカス） -->
-  <section id="about-modal">
+  <!-- 研究について -->
+  <section id="about-modal" class="modal">
     <div class="about-card">
       <h3 class="about-title" id="about-title">研究について</h3>
       <div class="about-body" id="about-body">
-        本作は、なぜ人はゲームのキャラクターに「愛着」を感じるのかを観察するための小さな装置です。関心は、毎日の世話や声かけ、ささやかな反応の積み重ねが、いつのまにか「誰かと一緒にいる感じ」を育てる、その過程にあります。
-        名前をつけること、朝昼夜のルーティンを共有すること、表情やメッセージや成長バーといった小さな手ごたえ、草むらに隠れるといった偶然性、「今日のいいこと」で自分の出来事が結びつくこと、次に何をするかを選び直せる余白――こうした微細な要素が重なり、愛着が立ち上がるのかもしれません。
-        最終段階の MeAI 誕生は、数値を超えて「誰かとして感じられる瞬間」をそっと可視化する印です。
+        本作は、なぜ人はゲームのキャラクターに「愛着」を感じるのかを観察するための小さな装置です。毎日の世話や声かけ、ささやかな反応の積み重ねが、いつのまにか「誰かと一緒にいる感じ」を育てる、その過程に注目します。名前をつけること、時間のルーティン、小さな手ごたえ、偶然性、「今日のいいこと」による結びつき、そして選び直しの余白――こうした微細な要素が重なり、愛着が立ち上がるかもしれません。最終段階の MeAI 誕生は、数値を超えて「誰かとして感じられる瞬間」をそっと可視化する印です。
       </div>
       <button class="about-close" id="about-close">閉じる</button>
     </div>
@@ -258,187 +270,9 @@
 </div>
 
 <script>
-/* ===== 多言語辞書（愛着フォーカス版） ===== */
+/* ====== I18N（必要最小限） ====== */
 const I18N = {
   ja:{
     cover_title:"君は何者？",
     cover_sub:"小さな世話と省察から始まる、あなた自身の「何者性」をめぐる物語。日々の関わりで芋虫が成長し、やがてMeAIキャラとして誕生します。",
-    cover_start:"スタート",
-    cover_about:"研究について",
-    cover_notice:"画像は public/ 配下を参照します。記録は dataSdk またはローカル保存に対応。",
-    setup_title:"君は何者？",
-    label_name:"芋虫の名前",
-    label_date:"開始日",
-    label_time:"開始時刻",
-    label_meai:"誕生するMeAIキャラ",
-    label_good_btn:"「今日のいいこと」ボタン",
-    hint_good:"一日の終わりに 1〜3 件を記録すると成長ポイントが加算されます。",
-    start_btn:"育成を始める",
-    header_title:"君は何者？",
-    btn_morning:"カーテンを開ける",
-    btn_breakfast:"朝ごはん",
-    btn_lunch:"お昼ごはん",
-    btn_play:"一緒に遊ぶ",
-    btn_evening:"夕焼けを見る",
-    btn_night:"星を見る",
-    btn_good:"今日のいいこと",
-    status_msg:"一緒に過ごそう",
-    good_title:"今日のいいこと",
-    good_placeholder1:"1つ目のいいこと",
-    good_placeholder2:"2つ目のいいこと",
-    good_placeholder3:"3つ目のいいこと",
-    good_cancel:"キャンセル",
-    good_save:"記録する",
-    footer:"お世話した回数: {n}回",
-    about_title:"研究について",
-    about_body:"本作は、なぜ人はゲームのキャラクターに「愛着」を感じるのかを観察するための小さな装置です。関心は、毎日の世話や声かけ、ささやかな反応の積み重ねが、いつのまにか「誰かと一緒にいる感じ」を育てる、その過程にあります。名前をつけること、朝昼夜のルーティンを共有すること、表情やメッセージや成長バーといった小さな手ごたえ、草むらに隠れるといった偶然性、「今日のいいこと」で自分の出来事が結びつくこと、次に何をするかを選び直せる余白――こうした微細な要素が重なり、愛着が立ち上がるのかもしれません。最終段階の MeAI 誕生は、数値を超えて「誰かとして感じられる瞬間」をそっと可視化する印です。",
-    action_msgs:{
-      morning:'おはよう! 今日も一緒だね',
-      breakfast:'もぐもぐ... おいしいね',
-      lunch:'お昼ごはん、一緒に食べよう',
-      play:'わーい! 楽しいね',
-      evening:'きれいな夕焼けだね',
-      night:'星がきらきらしてる...',
-      'good-things':'いいことを思い出すと、心があたたかくなるね'
-    },
-    stages:['卵','赤ちゃん芋虫','元気な芋虫','大きな芋虫','さなぎ','蝶々'],
-    stage_label:"成長段階: {stage}",
-    born_msg:(name,key)=>`おめでとう! 「${name}」は ${key} の姿で生まれ変わった 🎉`,
-    born_after:"ここからは「対話」と「選び直し」の冒険が始まるかもしれませんね"
-  },
-  en:{
-    cover_title:"Who Are You?",
-    cover_sub:"A tiny care-and-reflection journey. The caterpillar grows through daily interactions and is reborn as a MeAI character.",
-    cover_start:"Start",
-    cover_about:"About",
-    cover_notice:"Images are loaded from public/. Records use dataSdk or local storage.",
-    setup_title:"Who Are You?",
-    label_name:"Caterpillar name",
-    label_date:"Start date",
-    label_time:"Start time",
-    label_meai:"MeAI character to be born",
-    label_good_btn:"“Good things today” button",
-    hint_good:"Log 1–3 items at day’s end to gain growth points.",
-    start_btn:"Start",
-    header_title:"Who Are You?",
-    btn_morning:"Open the curtains",
-    btn_breakfast:"Breakfast",
-    btn_lunch:"Lunch",
-    btn_play:"Play together",
-    btn_evening:"Watch the sunset",
-    btn_night:"Watch the stars",
-    btn_good:"Good things today",
-    status_msg:"Let’s spend time together",
-    good_title:"Good things today",
-    good_placeholder1:"First good thing",
-    good_placeholder2:"Second good thing",
-    good_placeholder3:"Third good thing",
-    good_cancel:"Cancel",
-    good_save:"Save",
-    footer:"Care count: {n}",
-    about_title:"About this research",
-    about_body:"This work is a small instrument to observe why players develop attachment to a game character. We focus on how daily care, greetings, and tiny feedback slowly create a sense of being with someone. Naming, shared routines, small feedback (expressions/messages/growth bar), slight randomness (hiding), tying one’s own events via “good things today,” and the freedom to re-choose all layer together to raise attachment. The final MeAI birth quietly marks the moment it feels like someone, beyond numbers.",
-    action_msgs:{
-      morning:'Good morning! We’re together again',
-      breakfast:'Yummy…',
-      lunch:'Let’s have lunch',
-      play:'So fun!',
-      evening:'What a beautiful sunset',
-      night:'The stars are sparkling…',
-      'good-things':'Recalling good things warms the heart'
-    },
-    stages:['Egg','Baby','Lively','Big','Chrysalis','Butterfly'],
-    stage_label:"Stage: {stage}",
-    born_msg:(name,key)=>`Congrats! “${name}” is reborn as ${key} 🎉`,
-    born_after:"From here, a journey of dialogue and re-choosing may begin."
-  },
-  zh:{
-    cover_title:"你是谁？",
-    cover_sub:"从小小的照料与反思开始。毛毛虫在日常互动中成长，最终以 MeAI 角色重生。",
-    cover_start:"开始",
-    cover_about:"关于研究",
-    cover_notice:"图片来自 public/ 目录。记录使用 dataSdk 或本地存储。",
-    setup_title:"你是谁？",
-    label_name:"毛毛虫的名字",
-    label_date:"开始日期",
-    label_time:"开始时间",
-    label_meai:"将诞生的 MeAI 角色",
-    label_good_btn:"“今天的好事”按钮",
-    hint_good:"在一天结束记录 1–3 件好事可获得成长点。",
-    start_btn:"开始养成",
-    header_title:"你是谁？",
-    btn_morning:"拉开窗帘",
-    btn_breakfast:"早餐",
-    btn_lunch:"午餐",
-    btn_play:"一起玩",
-    btn_evening:"看晚霞",
-    btn_night:"看星星",
-    btn_good:"今天的好事",
-    status_msg:"一起度过吧",
-    good_title:"今天的好事",
-    good_placeholder1:"第一件好事",
-    good_placeholder2:"第二件好事",
-    good_placeholder3:"第三件好事",
-    good_cancel:"取消",
-    good_save:"保存",
-    footer:"照料次数：{n}",
-    about_title:"关于研究",
-    about_body:"本作用来观察为何会对游戏角色产生依恋：每日的照料与问候、细微反馈如何慢慢生成“与某人在一起”的感觉。命名、共享作息、表情与信息及成长条的小反馈、躲藏等偶然性、“今天的好事”把生活连到角色、以及可再选择的余白——这些叠加起来，依恋便会升起。终段的 MeAI 诞生象征依恋超越数字、像对某个人的感觉。",
-    action_msgs:{
-      morning:'早安！今天也在一起',
-      breakfast:'好吃…',
-      lunch:'一起吃午餐吧',
-      play:'太好玩了！',
-      evening:'夕阳真美',
-      night:'星星在闪烁…',
-      'good-things':'回想好事会让心变得温暖'
-    },
-    stages:['卵','小毛毛虫','活泼','大毛毛虫','蛹','蝴蝶'],
-    stage_label:"成长阶段：{stage}",
-    born_msg:(name,key)=>`恭喜！“${name}” 以 ${key} 的样貌重生 🎉`,
-    born_after:"接下来，也许是一段对话与再选择的旅程。"
-  },
-  ko:{
-    cover_title:"너는 누구인가?",
-    cover_sub:"작은 보살핌과 성찰에서 시작되는 이야기. 애벌레는 일상의 상호작용 속에서 자라 MeAI 캐릭터로 다시 태어납니다.",
-    cover_start:"시작",
-    cover_about:"연구 소개",
-    cover_notice:"이미지는 public/ 에서 불러옵니다. 기록은 dataSdk 또는 로컬 저장을 사용합니다.",
-    setup_title:"너는 누구인가?",
-    label_name:"애벌레 이름",
-    label_date:"시작 날짜",
-    label_time:"시작 시각",
-    label_meai:"탄생할 MeAI 캐릭터",
-    label_good_btn:"“오늘의 좋은 일” 버튼",
-    hint_good:"하루의 끝에 1–3개 기록하면 성장 포인트가 추가됩니다.",
-    start_btn:"양육을 시작",
-    header_title:"너는 누구인가?",
-    btn_morning:"커튼 열기",
-    btn_breakfast:"아침식사",
-    btn_lunch:"점심식사",
-    btn_play:"함께 놀기",
-    btn_evening:"노을 바라보기",
-    btn_night:"별 보기",
-    btn_good:"오늘의 좋은 일",
-    status_msg:"함께 시간을 보내요",
-    good_title:"오늘의 좋은 일",
-    good_placeholder1:"첫 번째 좋은 일",
-    good_placeholder2:"두 번째 좋은 일",
-    good_placeholder3:"세 번째 좋은 일",
-    good_cancel:"취소",
-    good_save:"저장",
-    footer:"돌봄 횟수: {n}",
-    about_title:"연구 소개",
-    about_body:"이 작품은 플레이어가 게임 캐릭터에게 왜 애착을 느끼는지 관찰합니다. 보살핌과 인사, 작은 피드백이 ‘누군가와 함께 있음’의 감각을 서서히 만듭니다. 이름 붙이기, 루틴 공유, 표정/메시지/성장바의 미세한 손맛, 숨기 같은 우연성, ‘오늘의 좋은 일’로 나의 사건이 연결됨, 그리고 다시 선택할 수 있는 여백이 겹쳐지며 애착이 자랍니다. 마지막의 MeAI 탄생은 숫자를 넘어 ‘누군가처럼 느껴지는’ 순간을 드러냅니다.",
-    action_msgs:{
-      morning:'좋은 아침! 오늘도 함께해요',
-      breakfast:'맛있다…',
-      lunch:'함께 점심 먹자',
-      play:'너무 재미있어!',
-      evening:'노을이 예쁘다',
-      night:'별이 반짝여…',
-      'good-things':'좋은 일을 떠올리면 마음이 따뜻해져요'
-    },
-    stages:['알','아기','활기찬','큰 애벌레','번데기','나비'],
-    stage_label:"성장 단계: {stage}",
-    born_msg:(name,key)=>`축하해요! “${name}”가 ${key}로_
+    start:"スタート", about:"研究について", notice:"画像は
