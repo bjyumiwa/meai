@@ -275,4 +275,265 @@ const I18N = {
   ja:{
     cover_title:"君は何者？",
     cover_sub:"小さな世話と省察から始まる、あなた自身の「何者性」をめぐる物語。日々の関わりで芋虫が成長し、やがてMeAIキャラとして誕生します。",
-    start:"スタート", about:"研究について", notice:"画像は
+    start:"スタート", about:"研究について", notice:"画像は public/ 配下を参照します。記録は dataSdk またはローカル保存に対応。",
+    setup_title:"君は何者？", name:"芋虫の名前", date:"開始日", time:"開始時刻", meai:"誕生するMeAIキャラ",
+    start_btn:"育成を始める", header:"君は何者？", status:"一緒に過ごそう",
+    actions:{morning:"カーテンを開ける", breakfast:"朝ごはん", lunch:"お昼ごはん", play:"一緒に遊ぶ", evening:"夕焼けを見る", night:"星を見る", good:"今日のいいこと"},
+    msgs:{morning:'おはよう! 今日も一緒だね', breakfast:'もぐもぐ…', lunch:'お昼いこう', play:'わーい! 楽しいね', evening:'きれいな夕焼け', night:'星がきらきら…', good:'いいことを思い出すと、心があたたかくなるね'},
+    stages:['卵','赤ちゃん芋虫','元気な芋虫','大きな芋虫','さなぎ','蝶々'],
+    stage_label:"成長段階: {stage}",
+    footer:(n)=>`お世話した回数: ${n}回`,
+    daily:{gift:"🎁 今日のプレゼント", open:"開ける", special:"✨ 今日のスペシャル", see:"見る",
+      gift_title:"今日のプレゼント", gift_ok:"OK",
+      sp_title:"今日のスペシャル", sp_later:"あとで", sp_done:"完了！",
+      gift_text:(item,pts)=>`「${item}」を手に入れた！ 成長ポイント +${pts}`,
+      sp_text:(task)=>task+'（できたら「完了！」）',
+      already:"今日は受け取り済みです",
+      done:"完了、おつかれさま！ +{pts}"
+    },
+    born:(name,key)=>`おめでとう！「${name}」は ${key} の姿で生まれ変わった 🎉`,
+    afterBorn:"ここからは「対話」と「選び直し」の冒険が始まるかもしれませんね",
+    fillAll:"すべての項目を入力してください",
+    atLeastOne:"少なくとも1つ入力してください",
+    limit:"記録の上限に達しました",
+    found:"見つけた! 🎉"
+  }
+};
+
+const CHARACTERS = {
+  blue:{calm:'public/char/blue/calm.png',happy:'public/char/blue/happy.png'},
+  pink:{calm:'public/char/pink/calm.png',happy:'public/char/pink/happy.png'},
+  green:{calm:'public/char/green/calm.png',happy:'public/char/green/happy.png'},
+  purple:{calm:'public/char/purple/calm.png',happy:'public/char/purple/happy.png'}
+};
+
+let lang = 'ja';
+let dataReady=false, isLoading=false;
+
+/* ====== デイリーロジック（プレゼント＆スペシャル） ====== */
+const DAILY = {
+  specials:[
+    "水を一口あげて『ごっくん』と言う",
+    "石ころを3つ並べて『今日はこれ！』と見せる",
+    "空を10秒見上げて一緒に深呼吸",
+    "部屋のどこかを1分だけ片づけて報告する",
+    "近くの丸いものを1つ見つけて名前をつける",
+    "今日の色を決めて、その色のものを1つ触る",
+    "机をトントン2回たたいて合図を送る",
+    "『おつかれ！』と声に出して言う",
+    "窓を少し開けて外の空気を一緒に吸う",
+    "お気に入りの曲を10秒だけ流す"
+  ],
+  gifts:[
+    "ふしぎな葉っぱ","きらきらの砂","小さな鈴","星くずメモ","やわらか綿毛",
+    "青いビーズ","丸いボタン","銀のタグ","雲の破片","秘密の切手"
+  ],
+  todayKey(d){ return d.toISOString().slice(0,10); } // YYYY-MM-DD
+};
+
+function pickByDate(array, d){
+  const seed = Number(d.toISOString().slice(0,10).replaceAll('-',''));
+  return array[seed % array.length];
+}
+
+/* ====== 状態 ====== */
+const timeOfDayData={morning:{class:'morning',hours:[5,6,7,8,9,10]},day:{class:'day',hours:[10,11,12,13,14]},afternoon:{class:'afternoon',hours:[12,13,14,15,16]},evening:{class:'evening',hours:[17,18,19]},night:{class:'night',hours:[20,21,22,23,0,1,2,3,4]}};
+const growthStages=[{k:0,emo:'🥚',min:0},{k:1,emo:'🐛',min:5},{k:2,emo:'🐛',min:15},{k:3,emo:'🐛',min:30},{k:4,emo:'🥚',min:50},{k:5,emo:'🦋',min:80}];
+
+let gameState = {
+  name:'', start:null, now:null, points:0, hide:false, hideTimer:null,
+  meai:'blue', evolved:false, records:[],
+  lastGift:'', lastSpecial:'', inventory:[]
+};
+
+/* ====== 保存 ====== */
+function saveLocal(){ localStorage.setItem('whoareyou_save', JSON.stringify(gameState)); }
+function loadLocal(){
+  const raw=localStorage.getItem('whoareyou_save'); if(!raw) return;
+  try{
+    const d=JSON.parse(raw);
+    Object.assign(gameState,d);
+    if(gameState.start) gameState.start=new Date(gameState.start);
+    if(gameState.now) gameState.now=new Date(gameState.now);
+  }catch(_){}
+}
+
+/* ====== SDK初期化（404でもOK） ====== */
+const dataHandler={ onDataChanged(data){ gameState.records=data||[]; gameState.points=gameState.records.reduce((s,r)=>s+(r.growth_points||0),0); updateStatus(); saveLocal(); } };
+async function initSdks(){
+  try{ if(window.dataSdk?.init){ const res=await window.dataSdk.init(dataHandler); dataReady=!!res?.isOk; } }catch(_){ dataReady=false; }
+  try{ if(window.elementSdk?.init){ window.elementSdk.init({defaultConfig:{},onConfigChange:()=>{},mapToCapabilities:()=>({recolorables:[],borderables:[]}),mapToEditPanelValues:()=>new Map()}); } }catch(_){}
+}
+
+/* ====== UIユーティリティ ====== */
+function text(id, v){ const el=document.getElementById(id); if(el) el.textContent=v; }
+function toast(msg){ const el=document.getElementById('find-message'); const keep=el.textContent; el.textContent=msg; el.classList.add('show'); setTimeout(()=>{ el.classList.remove('show'); el.textContent=keep; },1800); }
+function updateTimeOfDay(){ const h=(gameState.now||new Date()).getHours(); let p='morning'; for(const [k,v] of Object.entries(timeOfDayData)){ if(v.hours.includes(h)){p=k;break;} } document.getElementById('app').className=timeOfDayData[p].class; }
+function updateDateTime(){ const d=gameState.now; const s=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; text('datetime-display',s); }
+function updateActions(h){ document.querySelectorAll('.action-btn').forEach(b=>{ const ok=timeOfDayData[b.dataset.time]?.hours.includes(h); b.disabled=!ok; b.classList.toggle('locked',!ok); }); }
+
+/* ====== ステータス ====== */
+function stageNow(){ let cur=growthStages[0], nxt=growthStages[1]??growthStages[0]; for(let i=growthStages.length-1;i>=0;i--){ if(gameState.points>=growthStages[i].min){ cur=growthStages[i]; nxt=growthStages[i+1]||growthStages[i]; break; } } return {cur,nxt}; }
+function updateStatus(){
+  text('caterpillar-name', gameState.name||'いもちゃん');
+  text('care-count', (gameState.records||[]).length);
+  const {cur,nxt}=stageNow();
+  text('growth-stage', I18N.ja.stage_label.replace('{stage}', I18N.ja.stages[cur.k]));
+  document.getElementById('caterpillar').textContent=cur.emo;
+  const prog=gameState.points-cur.min, need=nxt.min-cur.min;
+  document.getElementById('growth-bar').style.width=(cur===nxt?100:Math.max(0,Math.min(100,(prog/need)*100)))+'%';
+  if(!gameState.evolved && cur.k===5) evolveMeAI();
+}
+
+/* ====== 進化 ====== */
+function evolveMeAI(){
+  gameState.evolved=true;
+  const cat=document.getElementById('caterpillar'); cat.style.opacity='0';
+  const img=document.getElementById('char-img'); const asset=CHARACTERS[gameState.meai]||CHARACTERS.blue;
+  img.onload=()=>img.classList.add('show'); img.onerror=()=>{img.style.display='none';};
+  img.src=asset.calm; img.style.display='block';
+  toast(I18N.ja.born(gameState.name,gameState.meai));
+  setTimeout(()=>{ if(asset.happy){ img.src=asset.happy; } },400);
+  setTimeout(()=>{ img.src=asset.calm; },1400);
+  text('message', I18N.ja.afterBorn);
+}
+
+/* ====== 行動記録 ====== */
+async function logAction(payload){
+  if(dataReady){ try{ await window.dataSdk.create(payload); }catch(_){ gameState.records.push(payload); } }
+  else{ gameState.records.push(payload); }
+  gameState.points=gameState.records.reduce((s,r)=>s+(r.growth_points||0),0);
+  saveLocal();
+}
+
+/* ====== デイリー処理 ====== */
+function ensureDailyBar(){
+  const bar=document.getElementById('daily-bar'); bar.classList.add('show');
+  const today=DAILY.todayKey(gameState.now);
+  const giftDone=(gameState.lastGift===today);
+  const spDone=(gameState.lastSpecial===today);
+
+  document.getElementById('gift-chip').style.filter=giftDone?'grayscale(1)':'none';
+  document.getElementById('special-chip').style.filter=spDone?'grayscale(1)':'none';
+}
+
+function openGift(){
+  const today=DAILY.todayKey(gameState.now);
+  if(gameState.lastGift===today){ toast(I18N.ja.daily.already); return; }
+  const item=pickByDate(DAILY.gifts, gameState.now);
+  const pts=2;
+  document.getElementById('gift-body').textContent = I18N.ja.daily.gift_text(item,pts);
+  document.getElementById('gift-modal').classList.add('show');
+  // 受け取り処理はOKクリック時に
+  document.getElementById('gift-close').onclick=async()=>{
+    document.getElementById('gift-modal').classList.remove('show');
+    gameState.inventory.push(item);
+    gameState.lastGift=today;
+    await logAction({id:Date.now().toString(),timestamp:gameState.now.toISOString(),action_type:'daily-gift',item,growth_points:pts});
+    updateStatus(); ensureDailyBar();
+  };
+}
+
+function openSpecial(){
+  const today=DAILY.todayKey(gameState.now);
+  if(gameState.lastSpecial===today){ toast(I18N.ja.daily.already); return; }
+  const task=pickByDate(DAILY.specials, gameState.now);
+  text('sp-title', I18N.ja.daily.sp_title);
+  text('sp-task', I18N.ja.daily.sp_text(task));
+  document.getElementById('special-modal').classList.add('show');
+  document.getElementById('sp-cancel').onclick=()=>document.getElementById('special-modal').classList.remove('show');
+  document.getElementById('sp-done').onclick=async()=>{
+    document.getElementById('special-modal').classList.remove('show');
+    const pts=2;
+    gameState.lastSpecial=today;
+    await logAction({id:Date.now().toString(),timestamp:gameState.now.toISOString(),action_type:'daily-special',task,growth_points:pts});
+    toast(I18N.ja.daily.done.replace('{pts}',pts));
+    updateStatus(); ensureDailyBar();
+  };
+}
+
+/* ====== 操作 ====== */
+async function handleAction(action){
+  if((gameState.records||[]).length>=999){ toast(I18N.ja.limit); return; }
+  if(isLoading) return; isLoading=true; setButtonsOpacity(.6);
+  const pts=Math.floor(Math.random()*2)+1;
+  await logAction({id:Date.now().toString(),timestamp:gameState.now.toISOString(),action_type:action,growth_points:pts});
+  advanceTime();
+  text('message', I18N.ja.msgs[action] || 'ありがとう！');
+  isLoading=false; setButtonsOpacity(1); updateStatus();
+}
+function advanceTime(){
+  gameState.now=new Date(gameState.now.getTime()+60*60*1000);
+  updateDateTime(); updateTimeOfDay(); updateActions(gameState.now.getHours());
+  // 日付が変わったらデイリー更新
+  ensureDailyBar();
+}
+function setButtonsOpacity(v){ document.querySelectorAll('.action-btn').forEach(b=>b.style.opacity=v); }
+
+/* ====== 隠れんぼ ====== */
+function startHideTimer(){
+  clearInterval(gameState.hideTimer);
+  gameState.hideTimer=setInterval(()=>{
+    if(!gameState.evolved && !gameState.hide && Math.random()<0.1){
+      gameState.hide=true; const c=document.getElementById('caterpillar');
+      c.classList.add('hidden-in-grass'); c.style.left=(Math.random()*80)+'%'; c.style.top='50%';
+    }
+  },10000);
+}
+
+/* ====== 画面初期化とイベント ====== */
+function bind(){
+  document.getElementById('cover-start').onclick=()=>{ document.getElementById('cover').classList.add('hidden'); document.getElementById('setup-screen').classList.add('show'); };
+  document.getElementById('cover-about').onclick=()=>document.getElementById('about-modal').classList.add('show');
+  document.getElementById('about-close').onclick=()=>document.getElementById('about-modal').classList.remove('show');
+
+  document.getElementById('start-btn').onclick=()=>{
+    const name=document.getElementById('caterpillar-name-input').value.trim();
+    const d=document.getElementById('start-date-input').value;
+    const tm=document.getElementById('start-time-input').value;
+    const key=document.getElementById('meai-char-select').value||'blue';
+    if(!name||!d||!tm){ toast(I18N.ja.fillAll); return; }
+    Object.assign(gameState,{name, start:new Date(d+'T'+tm), now:new Date(d+'T'+tm), meai:key, evolved:false});
+    document.getElementById('setup-screen').classList.remove('show');
+    document.getElementById('game-screen').style.display='flex';
+    updateDateTime(); updateTimeOfDay(); updateActions(gameState.now.getHours()); updateStatus(); ensureDailyBar(); startHideTimer(); saveLocal();
+  };
+
+  ['btn-morning','btn-breakfast','btn-lunch','btn-play','btn-evening','btn-night'].forEach(id=>{
+    document.getElementById(id).onclick=(e)=>handleAction(e.target.dataset.action);
+  });
+  document.getElementById('btn-good').onclick=()=>{
+    document.getElementById('good-title').textContent="今日のいいこと";
+    ['good-1','good-2','good-3'].forEach((id,i)=>{ const el=document.getElementById(id); el.value=''; el.placeholder=[ "1つ目のいいこと","2つ目のいいこと","3つ目のいいこと"][i]; });
+    document.getElementById('good-modal').classList.add('show');
+  };
+  document.getElementById('good-cancel').onclick=()=>document.getElementById('good-modal').classList.remove('show');
+  document.getElementById('good-save').onclick=async()=>{
+    const v1=document.getElementById('good-1').value.trim(); const v2=document.getElementById('good-2').value.trim(); const v3=document.getElementById('good-3').value.trim();
+    if(!v1&&!v2&&!v3){ toast(I18N.ja.atLeastOne); return; }
+    await logAction({id:Date.now().toString(),timestamp:gameState.now.toISOString(),action_type:'good-things',growth_points:3,good_thing_1:v1,good_thing_2:v2,good_thing_3:v3});
+    document.getElementById('good-modal').classList.remove('show'); advanceTime(); text('message', I18N.ja.msgs['good']); updateStatus();
+  };
+
+  document.getElementById('caterpillar').onclick=()=>{
+    if(gameState.hide){ gameState.hide=false; document.getElementById('caterpillar').classList.remove('hidden-in-grass'); toast(I18N.ja.found); }
+  };
+
+  document.getElementById('gift-open').onclick=openGift;
+  document.getElementById('special-open').onclick=openSpecial;
+}
+
+/* ====== 起動 ====== */
+(async function(){
+  // 入力欄の初期値
+  const now=new Date(); document.getElementById('start-date-input').valueAsDate=now; document.getElementById('start-time-input').value = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+
+  loadLocal(); bind(); await initSdks();
+  document.getElementById('cover').classList.remove('hidden');
+})();
+</script>
+
+<!-- Cloudflare snippet（そのまま） -->
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99b595afb72c7344',t:'MTc2MjYxMDMwMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body>
+</html>
